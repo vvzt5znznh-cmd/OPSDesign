@@ -7,58 +7,43 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         aria-labelledby="help-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="help-title">How to read an operational design</h2>
+        <h2 id="help-title">How the picture works</h2>
         <p>
           Operational design is a way to see how concurrent work produces a
-          desired outcome. It comes from campaign planning, but the same picture
-          works for a product launch, a public service, a transformation, or a
-          construction programme.
+          desired outcome. Same geometry for a service launch, a transformation,
+          or a campaign.
         </p>
-        <dl className="help-dl">
-          <dt>End state (desired outcome)</dt>
-          <dd>
-            The conditions that must hold when the work is finished — not a date
-            and not a deliverable list. Every line of effort points here.
-          </dd>
-          <dt>Phases (stages)</dt>
-          <dd>
-            Sequential chapters of the work, left to right. In civilian delivery
-            these are often Discover, Define, Build, Launch — or whatever stages
-            your life cycle uses.
-          </dd>
-          <dt>Lines of effort (workstreams)</dt>
-          <dd>
-            Concurrent streams organised by purpose, not by org chart. Product,
-            assurance, and adoption can run together toward the same end state.
-          </dd>
-          <dt>Milestone</dt>
-          <dd>
-            An event or deliverable: “beta released”, “contract signed”. It
-            happened, or it did not. Drawn as a red triangle.
-          </dd>
-          <dt>Condition</dt>
-          <dd>
-            A state that must hold: “funding is committed”, “users are ready”.
-            In doctrine this is a decisive condition. Drawn as a blue diamond.
-          </dd>
-          <dt>Dependency</dt>
-          <dd>
-            Cause and effect across the picture. “Go-live depends on users being
-            ready.” Dashed arrows. Use <strong>Link dependencies</strong>, or
-            add them from the inspector.
-          </dd>
-          <dt>Decision point (gate)</dt>
-          <dd>
-            A choice, usually at a phase boundary: proceed, recycle, or stop. In
-            government delivery these are stage gates. Drawn as a green star.
-          </dd>
-        </dl>
-        <p>
-          Hover a workstream inside a phase and add a milestone or a condition.
-          Drag a node along its arrow to move it. Click a dashed link to select
-          and delete it.
+        <div className="help-grid">
+          <div>
+            <h3>End state</h3>
+            <p>What must be true when you are done — not a date.</p>
+          </div>
+          <div>
+            <h3>Phases</h3>
+            <p>Stages, left to right. Discover, define, build, launch — or yours.</p>
+          </div>
+          <div>
+            <h3>Workstreams</h3>
+            <p>Lines of effort: concurrent work organised by purpose.</p>
+          </div>
+          <div>
+            <h3>Milestone △</h3>
+            <p>An event or deliverable. It happened, or it did not.</p>
+          </div>
+          <div>
+            <h3>Condition ◇</h3>
+            <p>A state that must hold. Funding is committed. Users are ready.</p>
+          </div>
+          <div>
+            <h3>Gate ★</h3>
+            <p>A decision between stages: proceed, recycle, or stop.</p>
+          </div>
+        </div>
+        <p className="help-how">
+          Hover a workstream in a phase to add. Drag to move. Press{" "}
+          <strong>Link</strong>, then click A then B to draw a dependency.
         </p>
-        <button type="button" onClick={onClose}>
+        <button type="button" className="modal-close" onClick={onClose}>
           Close
         </button>
       </div>

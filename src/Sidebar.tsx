@@ -1,5 +1,4 @@
 import { uid } from "./id";
-import { sortNodes } from "./design";
 import { useDesign } from "./state";
 import type { NodeKind } from "./types";
 
@@ -53,31 +52,28 @@ export function Sidebar() {
     setSelection({ type: "dp", id });
   }
 
-  const milestones = sortNodes(design).filter((n) => n.kind === "milestone");
-  const conditions = sortNodes(design).filter((n) => n.kind === "condition");
-
   return (
     <aside className="sidebar">
-      <div className="quick-add">
-        <button type="button" onClick={addPhase}>
-          + Phase
+      <p className="sidebar-kicker">Add to the picture</p>
+      <div className="add-stack">
+        <button type="button" className="add-row" onClick={() => addNode("milestone")}>
+          <span className="mark triangle" />
+          Milestone
         </button>
-        <button type="button" onClick={addLoe}>
-          + LoE
-        </button>
-        <button type="button" onClick={() => addNode("milestone")}>
-          + Milestone
-        </button>
-        <button type="button" onClick={() => addNode("condition")}>
-          + Condition
-        </button>
-        <button type="button" onClick={addDp}>
-          + Gate
+        <button type="button" className="add-row" onClick={() => addNode("condition")}>
+          <span className="mark diamond" />
+          Condition
         </button>
       </div>
+      <p className="hint">
+        Drops onto the selected workstream and phase — or hover the diagram to
+        place one exactly.
+      </p>
 
       <section>
-        <h2>End state</h2>
+        <div className="section-head">
+          <h2>End state</h2>
+        </div>
         <button
           type="button"
           className={selection?.type === "endState" ? "row selected" : "row"}
@@ -89,7 +85,12 @@ export function Sidebar() {
       </section>
 
       <section>
-        <h2>Phases</h2>
+        <div className="section-head">
+          <h2>Phases</h2>
+          <button type="button" className="icon-add" onClick={addPhase} title="Add phase">
+            +
+          </button>
+        </div>
         <ol className="stack">
           {design.phases.map((phase) => (
             <li key={phase.id}>
@@ -110,7 +111,12 @@ export function Sidebar() {
       </section>
 
       <section>
-        <h2>Lines of effort</h2>
+        <div className="section-head">
+          <h2>Workstreams</h2>
+          <button type="button" className="icon-add" onClick={addLoe} title="Add line of effort">
+            +
+          </button>
+        </div>
         <ol className="stack">
           {design.linesOfEffort.map((loe) => (
             <li key={loe.id}>
@@ -132,9 +138,14 @@ export function Sidebar() {
       </section>
 
       <section>
-        <h2>Decision points (gates)</h2>
+        <div className="section-head">
+          <h2>Gates</h2>
+          <button type="button" className="icon-add" onClick={addDp} title="Add gate">
+            +
+          </button>
+        </div>
         {design.decisionPoints.length === 0 ? (
-          <p className="muted">None yet. Add one at a phase boundary.</p>
+          <p className="muted">None yet.</p>
         ) : (
           <ol className="stack">
             {design.decisionPoints.map((dp) => (
@@ -156,64 +167,6 @@ export function Sidebar() {
           </ol>
         )}
       </section>
-
-      <NodeList
-        title="Milestones"
-        empty="Hover a line of effort and click △ to add one."
-        nodes={milestones}
-      />
-      <NodeList
-        title="Conditions"
-        empty="Hover a line of effort and click ◇ to add one."
-        nodes={conditions}
-      />
-
-      <p className="hint">Click a row to edit it in the inspector.</p>
     </aside>
-  );
-}
-
-function NodeList({
-  title,
-  empty,
-  nodes,
-}: {
-  title: string;
-  empty: string;
-  nodes: { id: string; label: string; loeId: string }[];
-}) {
-  const { design, selection, setSelection } = useDesign();
-  return (
-    <section>
-      <h2>{title}</h2>
-      {nodes.length === 0 ? (
-        <p className="muted">{empty}</p>
-      ) : (
-        <ol className="stack compact">
-          {nodes.map((n) => {
-            const loe = design.linesOfEffort.find((l) => l.id === n.loeId);
-            return (
-              <li key={n.id}>
-                <button
-                  type="button"
-                  className={
-                    selection?.type === "node" && selection.id === n.id
-                      ? "row selected"
-                      : "row"
-                  }
-                  onClick={() => setSelection({ type: "node", id: n.id })}
-                >
-                  <span
-                    className="swatch sm"
-                    style={{ background: loe?.color ?? "#999" }}
-                  />
-                  <span className="row-label">{n.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-      )}
-    </section>
   );
 }

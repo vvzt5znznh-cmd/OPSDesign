@@ -9,19 +9,18 @@ import { Toolbar } from "./Toolbar";
 import { Welcome } from "./Welcome";
 import type { OperationalDesign } from "./types";
 
-function Editor({
-  onNew,
-}: {
-  onNew: () => void;
-}) {
+function Editor({ onNew }: { onNew: () => void }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [help, setHelp] = useState(false);
-  const { present, undo, redo } = useDesign();
+  const { present, undo, redo, linkMode, setLinkMode } = useDesign();
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) {
+      if (
+        t &&
+        (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)
+      ) {
         return;
       }
       const meta = e.metaKey || e.ctrlKey;
@@ -41,9 +40,21 @@ function Editor({
       <div className="workspace">
         <Sidebar />
         <main className="canvas">
+          {linkMode && (
+            <div className="link-banner">
+              Click what must happen first, then what depends on it.
+              <button type="button" onClick={() => setLinkMode(false)}>
+                Done
+              </button>
+            </div>
+          )}
           <div className="canvas-scroll">
             <Diagram svgRef={svgRef} />
           </div>
+          <p className="canvas-hint hide-present">
+            Hover a workstream in a phase to add · Drag to move · Click anything
+            to edit
+          </p>
         </main>
         <Inspector />
       </div>

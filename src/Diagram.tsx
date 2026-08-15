@@ -17,7 +17,7 @@ import {
   type Selection,
 } from "./types";
 
-function wrapLabel(text: string, maxChars = 15, maxLines = 3): string[] {
+function wrapLabel(text: string, maxChars = 16, maxLines = 3): string[] {
   const words = text.split(/\s+/).filter(Boolean);
   const lines: string[] = [];
   let cur = "";
@@ -72,13 +72,15 @@ function isSelected(
 }
 
 const DIAGRAM_CSS = `
-  .svg-title { font-family: Arial, Helvetica, sans-serif; font-size: 22px; font-weight: 700; fill: #0f1c2e; }
-  .svg-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 11px; fill: #5a6a7a; }
-  .svg-phase { font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: 600; fill: #1a365d; }
+  .svg-title { font-family: Arial, Helvetica, sans-serif; font-size: 22px; font-weight: 700; fill: #1a1f2b; }
+  .svg-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 11px; fill: #6b7380; }
+  .svg-phase { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; fill: #2c3544; }
   .svg-loe { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; }
-  .svg-condition, .svg-dp-label, .svg-legend { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: #243042; }
-  .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; fill: #fff; }
-  .dep-line { fill: none; stroke: #4a5568; stroke-width: 1.6; stroke-dasharray: 5 4; }
+  .svg-condition, .svg-dp-label, .svg-legend { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: #2c3544; }
+  .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 700; fill: #fff; }
+  .svg-end-kicker { font-family: Arial, Helvetica, sans-serif; font-size: 8px; font-weight: 600; fill: rgba(255,255,255,0.7); letter-spacing: 0.12em; }
+  .dep-line { fill: none; stroke: #7a8494; stroke-width: 1.4; stroke-dasharray: 5 4; }
+  .add-pill-text { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: #fff; }
 `;
 
 export function Diagram({
@@ -112,6 +114,7 @@ export function Diagram({
   const dragRef = useRef(drag);
   dragRef.current = drag;
   const skipDeselect = useRef(false);
+  const [renameId, setRenameId] = useState<string | null>(null);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -123,6 +126,10 @@ export function Diagram({
         return;
       }
       if (e.key === "Escape") {
+        if (renameId) {
+          setRenameId(null);
+          return;
+        }
         if (linkMode) {
           setLinkMode(false);
           return;
@@ -148,7 +155,7 @@ export function Diagram({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selection, dispatch, setSelection, linkMode, setLinkMode]);
+  }, [selection, dispatch, setSelection, linkMode, setLinkMode, renameId]);
 
   function dropAt(laid: DiagramLayout, id: string, x: number) {
     const node = design.nodes.find((n) => n.id === id);
@@ -343,7 +350,7 @@ export function Diagram({
             y={laidOut.plot.y - 42}
             width={phase.width}
             height={laidOut.plot.height + 42}
-            fill={i % 2 === 0 ? "#f4f6f8" : "#e9eef3"}
+            fill={i % 2 === 0 ? "#f6f3ee" : "#efeae3"}
           />
           <text
             x={phase.x + phase.width / 2}
@@ -369,7 +376,7 @@ export function Diagram({
         y={laidOut.dpBar.y}
         width={laidOut.dpBar.width}
         height={laidOut.dpBar.height}
-        fill="#d9dee5"
+        fill="#e6e1d8"
       />
 
       {laidOut.loes.map((loe) => (
@@ -380,7 +387,7 @@ export function Diagram({
             x2={laidOut.endState.cx - laidOut.endState.rx - 6}
             y2={loe.y}
             stroke={loe.color}
-            strokeWidth={14}
+            strokeWidth={12}
             strokeLinecap="round"
             markerEnd={`url(#arrow-${loe.id})`}
           />
@@ -410,9 +417,9 @@ export function Diagram({
               className="dep-line"
               markerEnd="url(#dep-arrow)"
               stroke={
-                isSelected(selection, "dependency", dep.id) ? "#c4a35a" : "#4a5568"
+                isSelected(selection, "dependency", dep.id) ? "#c4a35a" : "#7a8494"
               }
-              strokeWidth={isSelected(selection, "dependency", dep.id) ? 2.4 : 1.6}
+              strokeWidth={isSelected(selection, "dependency", dep.id) ? 2.2 : 1.4}
             />
             <path
               d={dep.d}
@@ -452,37 +459,14 @@ export function Diagram({
       )}
 
       {hoverCell && !drag?.active && !linkMode && (
-        <g
-          data-ui="true"
-          className="add-on-canvas"
-          transform={`translate(${
-            (laidOut.phases.find((p) => p.id === hoverCell.phaseId)?.x ?? 0) +
-            (laidOut.phases.find((p) => p.id === hoverCell.phaseId)?.width ?? 0) -
-            48
-          }, ${
-            (laidOut.loes.find((l) => l.id === hoverCell.loeId)?.y ?? 0) - 30
-          })`}
-        >
-          <g
-            onClick={(e) => {
-              e.stopPropagation();
-              addAtHover("milestone");
-            }}
-          >
-            <circle r="11" cx="11" cy="11" fill="#0f1c2e" />
-            <path d="M11,5 L16,16 L6,16 Z" fill={MILESTONE_FILL} />
-          </g>
-          <g
-            transform="translate(24,0)"
-            onClick={(e) => {
-              e.stopPropagation();
-              addAtHover("condition");
-            }}
-          >
-            <circle r="11" cx="11" cy="11" fill="#0f1c2e" />
-            <path d="M11,4 L18,11 L11,18 L4,11 Z" fill={CONDITION_FILL} />
-          </g>
-        </g>
+        <AddPills
+          x={
+            (laidOut.phases.find((p) => p.id === hoverCell.phaseId)?.x ?? 0) + 10
+          }
+          y={(laidOut.loes.find((l) => l.id === hoverCell.loeId)?.y ?? 0) - 46}
+          onMilestone={() => addAtHover("milestone")}
+          onCondition={() => addAtHover("condition")}
+        />
       )}
 
       {laidOut.nodes.map((n) => {
@@ -499,6 +483,7 @@ export function Diagram({
             }
             linking={linkFrom === n.id}
             onPointerDown={(e) => onNodePointerDown(e, n.id, n.x, n.y)}
+            onDoubleClick={() => setRenameId(n.id)}
           />
         );
       })}
@@ -514,6 +499,39 @@ export function Diagram({
           onPointerDown={() => undefined}
         />
       )}
+
+      {renameId &&
+        laidOut.nodes
+          .filter((n) => n.id === renameId)
+          .map((n) => (
+            <foreignObject
+              key={`rename-${n.id}`}
+              data-ui="true"
+              x={n.x - 70}
+              y={n.y + 14}
+              width="140"
+              height="28"
+            >
+              <input
+                className="rename-input"
+                autoFocus
+                defaultValue={design.nodes.find((x) => x.id === n.id)?.label ?? ""}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                onBlur={(e) => {
+                  const value = e.target.value.trim();
+                  if (value) {
+                    dispatch({ type: "updateNode", id: n.id, label: value });
+                  }
+                  setRenameId(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                  if (e.key === "Escape") setRenameId(null);
+                }}
+              />
+            </foreignObject>
+          ))}
 
       {laidOut.dps.map((dp) => (
         <g
@@ -555,21 +573,73 @@ export function Diagram({
           strokeWidth={isSelected(selection, "endState") ? 3 : 1.5}
           filter="url(#soft)"
         />
-        {wrapLabel(laidOut.endState.name, 12, 4).map((line, i, arr) => (
+        {wrapLabel(laidOut.endState.name, 12, 3).map((line, i, arr) => (
           <text
             key={i}
             x={laidOut.endState.cx}
-            y={laidOut.endState.cy + (i - (arr.length - 1) / 2) * 16}
+            y={laidOut.endState.cy + 6 + (i - (arr.length - 1) / 2) * 15}
             textAnchor="middle"
             className="svg-end"
           >
             {line}
           </text>
         ))}
+        {!/end state/i.test(laidOut.endState.name) && (
+          <text
+            x={laidOut.endState.cx}
+            y={laidOut.endState.cy - laidOut.endState.ry + 18}
+            textAnchor="middle"
+            className="svg-end-kicker"
+          >
+            END STATE
+          </text>
+        )}
       </g>
 
       <Legend x={36} y={laidOut.height - 36} />
     </svg>
+  );
+}
+
+function AddPills({
+  x,
+  y,
+  onMilestone,
+  onCondition,
+}: {
+  x: number;
+  y: number;
+  onMilestone: () => void;
+  onCondition: () => void;
+}) {
+  return (
+    <g data-ui="true" className="add-on-canvas" transform={`translate(${x}, ${y})`}>
+      <g
+        onClick={(e) => {
+          e.stopPropagation();
+          onMilestone();
+        }}
+      >
+        <rect width="92" height="22" rx="11" fill="#1a1f2b" />
+        <path d="M12,6 L17,17 L7,17 Z" fill={MILESTONE_FILL} />
+        <text x="24" y="15" className="add-pill-text">
+          Milestone
+        </text>
+      </g>
+      <g
+        transform="translate(98,0)"
+        onClick={(e) => {
+          e.stopPropagation();
+          onCondition();
+        }}
+      >
+        <rect width="92" height="22" rx="11" fill="#1a1f2b" />
+        <path d="M12,5 L19,11 L12,17 L5,11 Z" fill={CONDITION_FILL} />
+        <text x="26" y="15" className="add-pill-text">
+          Condition
+        </text>
+      </g>
+    </g>
   );
 }
 
@@ -582,6 +652,7 @@ function NodeMark({
   dragging,
   linking,
   onPointerDown,
+  onDoubleClick,
 }: {
   x: number;
   y: number;
@@ -591,16 +662,23 @@ function NodeMark({
   dragging?: boolean;
   linking?: boolean;
   onPointerDown: (e: PointerEvent<SVGGElement>) => void;
+  onDoubleClick?: () => void;
 }) {
   const lines = wrapLabel(label);
   const fill = kind === "milestone" ? MILESTONE_FILL : CONDITION_FILL;
   const stroke = selected ? "#c4a35a" : kind === "milestone" ? "#3b0d0d" : "#06243f";
+  const maxLen = Math.max(...lines.map((l) => l.length), 4);
+  const boxW = Math.min(140, Math.max(48, maxLen * 6.2 + 10));
   return (
     <g
       transform={`translate(${x}, ${y})`}
       className={dragging ? "condition-mark dragging" : "condition-mark"}
       onPointerDown={onPointerDown}
       onClick={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        onDoubleClick?.();
+      }}
     >
       {linking && <circle r="18" fill="none" stroke="#c4a35a" strokeWidth="1.5" />}
       {kind === "milestone" ? (
@@ -620,8 +698,16 @@ function NodeMark({
           filter="url(#soft)"
         />
       )}
+      <rect
+        x={-boxW / 2}
+        y={14}
+        width={boxW}
+        height={lines.length * 12 + 6}
+        rx="3"
+        fill="rgba(255,255,255,0.92)"
+      />
       {lines.map((line, i) => (
-        <text key={i} y={24 + i * 11} textAnchor="middle" className="svg-condition">
+        <text key={i} y={26 + i * 12} textAnchor="middle" className="svg-condition">
           {line}
         </text>
       ))}

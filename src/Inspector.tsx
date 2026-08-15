@@ -25,20 +25,27 @@ export function Inspector() {
   if (!selection) {
     return (
       <aside className="inspector">
-        <h2>Inspector</h2>
-        <p className="muted">
-          Click a phase, line of effort, milestone, condition, gate, dependency,
-          or the end state to edit it.
-        </p>
-        <ul className="tips">
-          <li>Hover a LoE inside a phase: △ adds a milestone, ◇ a condition.</li>
-          <li>Drag nodes along their line of effort to move them.</li>
+        <h2>Properties</h2>
+        <p className="lede-sm">Click anything on the picture to edit it here.</p>
+        <ol className="how">
+          <li>Hover a coloured line in a phase.</li>
+          <li>Add a milestone (event) or a condition (state).</li>
           <li>
-            Link dependencies: click the predecessor, then the node that needs
-            it.
+            Press <strong>Link</strong>, then click A then B.
           </li>
-          <li>Delete or Backspace removes the selection.</li>
-        </ul>
+        </ol>
+        <div className="legend-card">
+          <p>
+            <span className="mark triangle" /> Milestone — an event
+          </p>
+          <p>
+            <span className="mark diamond" /> Condition — a state that must hold
+          </p>
+          <p>
+            <span className="star">★</span> Gate — a decision
+          </p>
+          <p className="dep-key">— — Dependency</p>
+        </div>
       </aside>
     );
   }
@@ -46,7 +53,7 @@ export function Inspector() {
   if (selection.type === "title") {
     return (
       <aside className="inspector">
-        <h2>Project title</h2>
+        <h2>Project</h2>
         <Field label="Title">
           <input
             key={design.id}
@@ -152,8 +159,8 @@ export function Inspector() {
     const idx = design.linesOfEffort.findIndex((l) => l.id === loe.id);
     return (
       <aside className="inspector">
-        <h2>Line of effort</h2>
-        <p className="muted">A workstream organised by purpose.</p>
+        <h2>Workstream</h2>
+        <p className="muted">A line of effort — concurrent work organised by purpose.</p>
         <Field label="Name">
           <input
             key={loe.id}
@@ -199,7 +206,7 @@ export function Inspector() {
           disabled={design.linesOfEffort.length <= 1}
           onClick={() => dispatch({ type: "removeLoe", id: loe.id })}
         >
-          Remove LoE
+          Remove workstream
         </button>
       </aside>
     );
@@ -242,6 +249,7 @@ export function Inspector() {
         <Field label="Label">
           <input
             key={n.id}
+            autoFocus
             defaultValue={n.label}
             onBlur={(e) =>
               dispatch({ type: "updateNode", id: n.id, label: e.target.value })
@@ -361,7 +369,7 @@ export function Inspector() {
             setLinkFrom(n.id);
           }}
         >
-          Draw a dependency from here
+          Draw link from here
         </button>
         <button
           type="button"

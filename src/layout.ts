@@ -2,16 +2,16 @@ import { nodesInCell } from "./design";
 import type { NodeKind, OperationalDesign } from "./types";
 
 export const LAYOUT = {
-  padX: 36,
-  padY: 28,
-  phaseHeaderH: 42,
-  dpBarH: 58,
-  leftGutter: 176,
-  endW: 196,
-  loeH: 100,
-  legendH: 64,
-  slot: 76,
-  phaseMin: 210,
+  padX: 40,
+  padY: 32,
+  phaseHeaderH: 46,
+  dpBarH: 56,
+  leftGutter: 188,
+  endW: 200,
+  loeH: 112,
+  legendH: 58,
+  slot: 84,
+  phaseMin: 220,
 };
 
 export interface PhaseLayout {

@@ -1,5 +1,6 @@
-import { useRef, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { downloadPng, downloadSvg } from "./export";
+import { Menu } from "./Menu";
 import { downloadJson, parseImportedDesign } from "./storage";
 import { useDesign } from "./state";
 
@@ -27,6 +28,11 @@ export function Toolbar({
     setShowDependencies,
   } = useDesign();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [title, setTitle] = useState(design.title);
+
+  useEffect(() => {
+    setTitle(design.title);
+  }, [design.title]);
 
   async function exportPng() {
     if (!svgRef.current) return;
@@ -54,76 +60,99 @@ export function Toolbar({
 
   return (
     <header className="toolbar">
-      <div className="brand">
-        <span className="logo" aria-hidden />
-        <span>OPSDesign</span>
-      </div>
-
-      <div className="kind-toggle" role="group" aria-label="Diagram tools">
-        <button
-          type="button"
-          className={linkMode ? "on" : ""}
-          onClick={() => setLinkMode(!linkMode)}
-        >
-          Link dependencies
-        </button>
-        <button
-          type="button"
-          className={showDependencies ? "on" : ""}
-          onClick={() => setShowDependencies(!showDependencies)}
-        >
-          Show links
-        </button>
-      </div>
-
-      <div className="toolbar-actions">
-        <button type="button" onClick={undo} disabled={!canUndo} title="Undo">
-          Undo
-        </button>
-        <button type="button" onClick={redo} disabled={!canRedo} title="Redo">
-          Redo
-        </button>
-        <button
-          type="button"
-          className="keep-present"
-          onClick={() => setPresent(!present)}
-        >
-          {present ? "Edit" : "Present"}
-        </button>
-        <button type="button" onClick={exportPng}>
-          PNG
-        </button>
-        <button type="button" onClick={exportSvg}>
-          SVG
-        </button>
-        <button type="button" onClick={() => downloadJson(design)}>
-          Save JSON
-        </button>
-        <button type="button" onClick={() => fileRef.current?.click()}>
-          Open JSON
-        </button>
+      <div className="toolbar-left hide-present">
+        <div className="brand">
+          <span className="logo" aria-hidden />
+          <span>OPSDesign</span>
+        </div>
         <input
-          ref={fileRef}
-          type="file"
-          accept="application/json,.json"
-          hidden
-          onChange={(e) => {
-            onImport(e.target.files?.[0]);
-            e.target.value = "";
+          className="title-input"
+          value={title}
+          aria-label="Project title"
+          onChange={(e) => setTitle(e.target.value)}
+          onBlur={() => {
+            if (title.trim() && title !== design.title) {
+              dispatch({ type: "setTitle", title: title.trim() });
+            } else {
+              setTitle(design.title);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
           }}
         />
-        <button type="button" onClick={onHelp}>
-          Help
-        </button>
-        <button type="button" className="ghost" onClick={onNew}>
-          New
-        </button>
       </div>
-      <p className="toolbar-note">
-        {linkMode
-          ? "Click a node, then the node that depends on it. Escape cancels."
-          : "Milestones are events. Conditions are states that must hold. Dashed arrows are dependencies. Gates are decisions."}
-      </p>
+
+      <div className="toolbar-right">
+        <div className="tool-group hide-present">
+          <button
+            type="button"
+            className={linkMode ? "tool primary on" : "tool primary"}
+            onClick={() => setLinkMode(!linkMode)}
+          >
+            {linkMode ? "Linking…" : "Link"}
+          </button>
+          <button
+            type="button"
+            className={showDependencies ? "tool on" : "tool"}
+            onClick={() => setShowDependencies(!showDependencies)}
+            title="Show or hide dependency arrows"
+          >
+            Links
+          </button>
+        </div>
+        <div className="tool-group hide-present">
+          <button type="button" className="tool" onClick={undo} disabled={!canUndo}>
+            Undo
+          </button>
+          <button type="button" className="tool" onClick={redo} disabled={!canRedo}>
+            Redo
+          </button>
+        </div>
+        <div className="tool-group hide-present">
+          <Menu label="File">
+            <button type="button" role="menuitem" onClick={onNew}>
+              New
+            </button>
+            <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>
+              Open JSON…
+            </button>
+            <button type="button" role="menuitem" onClick={() => downloadJson(design)}>
+              Save JSON
+            </button>
+          </Menu>
+          <Menu label="Export">
+            <button type="button" role="menuitem" onClick={() => void exportPng()}>
+              PNG image
+            </button>
+            <button type="button" role="menuitem" onClick={exportSvg}>
+              SVG vector
+            </button>
+          </Menu>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={(e) => {
+              onImport(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+        </div>
+        <div className="tool-group">
+          <button type="button" className="tool hide-present" onClick={onHelp}>
+            Help
+          </button>
+          <button
+            type="button"
+            className="tool keep-present"
+            onClick={() => setPresent(!present)}
+          >
+            {present ? "Edit" : "Present"}
+          </button>
+        </div>
+      </div>
     </header>
   );
 }
