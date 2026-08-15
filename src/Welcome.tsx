@@ -14,9 +14,10 @@ export function Welcome({
         <p className="eyebrow">Operational design</p>
         <h1>OPSDesign</h1>
         <p className="lede">
-          Build a CONOPS picture from the structure of the operation — phases,
-          lines of effort, decision points, and an end state. The diagram lays
-          itself out. You edit the design.
+          Picture a project the way operational design does: workstreams running
+          together, gates between stages, the outcome on the right. Milestones,
+          conditions, and dependencies all sit on the same drawing. Built for
+          civilian programmes as well as defence work.
         </p>
         <div className="template-grid">
           {TEMPLATES.map((t) => (
@@ -26,9 +27,7 @@ export function Welcome({
               className="template-card"
               onClick={() => onChoose(t.create())}
             >
-              <span className="template-kind">
-                {t.nodeKind === "milestone" ? "Milestones" : "Decisive conditions"}
-              </span>
+              <span className="template-kind">{t.tag}</span>
               <strong>{t.name}</strong>
               <span>{t.blurb}</span>
             </button>

@@ -1,30 +1,103 @@
-import type { OperationalDesign } from "./types";
+import type { DesignNode, Dependency, OperationalDesign } from "./types";
 import { blankDesign } from "./templates";
 
 const KEY = "opsdesign:current";
 
-function isDesign(value: unknown): value is OperationalDesign {
-  if (!value || typeof value !== "object") return false;
-  const d = value as OperationalDesign;
-  return (
-    typeof d.id === "string" &&
-    typeof d.title === "string" &&
-    Array.isArray(d.phases) &&
-    Array.isArray(d.linesOfEffort) &&
-    Array.isArray(d.conditions) &&
-    Array.isArray(d.decisionPoints) &&
-    (d.nodeKind === "milestone" || d.nodeKind === "decisive_condition") &&
-    d.endState != null &&
-    typeof d.endState.name === "string"
-  );
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object";
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function migrateNode(
+  raw: Record<string, unknown>,
+  fallbackKind: DesignNode["kind"],
+): DesignNode | null {
+  if (typeof raw.id !== "string") return null;
+  const kind =
+    raw.kind === "milestone" || raw.kind === "condition"
+      ? raw.kind
+      : fallbackKind;
+  return {
+    id: raw.id,
+    kind,
+    loeId: asString(raw.loeId),
+    phaseId: asString(raw.phaseId),
+    label: asString(raw.label),
+    description: asString(raw.description),
+    order: typeof raw.order === "number" ? raw.order : 0,
+  };
+}
+
+export function normalizeDesign(value: unknown): OperationalDesign | null {
+  if (!isRecord(value)) return null;
+  if (typeof value.id !== "string" || typeof value.title !== "string") {
+    return null;
+  }
+  if (!Array.isArray(value.phases) || !Array.isArray(value.linesOfEffort)) {
+    return null;
+  }
+  if (!isRecord(value.endState) || typeof value.endState.name !== "string") {
+    return null;
+  }
+
+  const fallbackKind =
+    value.nodeKind === "decisive_condition" ? "condition" : "milestone";
+  const rawNodes = Array.isArray(value.nodes)
+    ? value.nodes
+    : Array.isArray(value.conditions)
+      ? value.conditions
+      : [];
+  const nodes: DesignNode[] = [];
+  for (const item of rawNodes) {
+    if (!isRecord(item)) continue;
+    const node = migrateNode(item, fallbackKind);
+    if (node) nodes.push(node);
+  }
+
+  const dependencies: Dependency[] = [];
+  if (Array.isArray(value.dependencies)) {
+    for (const item of value.dependencies) {
+      if (!isRecord(item)) continue;
+      if (
+        typeof item.id === "string" &&
+        typeof item.fromId === "string" &&
+        typeof item.toId === "string"
+      ) {
+        dependencies.push({
+          id: item.id,
+          fromId: item.fromId,
+          toId: item.toId,
+        });
+      }
+    }
+  }
+
+  return {
+    id: value.id,
+    title: value.title,
+    purpose: asString(value.purpose),
+    endState: {
+      name: asString(value.endState.name, "END STATE"),
+      description: asString(value.endState.description),
+    },
+    phases: value.phases as OperationalDesign["phases"],
+    linesOfEffort: value.linesOfEffort as OperationalDesign["linesOfEffort"],
+    nodes,
+    dependencies,
+    decisionPoints: Array.isArray(value.decisionPoints)
+      ? (value.decisionPoints as OperationalDesign["decisionPoints"])
+      : [],
+  };
 }
 
 export function loadDesign(): OperationalDesign | null {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    return isDesign(parsed) ? parsed : null;
+    return normalizeDesign(JSON.parse(raw));
   } catch {
     return null;
   }
@@ -34,13 +107,9 @@ export function saveDesign(design: OperationalDesign): void {
   localStorage.setItem(KEY, JSON.stringify(design));
 }
 
-export function clearSavedDesign(): void {
-  localStorage.removeItem(KEY);
-}
-
 export function parseImportedDesign(text: string): OperationalDesign {
-  const parsed: unknown = JSON.parse(text);
-  if (!isDesign(parsed)) {
+  const parsed = normalizeDesign(JSON.parse(text));
+  if (!parsed) {
     throw new Error("That file is not a valid OPSDesign document.");
   }
   return parsed;

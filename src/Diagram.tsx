@@ -1,9 +1,21 @@
-import { useEffect, useMemo, useRef, useState, type RefObject, type PointerEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+  type RefObject,
+} from "react";
 import { uid } from "./id";
-import { conditionsInCell, nodeKindLabel, nodeKindShort } from "./design";
+import { nodesInCell } from "./design";
 import { hitPhaseAtX, layoutDiagram, type DiagramLayout } from "./layout";
 import { useDesign } from "./state";
-import type { OperationalDesign, Selection } from "./types";
+import {
+  CONDITION_FILL,
+  MILESTONE_FILL,
+  type NodeKind,
+  type Selection,
+} from "./types";
 
 function wrapLabel(text: string, maxChars = 15, maxLines = 3): string[] {
   const words = text.split(/\s+/).filter(Boolean);
@@ -49,7 +61,11 @@ function svgPoint(svg: SVGSVGElement, clientX: number, clientY: number) {
   return pt.matrixTransform(ctm.inverse());
 }
 
-function isSelected(selection: Selection, type: NonNullable<Selection>["type"], id?: string) {
+function isSelected(
+  selection: Selection,
+  type: NonNullable<Selection>["type"],
+  id?: string,
+) {
   if (!selection || selection.type !== type) return false;
   if (type === "endState" || type === "title") return true;
   return "id" in selection && selection.id === id;
@@ -57,10 +73,12 @@ function isSelected(selection: Selection, type: NonNullable<Selection>["type"], 
 
 const DIAGRAM_CSS = `
   .svg-title { font-family: Arial, Helvetica, sans-serif; font-size: 22px; font-weight: 700; fill: #0f1c2e; }
+  .svg-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 11px; fill: #5a6a7a; }
   .svg-phase { font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: 600; fill: #1a365d; }
   .svg-loe { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; }
   .svg-condition, .svg-dp-label, .svg-legend { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: #243042; }
   .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; fill: #fff; }
+  .dep-line { fill: none; stroke: #4a5568; stroke-width: 1.6; stroke-dasharray: 5 4; }
 `;
 
 export function Diagram({
@@ -68,9 +86,22 @@ export function Diagram({
 }: {
   svgRef: RefObject<SVGSVGElement | null>;
 }) {
-  const { design, selection, setSelection, dispatch } = useDesign();
+  const {
+    design,
+    selection,
+    setSelection,
+    dispatch,
+    linkMode,
+    setLinkMode,
+    linkFrom,
+    setLinkFrom,
+    showDependencies,
+  } = useDesign();
   const laidOut = useMemo(() => layoutDiagram(design), [design]);
-  const [hoverCell, setHoverCell] = useState<{ loeId: string; phaseId: string } | null>(null);
+  const [hoverCell, setHoverCell] = useState<{
+    loeId: string;
+    phaseId: string;
+  } | null>(null);
   const [drag, setDrag] = useState<{
     id: string;
     x: number;
@@ -85,41 +116,50 @@ export function Diagram({
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) {
+      if (
+        t &&
+        (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)
+      ) {
         return;
       }
       if (e.key === "Escape") {
+        if (linkMode) {
+          setLinkMode(false);
+          return;
+        }
         setSelection(null);
         return;
       }
       if (e.key !== "Backspace" && e.key !== "Delete") return;
       if (!selection) return;
       e.preventDefault();
-      if (selection.type === "condition") {
-        dispatch({ type: "removeCondition", id: selection.id });
+      if (selection.type === "node") {
+        dispatch({ type: "removeNode", id: selection.id });
       } else if (selection.type === "dp") {
         dispatch({ type: "removeDp", id: selection.id });
       } else if (selection.type === "phase") {
         dispatch({ type: "removePhase", id: selection.id });
       } else if (selection.type === "loe") {
         dispatch({ type: "removeLoe", id: selection.id });
+      } else if (selection.type === "dependency") {
+        dispatch({ type: "removeDependency", id: selection.id });
       }
       setSelection(null);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selection, dispatch, setSelection]);
+  }, [selection, dispatch, setSelection, linkMode, setLinkMode]);
 
   function dropAt(laid: DiagramLayout, id: string, x: number) {
-    const condition = design.conditions.find((c) => c.id === id);
-    if (!condition) return;
+    const node = design.nodes.find((n) => n.id === id);
+    if (!node) return;
     const phase = hitPhaseAtX(laid, x);
     if (!phase) return;
-    const siblings = conditionsInCell(design, condition.loeId, phase.id).filter(
-      (c) => c.id !== id,
+    const siblings = nodesInCell(design, node.loeId, phase.id).filter(
+      (n) => n.id !== id,
     );
-    const siblingLayouts = laid.conditions.filter(
-      (c) => c.loeId === condition.loeId && c.phaseId === phase.id && c.id !== id,
+    const siblingLayouts = laid.nodes.filter(
+      (n) => n.loeId === node.loeId && n.phaseId === phase.id && n.id !== id,
     );
     let order = siblings.length;
     for (let i = 0; i < siblingLayouts.length; i++) {
@@ -128,21 +168,39 @@ export function Diagram({
         break;
       }
     }
-    const original = conditionsInCell(design, condition.loeId, condition.phaseId);
-    const currentIndex = original.findIndex((c) => c.id === id);
-    if (phase.id === condition.phaseId && order === currentIndex) return;
-    dispatch({ type: "placeCondition", id, phaseId: phase.id, order });
+    const original = nodesInCell(design, node.loeId, node.phaseId);
+    const currentIndex = original.findIndex((n) => n.id === id);
+    if (phase.id === node.phaseId && order === currentIndex) return;
+    dispatch({ type: "placeNode", id, phaseId: phase.id, order });
   }
 
-  function onConditionPointerDown(
+  function onNodePointerDown(
     e: PointerEvent<SVGGElement>,
     id: string,
     x: number,
     y: number,
   ) {
     e.stopPropagation();
+    if (linkMode) {
+      if (!linkFrom) {
+        setLinkFrom(id);
+        setSelection({ type: "node", id });
+        return;
+      }
+      if (linkFrom !== id) {
+        dispatch({
+          type: "addDependency",
+          id: uid("dep"),
+          fromId: linkFrom,
+          toId: id,
+        });
+        setLinkFrom(id);
+        setSelection({ type: "node", id });
+      }
+      return;
+    }
     e.currentTarget.setPointerCapture(e.pointerId);
-    setSelection({ type: "condition", id });
+    setSelection({ type: "node", id });
     setDrag({ id, x, y, originX: x, active: false });
   }
 
@@ -171,8 +229,22 @@ export function Diagram({
     setDrag(null);
   }
 
-  const nodeFill = design.nodeKind === "milestone" ? "#C62828" : "#0F4C81";
-  const short = nodeKindShort(design.nodeKind);
+  function addAtHover(kind: NodeKind) {
+    if (!hoverCell) return;
+    const id = uid("n");
+    dispatch({
+      type: "addNode",
+      id,
+      kind,
+      loeId: hoverCell.loeId,
+      phaseId: hoverCell.phaseId,
+    });
+    setSelection({ type: "node", id });
+  }
+
+  const draggingNode = drag
+    ? design.nodes.find((n) => n.id === drag.id)
+    : undefined;
 
   return (
     <svg
@@ -183,13 +255,17 @@ export function Diagram({
       viewBox={`0 0 ${laidOut.width} ${laidOut.height}`}
       role="img"
       aria-label={`${design.title} operational design`}
-      className="diagram-svg"
+      className={linkMode ? "diagram-svg link-mode" : "diagram-svg"}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerLeave={() => setHoverCell(null)}
       onClick={() => {
         if (skipDeselect.current) {
           skipDeselect.current = false;
+          return;
+        }
+        if (linkMode) {
+          setLinkFrom(null);
           return;
         }
         setSelection(null);
@@ -211,6 +287,17 @@ export function Diagram({
             <path d="M0,0 L14,5 L0,10 Z" fill={loe.color} />
           </marker>
         ))}
+        <marker
+          id="dep-arrow"
+          markerWidth="8"
+          markerHeight="8"
+          refX="7"
+          refY="4"
+          orient="auto"
+          markerUnits="userSpaceOnUse"
+        >
+          <path d="M0,0 L8,4 L0,8 Z" fill="#4a5568" />
+        </marker>
         <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="1" stdDeviation="1.2" floodOpacity="0.18" />
         </filter>
@@ -220,7 +307,7 @@ export function Diagram({
 
       <text
         x={laidOut.width / 2}
-        y={40}
+        y={design.purpose.trim() ? 34 : 40}
         textAnchor="middle"
         className={isSelected(selection, "title") ? "svg-title selected" : "svg-title"}
         onClick={(e) => {
@@ -230,6 +317,24 @@ export function Diagram({
       >
         {design.title}
       </text>
+      {design.purpose.trim() && (
+        <text
+          x={laidOut.width / 2}
+          y={54}
+          textAnchor="middle"
+          className="svg-purpose"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelection({ type: "title" });
+          }}
+        >
+          {design.purpose.trim()
+            ? design.purpose.length > 120
+              ? `${design.purpose.slice(0, 117)}…`
+              : design.purpose
+            : ""}
+        </text>
+      )}
 
       {laidOut.phases.map((phase, i) => (
         <g key={phase.id}>
@@ -280,7 +385,7 @@ export function Diagram({
             markerEnd={`url(#arrow-${loe.id})`}
           />
           <text
-            x={36}
+            x={28}
             y={loe.y + 1}
             dominantBaseline="middle"
             className={
@@ -297,6 +402,33 @@ export function Diagram({
         </g>
       ))}
 
+      {showDependencies &&
+        laidOut.dependencies.map((dep) => (
+          <g key={dep.id}>
+            <path
+              d={dep.d}
+              className="dep-line"
+              markerEnd="url(#dep-arrow)"
+              stroke={
+                isSelected(selection, "dependency", dep.id) ? "#c4a35a" : "#4a5568"
+              }
+              strokeWidth={isSelected(selection, "dependency", dep.id) ? 2.4 : 1.6}
+            />
+            <path
+              d={dep.d}
+              data-ui="true"
+              fill="none"
+              stroke="transparent"
+              strokeWidth="12"
+              className="dep-hit"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelection({ type: "dependency", id: dep.id });
+              }}
+            />
+          </g>
+        ))}
+
       {laidOut.phases.map((phase) =>
         laidOut.loes.map((loe) => (
           <rect
@@ -308,7 +440,9 @@ export function Diagram({
             height={72}
             fill="transparent"
             className="cell-hit"
-            onPointerEnter={() => setHoverCell({ loeId: loe.id, phaseId: phase.id })}
+            onPointerEnter={() =>
+              setHoverCell({ loeId: loe.id, phaseId: phase.id })
+            }
             onClick={(e) => {
               e.stopPropagation();
               setSelection({ type: "loe", id: loe.id });
@@ -317,57 +451,64 @@ export function Diagram({
         )),
       )}
 
-      {hoverCell && !drag?.active && (
+      {hoverCell && !drag?.active && !linkMode && (
         <g
           data-ui="true"
           className="add-on-canvas"
           transform={`translate(${
             (laidOut.phases.find((p) => p.id === hoverCell.phaseId)?.x ?? 0) +
             (laidOut.phases.find((p) => p.id === hoverCell.phaseId)?.width ?? 0) -
-            22
+            48
           }, ${
-            (laidOut.loes.find((l) => l.id === hoverCell.loeId)?.y ?? 0) - 28
+            (laidOut.loes.find((l) => l.id === hoverCell.loeId)?.y ?? 0) - 30
           })`}
-          onClick={(e) => {
-            e.stopPropagation();
-            const id = uid("c");
-            dispatch({
-              type: "addCondition",
-              id,
-              loeId: hoverCell.loeId,
-              phaseId: hoverCell.phaseId,
-            });
-            setSelection({ type: "condition", id });
-          }}
         >
-          <circle r="10" cx="10" cy="10" fill="#0f1c2e" />
-          <path d="M10 5 v10 M5 10 h10" stroke="#fff" strokeWidth="1.8" />
+          <g
+            onClick={(e) => {
+              e.stopPropagation();
+              addAtHover("milestone");
+            }}
+          >
+            <circle r="11" cx="11" cy="11" fill="#0f1c2e" />
+            <path d="M11,5 L16,16 L6,16 Z" fill={MILESTONE_FILL} />
+          </g>
+          <g
+            transform="translate(24,0)"
+            onClick={(e) => {
+              e.stopPropagation();
+              addAtHover("condition");
+            }}
+          >
+            <circle r="11" cx="11" cy="11" fill="#0f1c2e" />
+            <path d="M11,4 L18,11 L11,18 L4,11 Z" fill={CONDITION_FILL} />
+          </g>
         </g>
       )}
 
-      {laidOut.conditions.map((c) => {
-        if (drag?.active && drag.id === c.id) return null;
+      {laidOut.nodes.map((n) => {
+        if (drag?.active && drag.id === n.id) return null;
         return (
-          <ConditionMark
-            key={c.id}
-            x={c.x}
-            y={c.y}
-            label={c.label}
-            kind={design.nodeKind}
-            fill={nodeFill}
-            selected={isSelected(selection, "condition", c.id)}
-            onPointerDown={(e) => onConditionPointerDown(e, c.id, c.x, c.y)}
+          <NodeMark
+            key={n.id}
+            x={n.x}
+            y={n.y}
+            label={n.label}
+            kind={n.kind}
+            selected={
+              isSelected(selection, "node", n.id) || linkFrom === n.id
+            }
+            linking={linkFrom === n.id}
+            onPointerDown={(e) => onNodePointerDown(e, n.id, n.x, n.y)}
           />
         );
       })}
 
-      {drag?.active && (
-        <ConditionMark
+      {drag?.active && draggingNode && (
+        <NodeMark
           x={drag.x}
           y={drag.y}
-          label={design.conditions.find((c) => c.id === drag.id)?.label ?? ""}
-          kind={design.nodeKind}
-          fill={nodeFill}
+          label={draggingNode.label}
+          kind={draggingNode.kind}
           selected
           dragging
           onPointerDown={() => undefined}
@@ -427,38 +568,33 @@ export function Diagram({
         ))}
       </g>
 
-      <Legend
-        x={36}
-        y={laidOut.height - 28}
-        kind={design.nodeKind}
-        nodeFill={nodeFill}
-        short={short}
-      />
+      <Legend x={36} y={laidOut.height - 36} />
     </svg>
   );
 }
 
-function ConditionMark({
+function NodeMark({
   x,
   y,
   label,
   kind,
-  fill,
   selected,
   dragging,
+  linking,
   onPointerDown,
 }: {
   x: number;
   y: number;
   label: string;
-  kind: OperationalDesign["nodeKind"];
-  fill: string;
+  kind: NodeKind;
   selected: boolean;
   dragging?: boolean;
+  linking?: boolean;
   onPointerDown: (e: PointerEvent<SVGGElement>) => void;
 }) {
   const lines = wrapLabel(label);
-  const stroke = selected ? "#c4a35a" : "#3b0d0d";
+  const fill = kind === "milestone" ? MILESTONE_FILL : CONDITION_FILL;
+  const stroke = selected ? "#c4a35a" : kind === "milestone" ? "#3b0d0d" : "#06243f";
   return (
     <g
       transform={`translate(${x}, ${y})`}
@@ -466,6 +602,7 @@ function ConditionMark({
       onPointerDown={onPointerDown}
       onClick={(e) => e.stopPropagation()}
     >
+      {linking && <circle r="18" fill="none" stroke="#c4a35a" strokeWidth="1.5" />}
       {kind === "milestone" ? (
         <path
           d="M0,-13 L11,9 L-11,9 Z"
@@ -478,7 +615,7 @@ function ConditionMark({
         <path
           d="M0,-13 L13,0 L0,13 L-13,0 Z"
           fill={fill}
-          stroke={selected ? "#c4a35a" : "#06243f"}
+          stroke={stroke}
           strokeWidth={selected ? 2.4 : 1.1}
           filter="url(#soft)"
         />
@@ -492,38 +629,38 @@ function ConditionMark({
   );
 }
 
-function Legend({
-  x,
-  y,
-  kind,
-  nodeFill,
-  short,
-}: {
-  x: number;
-  y: number;
-  kind: OperationalDesign["nodeKind"];
-  nodeFill: string;
-  short: string;
-}) {
+function Legend({ x, y }: { x: number; y: number }) {
   return (
     <g transform={`translate(${x}, ${y})`} className="legend">
-      {kind === "milestone" ? (
-        <path d="M0,-8 L7,6 L-7,6 Z" fill={nodeFill} />
-      ) : (
-        <path d="M0,-8 L8,0 L0,8 L-8,0 Z" fill={nodeFill} />
-      )}
-      <text x="14" y="4" className="svg-legend">
-        {nodeKindLabel(kind)} ({short})
+      <path d="M0,-8 L7,6 L-7,6 Z" fill={MILESTONE_FILL} />
+      <text x="12" y="4" className="svg-legend">
+        Milestone
+      </text>
+      <path transform="translate(92,0)" d="M0,-8 L8,0 L0,8 L-8,0 Z" fill={CONDITION_FILL} />
+      <text x="106" y="4" className="svg-legend">
+        Condition
       </text>
       <path
-        transform="translate(210, 0)"
+        transform="translate(188, 0)"
         d={starPath(8)}
         fill="#2E7D32"
         stroke="#1b5e20"
         strokeWidth="0.8"
       />
-      <text x="224" y="4" className="svg-legend">
-        Decision Point (DP)
+      <text x="202" y="4" className="svg-legend">
+        Gate / DP
+      </text>
+      <line
+        x1="278"
+        y1="0"
+        x2="318"
+        y2="0"
+        stroke="#4a5568"
+        strokeWidth="1.6"
+        strokeDasharray="5 4"
+      />
+      <text x="324" y="4" className="svg-legend">
+        Dependency
       </text>
     </g>
   );

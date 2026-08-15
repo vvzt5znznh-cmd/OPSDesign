@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { nodeKindLabel } from "./design";
+import { uid } from "./id";
 import { useDesign } from "./state";
 import { LOE_COLORS } from "./types";
 
@@ -19,21 +20,24 @@ function Field({
 }
 
 export function Inspector() {
-  const { design, selection, dispatch } = useDesign();
+  const { design, selection, dispatch, setLinkMode, setLinkFrom } = useDesign();
 
   if (!selection) {
     return (
       <aside className="inspector">
         <h2>Inspector</h2>
         <p className="muted">
-          Click a phase, line of effort, {nodeKindLabel(design.nodeKind).toLowerCase()},
-          decision point, or the end state to edit it.
+          Click a phase, line of effort, milestone, condition, gate, dependency,
+          or the end state to edit it.
         </p>
         <ul className="tips">
-          <li>Hover a LoE inside a phase and click + to add a node.</li>
+          <li>Hover a LoE inside a phase: △ adds a milestone, ◇ a condition.</li>
           <li>Drag nodes along their line of effort to move them.</li>
+          <li>
+            Link dependencies: click the predecessor, then the node that needs
+            it.
+          </li>
           <li>Delete or Backspace removes the selection.</li>
-          <li>⌘Z / Ctrl+Z undoes; Shift+⌘Z redoes.</li>
         </ul>
       </aside>
     );
@@ -42,7 +46,7 @@ export function Inspector() {
   if (selection.type === "title") {
     return (
       <aside className="inspector">
-        <h2>Operation title</h2>
+        <h2>Project title</h2>
         <Field label="Title">
           <input
             key={design.id}
@@ -53,6 +57,17 @@ export function Inspector() {
             }}
           />
         </Field>
+        <Field label="Purpose">
+          <textarea
+            key={`${design.id}-purpose`}
+            rows={3}
+            defaultValue={design.purpose}
+            placeholder="What this work is for, in one sentence."
+            onBlur={(e) =>
+              dispatch({ type: "setPurpose", purpose: e.target.value })
+            }
+          />
+        </Field>
       </aside>
     );
   }
@@ -61,6 +76,10 @@ export function Inspector() {
     return (
       <aside className="inspector">
         <h2>End state</h2>
+        <p className="muted">
+          The outcome that must hold when the work is done — a set of
+          conditions, not a date.
+        </p>
         <Field label="Name">
           <input
             key="es-name"
@@ -76,7 +95,7 @@ export function Inspector() {
             onBlur={(e) =>
               dispatch({ type: "setEndState", description: e.target.value })
             }
-            placeholder="The conditions that must hold when the operation is complete."
+            placeholder="What will be true for users, the organisation, and residual risk?"
           />
         </Field>
       </aside>
@@ -89,7 +108,7 @@ export function Inspector() {
     const idx = design.phases.findIndex((p) => p.id === phase.id);
     return (
       <aside className="inspector">
-        <h2>Phase</h2>
+        <h2>Phase (stage)</h2>
         <Field label="Name">
           <input
             key={phase.id}
@@ -134,6 +153,7 @@ export function Inspector() {
     return (
       <aside className="inspector">
         <h2>Line of effort</h2>
+        <p className="muted">A workstream organised by purpose.</p>
         <Field label="Name">
           <input
             key={loe.id}
@@ -185,30 +205,58 @@ export function Inspector() {
     );
   }
 
-  if (selection.type === "condition") {
-    const c = design.conditions.find((x) => x.id === selection.id);
-    if (!c) return null;
+  if (selection.type === "node") {
+    const n = design.nodes.find((x) => x.id === selection.id);
+    if (!n) return null;
+    const incoming = design.dependencies.filter((d) => d.toId === n.id);
+    const outgoing = design.dependencies.filter((d) => d.fromId === n.id);
+    const others = design.nodes.filter((x) => x.id !== n.id);
     return (
       <aside className="inspector">
-        <h2>{nodeKindLabel(design.nodeKind)}</h2>
+        <h2>{nodeKindLabel(n.kind)}</h2>
+        <div className="kind-toggle inspector-toggle">
+          <button
+            type="button"
+            className={n.kind === "milestone" ? "on" : ""}
+            onClick={() =>
+              dispatch({ type: "updateNode", id: n.id, kind: "milestone" })
+            }
+          >
+            Milestone
+          </button>
+          <button
+            type="button"
+            className={n.kind === "condition" ? "on" : ""}
+            onClick={() =>
+              dispatch({ type: "updateNode", id: n.id, kind: "condition" })
+            }
+          >
+            Condition
+          </button>
+        </div>
+        <p className="muted">
+          {n.kind === "milestone"
+            ? "An event or deliverable."
+            : "A state that must hold to reach the end state."}
+        </p>
         <Field label="Label">
           <input
-            key={c.id}
-            defaultValue={c.label}
+            key={n.id}
+            defaultValue={n.label}
             onBlur={(e) =>
-              dispatch({ type: "updateCondition", id: c.id, label: e.target.value })
+              dispatch({ type: "updateNode", id: n.id, label: e.target.value })
             }
           />
         </Field>
         <Field label="Description">
           <textarea
-            key={`${c.id}-d`}
-            rows={4}
-            defaultValue={c.description}
+            key={`${n.id}-d`}
+            rows={3}
+            defaultValue={n.description}
             onBlur={(e) =>
               dispatch({
-                type: "updateCondition",
-                id: c.id,
+                type: "updateNode",
+                id: n.id,
                 description: e.target.value,
               })
             }
@@ -216,13 +264,9 @@ export function Inspector() {
         </Field>
         <Field label="Line of effort">
           <select
-            value={c.loeId}
+            value={n.loeId}
             onChange={(e) =>
-              dispatch({
-                type: "updateCondition",
-                id: c.id,
-                loeId: e.target.value,
-              })
+              dispatch({ type: "updateNode", id: n.id, loeId: e.target.value })
             }
           >
             {design.linesOfEffort.map((l) => (
@@ -234,13 +278,9 @@ export function Inspector() {
         </Field>
         <Field label="Phase">
           <select
-            value={c.phaseId}
+            value={n.phaseId}
             onChange={(e) =>
-              dispatch({
-                type: "updateCondition",
-                id: c.id,
-                phaseId: e.target.value,
-              })
+              dispatch({ type: "updateNode", id: n.id, phaseId: e.target.value })
             }
           >
             {design.phases.map((p) => (
@@ -250,12 +290,107 @@ export function Inspector() {
             ))}
           </select>
         </Field>
+        <Field label="Depends on">
+          <select
+            value=""
+            onChange={(e) => {
+              if (!e.target.value) return;
+              dispatch({
+                type: "addDependency",
+                id: uid("dep"),
+                fromId: e.target.value,
+                toId: n.id,
+              });
+            }}
+          >
+            <option value="">Add a predecessor…</option>
+            {others.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        {incoming.length > 0 && (
+          <ul className="dep-list">
+            {incoming.map((d) => {
+              const from = design.nodes.find((x) => x.id === d.fromId);
+              return (
+                <li key={d.id}>
+                  <span>{from?.label ?? "Unknown"}</span>
+                  <button
+                    type="button"
+                    className="tiny"
+                    onClick={() => dispatch({ type: "removeDependency", id: d.id })}
+                  >
+                    Remove
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {outgoing.length > 0 && (
+          <>
+            <p className="field-label">This enables</p>
+            <ul className="dep-list">
+              {outgoing.map((d) => {
+                const to = design.nodes.find((x) => x.id === d.toId);
+                return (
+                  <li key={d.id}>
+                    <span>{to?.label ?? "Unknown"}</span>
+                    <button
+                      type="button"
+                      className="tiny"
+                      onClick={() =>
+                        dispatch({ type: "removeDependency", id: d.id })
+                      }
+                    >
+                      Remove
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            setLinkMode(true);
+            setLinkFrom(n.id);
+          }}
+        >
+          Draw a dependency from here
+        </button>
         <button
           type="button"
           className="danger"
-          onClick={() => dispatch({ type: "removeCondition", id: c.id })}
+          onClick={() => dispatch({ type: "removeNode", id: n.id })}
         >
           Remove
+        </button>
+      </aside>
+    );
+  }
+
+  if (selection.type === "dependency") {
+    const dep = design.dependencies.find((d) => d.id === selection.id);
+    if (!dep) return null;
+    const from = design.nodes.find((n) => n.id === dep.fromId);
+    const to = design.nodes.find((n) => n.id === dep.toId);
+    return (
+      <aside className="inspector">
+        <h2>Dependency</h2>
+        <p className="muted">
+          {from?.label ?? "From"} must be true or complete before {to?.label ?? "to"}.
+        </p>
+        <button
+          type="button"
+          className="danger"
+          onClick={() => dispatch({ type: "removeDependency", id: dep.id })}
+        >
+          Remove link
         </button>
       </aside>
     );
@@ -266,7 +401,8 @@ export function Inspector() {
     if (!dp) return null;
     return (
       <aside className="inspector">
-        <h2>Decision point</h2>
+        <h2>Decision point (gate)</h2>
+        <p className="muted">A go / recycle / stop choice, usually between stages.</p>
         <Field label="Label">
           <input
             key={dp.id}
@@ -276,12 +412,12 @@ export function Inspector() {
             }
           />
         </Field>
-        <Field label="Description">
+        <Field label="What is being decided?">
           <textarea
             key={`${dp.id}-d`}
             rows={4}
             defaultValue={dp.description}
-            placeholder="What must be decided here?"
+            placeholder="Proceed to the next stage? On what evidence?"
             onBlur={(e) =>
               dispatch({
                 type: "updateDp",

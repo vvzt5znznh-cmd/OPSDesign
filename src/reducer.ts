@@ -1,12 +1,17 @@
-import { conditionsInCell, nextOrder } from "./design";
+import { hasDependency, nextLabel, nextOrder, nodesInCell, wouldCreateCycle } from "./design";
 import { uid } from "./id";
-import { LOE_COLORS, type OperationalDesign, type Selection } from "./types";
+import {
+  LOE_COLORS,
+  type NodeKind,
+  type OperationalDesign,
+  type Selection,
+} from "./types";
 
 export type DesignAction =
   | { type: "replace"; design: OperationalDesign }
   | { type: "setTitle"; title: string }
+  | { type: "setPurpose"; purpose: string }
   | { type: "setEndState"; name?: string; description?: string }
-  | { type: "setNodeKind"; nodeKind: OperationalDesign["nodeKind"] }
   | { type: "addPhase"; afterId?: string; id?: string }
   | { type: "renamePhase"; id: string; name: string }
   | { type: "removePhase"; id: string }
@@ -15,13 +20,45 @@ export type DesignAction =
   | { type: "updateLoe"; id: string; name?: string; color?: string }
   | { type: "removeLoe"; id: string }
   | { type: "moveLoe"; id: string; direction: -1 | 1 }
-  | { type: "addCondition"; loeId: string; phaseId: string; label?: string; id?: string }
-  | { type: "updateCondition"; id: string; label?: string; description?: string; loeId?: string; phaseId?: string }
-  | { type: "removeCondition"; id: string }
-  | { type: "placeCondition"; id: string; phaseId: string; order: number }
+  | {
+      type: "addNode";
+      loeId: string;
+      phaseId: string;
+      kind: NodeKind;
+      label?: string;
+      id?: string;
+    }
+  | {
+      type: "updateNode";
+      id: string;
+      label?: string;
+      description?: string;
+      loeId?: string;
+      phaseId?: string;
+      kind?: NodeKind;
+    }
+  | { type: "removeNode"; id: string }
+  | { type: "placeNode"; id: string; phaseId: string; order: number }
+  | { type: "addDependency"; fromId: string; toId: string; id?: string }
+  | { type: "removeDependency"; id: string }
   | { type: "addDp"; afterPhaseId: string; id?: string }
-  | { type: "updateDp"; id: string; label?: string; description?: string; afterPhaseId?: string }
+  | {
+      type: "updateDp";
+      id: string;
+      label?: string;
+      description?: string;
+      afterPhaseId?: string;
+    }
   | { type: "removeDp"; id: string };
+
+function withoutNodeDeps(
+  design: OperationalDesign,
+  nodeIds: Set<string>,
+): OperationalDesign["dependencies"] {
+  return design.dependencies.filter(
+    (d) => !nodeIds.has(d.fromId) && !nodeIds.has(d.toId),
+  );
+}
 
 export function reduceDesign(
   design: OperationalDesign,
@@ -32,6 +69,8 @@ export function reduceDesign(
       return action.design;
     case "setTitle":
       return { ...design, title: action.title };
+    case "setPurpose":
+      return { ...design, purpose: action.purpose };
     case "setEndState":
       return {
         ...design,
@@ -40,8 +79,6 @@ export function reduceDesign(
           description: action.description ?? design.endState.description,
         },
       };
-    case "setNodeKind":
-      return { ...design, nodeKind: action.nodeKind };
     case "addPhase": {
       const phase = {
         id: action.id ?? uid("ph"),
@@ -68,7 +105,7 @@ export function reduceDesign(
               ...design.decisionPoints,
               {
                 id: uid("dp"),
-                label: `DP${design.decisionPoints.length + 1}`,
+                label: `Gate ${design.decisionPoints.length + 1}`,
                 afterPhaseId: dpAfterId,
                 description: "",
               },
@@ -90,8 +127,8 @@ export function reduceDesign(
       return {
         ...design,
         phases: remaining,
-        conditions: design.conditions.map((c) =>
-          c.phaseId === action.id ? { ...c, phaseId: fallback } : c,
+        nodes: design.nodes.map((n) =>
+          n.phaseId === action.id ? { ...n, phaseId: fallback } : n,
         ),
         decisionPoints: design.decisionPoints.filter(
           (dp) => dp.afterPhaseId !== action.id,
@@ -136,10 +173,14 @@ export function reduceDesign(
       };
     case "removeLoe": {
       if (design.linesOfEffort.length <= 1) return design;
+      const removed = new Set(
+        design.nodes.filter((n) => n.loeId === action.id).map((n) => n.id),
+      );
       return {
         ...design,
         linesOfEffort: design.linesOfEffort.filter((l) => l.id !== action.id),
-        conditions: design.conditions.filter((c) => c.loeId !== action.id),
+        nodes: design.nodes.filter((n) => n.loeId !== action.id),
+        dependencies: withoutNodeDeps(design, removed),
       };
     }
     case "moveLoe": {
@@ -153,69 +194,99 @@ export function reduceDesign(
       linesOfEffort.splice(next, 0, item);
       return { ...design, linesOfEffort };
     }
-    case "addCondition": {
-      const short = design.nodeKind === "milestone" ? "M" : "DC";
-      const onLoe = design.conditions.filter((c) => c.loeId === action.loeId);
-      const n = onLoe.length + 1;
+    case "addNode":
       return {
         ...design,
-        conditions: [
-          ...design.conditions,
+        nodes: [
+          ...design.nodes,
           {
-            id: action.id ?? uid("c"),
+            id: action.id ?? uid("n"),
+            kind: action.kind,
             loeId: action.loeId,
             phaseId: action.phaseId,
-            label: action.label ?? `${short}${n}`,
+            label: action.label ?? nextLabel(design, action.loeId, action.kind),
             description: "",
             order: nextOrder(design, action.loeId, action.phaseId),
           },
         ],
       };
-    }
-    case "updateCondition":
+    case "updateNode":
       return {
         ...design,
-        conditions: design.conditions.map((c) =>
-          c.id === action.id
+        nodes: design.nodes.map((n) =>
+          n.id === action.id
             ? {
-                ...c,
-                label: action.label ?? c.label,
-                description: action.description ?? c.description,
-                loeId: action.loeId ?? c.loeId,
-                phaseId: action.phaseId ?? c.phaseId,
+                ...n,
+                label: action.label ?? n.label,
+                description: action.description ?? n.description,
+                loeId: action.loeId ?? n.loeId,
+                phaseId: action.phaseId ?? n.phaseId,
+                kind: action.kind ?? n.kind,
                 order:
-                  (action.phaseId && action.phaseId !== c.phaseId) ||
-                  (action.loeId && action.loeId !== c.loeId)
+                  (action.phaseId && action.phaseId !== n.phaseId) ||
+                  (action.loeId && action.loeId !== n.loeId)
                     ? nextOrder(
                         design,
-                        action.loeId ?? c.loeId,
-                        action.phaseId ?? c.phaseId,
+                        action.loeId ?? n.loeId,
+                        action.phaseId ?? n.phaseId,
                       )
-                    : c.order,
+                    : n.order,
               }
-            : c,
+            : n,
         ),
       };
-    case "removeCondition":
+    case "removeNode":
       return {
         ...design,
-        conditions: design.conditions.filter((c) => c.id !== action.id),
+        nodes: design.nodes.filter((n) => n.id !== action.id),
+        dependencies: withoutNodeDeps(design, new Set([action.id])),
       };
-    case "placeCondition": {
-      const moving = design.conditions.find((c) => c.id === action.id);
+    case "placeNode": {
+      const moving = design.nodes.find((n) => n.id === action.id);
       if (!moving) return design;
-      const siblings = conditionsInCell(design, moving.loeId, action.phaseId)
-        .filter((c) => c.id !== action.id)
+      const siblings = nodesInCell(design, moving.loeId, action.phaseId)
+        .filter((n) => n.id !== action.id)
         .sort((a, b) => a.order - b.order);
       const clamped = Math.max(0, Math.min(action.order, siblings.length));
       siblings.splice(clamped, 0, { ...moving, phaseId: action.phaseId });
-      const reordered = siblings.map((c, i) => ({ ...c, order: i, phaseId: action.phaseId }));
-      const byId = new Map(reordered.map((c) => [c.id, c]));
+      const reordered = siblings.map((n, i) => ({
+        ...n,
+        order: i,
+        phaseId: action.phaseId,
+      }));
+      const byId = new Map(reordered.map((n) => [n.id, n]));
       return {
         ...design,
-        conditions: design.conditions.map((c) => byId.get(c.id) ?? c),
+        nodes: design.nodes.map((n) => byId.get(n.id) ?? n),
       };
     }
+    case "addDependency": {
+      if (
+        hasDependency(design.dependencies, action.fromId, action.toId) ||
+        wouldCreateCycle(design.dependencies, action.fromId, action.toId)
+      ) {
+        return design;
+      }
+      const from = design.nodes.some((n) => n.id === action.fromId);
+      const to = design.nodes.some((n) => n.id === action.toId);
+      if (!from || !to) return design;
+      return {
+        ...design,
+        dependencies: [
+          ...design.dependencies,
+          {
+            id: action.id ?? uid("dep"),
+            fromId: action.fromId,
+            toId: action.toId,
+          },
+        ],
+      };
+    }
+    case "removeDependency":
+      return {
+        ...design,
+        dependencies: design.dependencies.filter((d) => d.id !== action.id),
+      };
     case "addDp":
       return {
         ...design,
@@ -223,7 +294,7 @@ export function reduceDesign(
           ...design.decisionPoints,
           {
             id: action.id ?? uid("dp"),
-            label: `DP${design.decisionPoints.length + 1}`,
+            label: `Gate ${design.decisionPoints.length + 1}`,
             afterPhaseId: action.afterPhaseId,
             description: "",
           },
@@ -265,12 +336,14 @@ export function selectionAfter(
       return design.linesOfEffort.some((l) => l.id === selection.id)
         ? selection
         : null;
-    case "condition":
-      return design.conditions.some((c) => c.id === selection.id)
-        ? selection
-        : null;
+    case "node":
+      return design.nodes.some((n) => n.id === selection.id) ? selection : null;
     case "dp":
       return design.decisionPoints.some((d) => d.id === selection.id)
+        ? selection
+        : null;
+    case "dependency":
+      return design.dependencies.some((d) => d.id === selection.id)
         ? selection
         : null;
     default:

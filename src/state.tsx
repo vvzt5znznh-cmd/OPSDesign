@@ -22,6 +22,12 @@ interface DesignContextValue {
   canRedo: boolean;
   present: boolean;
   setPresent: (v: boolean) => void;
+  linkMode: boolean;
+  setLinkMode: (v: boolean) => void;
+  linkFrom: string | null;
+  setLinkFrom: (id: string | null) => void;
+  showDependencies: boolean;
+  setShowDependencies: (v: boolean) => void;
 }
 
 const DesignContext = createContext<DesignContextValue | null>(null);
@@ -38,8 +44,16 @@ export function DesignProvider({
   const [present, setPresent] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const [linkMode, setLinkModeState] = useState(false);
+  const [linkFrom, setLinkFrom] = useState<string | null>(null);
+  const [showDependencies, setShowDependencies] = useState(true);
   const undoStack = useRef<OperationalDesign[]>([]);
   const redoStack = useRef<OperationalDesign[]>([]);
+
+  const setLinkMode = useCallback((v: boolean) => {
+    setLinkModeState(v);
+    if (!v) setLinkFrom(null);
+  }, []);
 
   const dispatch = useCallback((action: DesignAction) => {
     setDesign((current) => {
@@ -94,8 +108,27 @@ export function DesignProvider({
       canRedo,
       present,
       setPresent,
+      linkMode,
+      setLinkMode,
+      linkFrom,
+      setLinkFrom,
+      showDependencies,
+      setShowDependencies,
     }),
-    [design, selection, dispatch, undo, redo, canUndo, canRedo, present],
+    [
+      design,
+      selection,
+      dispatch,
+      undo,
+      redo,
+      canUndo,
+      canRedo,
+      present,
+      linkMode,
+      setLinkMode,
+      linkFrom,
+      showDependencies,
+    ],
   );
 
   return (

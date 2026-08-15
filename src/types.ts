@@ -1,4 +1,4 @@
-export type NodeKind = "milestone" | "decisive_condition";
+export type NodeKind = "milestone" | "condition";
 
 export interface Phase {
   id: string;
@@ -11,13 +11,20 @@ export interface LineOfEffort {
   color: string;
 }
 
-export interface Condition {
+export interface DesignNode {
   id: string;
+  kind: NodeKind;
   loeId: string;
   phaseId: string;
   label: string;
   description: string;
   order: number;
+}
+
+export interface Dependency {
+  id: string;
+  fromId: string;
+  toId: string;
 }
 
 export interface DecisionPoint {
@@ -30,22 +37,24 @@ export interface DecisionPoint {
 export interface OperationalDesign {
   id: string;
   title: string;
+  purpose: string;
   endState: {
     name: string;
     description: string;
   };
-  nodeKind: NodeKind;
   phases: Phase[];
   linesOfEffort: LineOfEffort[];
-  conditions: Condition[];
+  nodes: DesignNode[];
+  dependencies: Dependency[];
   decisionPoints: DecisionPoint[];
 }
 
 export type Selection =
   | { type: "phase"; id: string }
   | { type: "loe"; id: string }
-  | { type: "condition"; id: string }
+  | { type: "node"; id: string }
   | { type: "dp"; id: string }
+  | { type: "dependency"; id: string }
   | { type: "endState" }
   | { type: "title" }
   | null;
@@ -60,3 +69,6 @@ export const LOE_COLORS = [
   "#C4A35A",
   "#4A5568",
 ] as const;
+
+export const MILESTONE_FILL = "#C62828";
+export const CONDITION_FILL = "#0F4C81";

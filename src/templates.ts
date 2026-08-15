@@ -1,7 +1,9 @@
 import { uid } from "./id";
-import type { OperationalDesign } from "./types";
+import type { DesignNode, NodeKind, OperationalDesign } from "./types";
 
-function blank(partial: Partial<OperationalDesign> & Pick<OperationalDesign, "title" | "nodeKind">): OperationalDesign {
+function blank(
+  partial: Partial<OperationalDesign> & Pick<OperationalDesign, "title">,
+): OperationalDesign {
   const p1 = uid("ph");
   const p2 = uid("ph");
   const p3 = uid("ph");
@@ -10,6 +12,7 @@ function blank(partial: Partial<OperationalDesign> & Pick<OperationalDesign, "ti
 
   return {
     id: uid("op"),
+    purpose: "",
     endState: { name: "END STATE", description: "" },
     phases: [
       { id: p1, name: "Phase 1" },
@@ -20,10 +23,11 @@ function blank(partial: Partial<OperationalDesign> & Pick<OperationalDesign, "ti
       { id: l1, name: "LoE 1", color: "#E87722" },
       { id: l2, name: "LoE 2", color: "#5B8C2A" },
     ],
-    conditions: [],
+    nodes: [],
+    dependencies: [],
     decisionPoints: [
-      { id: uid("dp"), label: "DP1", afterPhaseId: p1, description: "" },
-      { id: uid("dp"), label: "DP2", afterPhaseId: p2, description: "" },
+      { id: uid("dp"), label: "Gate 1", afterPhaseId: p1, description: "" },
+      { id: uid("dp"), label: "Gate 2", afterPhaseId: p2, description: "" },
     ],
     ...partial,
   };
@@ -31,79 +35,119 @@ function blank(partial: Partial<OperationalDesign> & Pick<OperationalDesign, "ti
 
 export function blankDesign(): OperationalDesign {
   return blank({
-    title: "Untitled operation",
-    nodeKind: "milestone",
+    title: "Untitled project",
+    purpose: "What this work is for, in one sentence.",
   });
 }
 
-export function programmeTemplate(): OperationalDesign {
+function node(
+  kind: NodeKind,
+  loeId: string,
+  phaseId: string,
+  label: string,
+  order: number,
+): DesignNode {
+  return {
+    id: uid("n"),
+    kind,
+    loeId,
+    phaseId,
+    label,
+    description: "",
+    order,
+  };
+}
+
+export function projectTemplate(): OperationalDesign {
   const p1 = uid("ph");
   const p2 = uid("ph");
   const p3 = uid("ph");
   const p4 = uid("ph");
-  const l1 = uid("loe");
-  const l2 = uid("loe");
-  const l3 = uid("loe");
+  const service = uid("loe");
+  const assurance = uid("loe");
+  const adoption = uid("loe");
 
-  const m = (
-    loeId: string,
-    phaseId: string,
-    n: number,
-    label: string,
-    order: number,
-  ) => ({
-    id: uid("c"),
-    loeId,
-    phaseId,
-    label: `M${n}: ${label}`,
-    description: "",
-    order,
+  const n = {
+    problemFramed: node("milestone", service, p1, "M1: Problem framed", 0),
+    needUnderstood: node("condition", service, p1, "C1: Need is understood", 1),
+    optionsChosen: node("milestone", service, p2, "M2: Options chosen", 0),
+    solutionAgreed: node("condition", service, p2, "C2: Solution is agreed", 1),
+    betaReleased: node("milestone", service, p3, "M3: Beta released", 0),
+    serviceReliable: node("condition", service, p3, "C3: Service is reliable", 1),
+    goLive: node("milestone", service, p4, "M4: Go-live", 0),
+    baseline: node("milestone", assurance, p1, "M1: Baseline captured", 0),
+    risksVisible: node("condition", assurance, p1, "C1: Risks are visible", 1),
+    requirements: node("milestone", assurance, p2, "M2: Requirements signed", 0),
+    funding: node("condition", assurance, p2, "C2: Funding is committed", 1),
+    testsPassed: node("milestone", assurance, p3, "M3: Tests passed", 0),
+    acceptance: node("milestone", assurance, p4, "M4: Acceptance signed", 0),
+    support: node("condition", assurance, p4, "C3: Support is in place", 1),
+    stakeholders: node("milestone", adoption, p1, "M1: Stakeholders mapped", 0),
+    partners: node("condition", adoption, p1, "C1: Partners are engaged", 1),
+    comms: node("milestone", adoption, p2, "M2: Comms plan agreed", 0),
+    training: node("milestone", adoption, p3, "M3: Training delivered", 0),
+    usersReady: node("condition", adoption, p4, "C2: Users are ready", 0),
+    benefits: node("milestone", adoption, p4, "M4: Benefits tracking on", 1),
+  };
+
+  const dep = (from: DesignNode, to: DesignNode) => ({
+    id: uid("dep"),
+    fromId: from.id,
+    toId: to.id,
   });
 
   return {
     id: uid("op"),
-    title: "Programme CONOPS",
-    nodeKind: "milestone",
+    title: "Service go-live",
+    purpose:
+      "Replace the current application process with a service people can complete without calling us.",
     endState: {
-      name: "END STATE",
-      description: "Capability in service, with residual risk accepted.",
+      name: "LIVE AND USED",
+      description:
+        "Users complete the journey unassisted. Support is in place. Residual risk is accepted. Benefits are being tracked.",
     },
     phases: [
-      { id: p1, name: "Identify" },
+      { id: p1, name: "Discover" },
       { id: p2, name: "Define" },
-      { id: p3, name: "Test and develop" },
-      { id: p4, name: "Realise" },
+      { id: p3, name: "Build and test" },
+      { id: p4, name: "Launch" },
     ],
     linesOfEffort: [
-      { id: l1, name: "LoE 1", color: "#E87722" },
-      { id: l2, name: "LoE 2", color: "#5B8C2A" },
-      { id: l3, name: "LoE 3", color: "#3D9AD1" },
+      { id: service, name: "Service", color: "#E87722" },
+      { id: assurance, name: "Assurance", color: "#5B8C2A" },
+      { id: adoption, name: "Adoption", color: "#3D9AD1" },
     ],
     decisionPoints: [
-      { id: uid("dp"), label: "DP1", afterPhaseId: p1, description: "Proceed to define?" },
-      { id: uid("dp"), label: "DP2", afterPhaseId: p2, description: "Proceed to test and develop?" },
-      { id: uid("dp"), label: "DP3", afterPhaseId: p3, description: "Proceed to realise?" },
+      {
+        id: uid("dp"),
+        label: "Gate 1",
+        afterPhaseId: p1,
+        description: "Is the problem worth a definition stage?",
+      },
+      {
+        id: uid("dp"),
+        label: "Gate 2",
+        afterPhaseId: p2,
+        description: "Commit funding and start build?",
+      },
+      {
+        id: uid("dp"),
+        label: "Gate 3",
+        afterPhaseId: p3,
+        description: "Authorise go-live?",
+      },
     ],
-    conditions: [
-      m(l1, p1, 1, "Need framed", 0),
-      m(l1, p1, 2, "Stakeholders mapped", 1),
-      m(l1, p2, 3, "Options down-selected", 0),
-      m(l1, p3, 4, "Prototype proven", 0),
-      m(l1, p3, 5, "Integration ready", 1),
-      m(l1, p4, 6, "Tranche 1 live", 0),
-      m(l1, p4, 7, "Handover complete", 1),
-      m(l2, p1, 1, "Baseline understood", 0),
-      m(l2, p2, 2, "Requirements agreed", 0),
-      m(l2, p3, 3, "Test plan executed", 0),
-      m(l2, p4, 4, "Acceptance signed", 0),
-      m(l2, p4, 5, "Support in place", 1),
-      m(l3, p1, 1, "Risks identified", 0),
-      m(l3, p1, 2, "Partners engaged", 1),
-      m(l3, p2, 3, "Funding locked", 0),
-      m(l3, p3, 4, "Force prepared", 0),
-      m(l3, p3, 5, "Comms ready", 1),
-      m(l3, p4, 6, "Transition started", 0),
-      m(l3, p4, 7, "Benefits tracking", 1),
+    nodes: Object.values(n),
+    dependencies: [
+      dep(n.problemFramed, n.needUnderstood),
+      dep(n.optionsChosen, n.solutionAgreed),
+      dep(n.funding, n.solutionAgreed),
+      dep(n.solutionAgreed, n.betaReleased),
+      dep(n.testsPassed, n.serviceReliable),
+      dep(n.serviceReliable, n.goLive),
+      dep(n.usersReady, n.goLive),
+      dep(n.training, n.usersReady),
+      dep(n.acceptance, n.support),
     ],
   };
 }
@@ -117,29 +161,41 @@ export function militaryTemplate(): OperationalDesign {
   const l2 = uid("loe");
   const l3 = uid("loe");
 
-  const dc = (
+  const c = (
     loeId: string,
     phaseId: string,
-    n: number,
     label: string,
     order: number,
-  ) => ({
-    id: uid("c"),
-    loeId,
-    phaseId,
-    label: `DC${n}: ${label}`,
-    description: "",
-    order,
+  ): DesignNode => node("condition", loeId, phaseId, label, order);
+
+  const intel1 = c(l1, p1, "C1: Picture established", 0);
+  const intel2 = c(l1, p2, "C2: Intent confirmed", 0);
+  const intel3 = c(l1, p3, "C3: Targets cued", 0);
+  const intel4 = c(l1, p4, "C4: Pursuit enabled", 0);
+  const man1 = c(l2, p1, "C1: Forces postured", 0);
+  const man2 = c(l2, p2, "C2: Access secured", 0);
+  const man3 = c(l2, p3, "C3: Foothold taken", 0);
+  const man4 = c(l2, p4, "C4: Freedom of action", 0);
+  const inf1 = c(l3, p1, "C1: Narrative set", 0);
+  const inf2 = c(l3, p2, "C2: Partners aligned", 0);
+  const inf3 = c(l3, p3, "C3: Opposition isolated", 0);
+  const inf4 = c(l3, p4, "C4: Authority restored", 0);
+
+  const dep = (from: DesignNode, to: DesignNode) => ({
+    id: uid("dep"),
+    fromId: from.id,
+    toId: to.id,
   });
 
   return {
     id: uid("op"),
     title: "Campaign CONOPS",
-    nodeKind: "decisive_condition",
+    purpose:
+      "Set the conditions for a stable authority to resume, with residual threat contained.",
     endState: {
       name: "END STATE",
       description:
-        "Adversary will to continue is broken; partner authority is restored; residual threat is contained.",
+        "Partner authority is restored. Residual threat is contained. The force can transition.",
     },
     phases: [
       { id: p1, name: "Shape" },
@@ -153,23 +209,45 @@ export function militaryTemplate(): OperationalDesign {
       { id: l3, name: "Influence", color: "#3D9AD1" },
     ],
     decisionPoints: [
-      { id: uid("dp"), label: "DP1", afterPhaseId: p1, description: "Commit to deterrence posture?" },
-      { id: uid("dp"), label: "DP2", afterPhaseId: p2, description: "Authorise offensive action?" },
-      { id: uid("dp"), label: "DP3", afterPhaseId: p3, description: "Exploit success / transition?" },
+      {
+        id: uid("dp"),
+        label: "DP1",
+        afterPhaseId: p1,
+        description: "Commit to a deterrence posture?",
+      },
+      {
+        id: uid("dp"),
+        label: "DP2",
+        afterPhaseId: p2,
+        description: "Authorise the next stage of action?",
+      },
+      {
+        id: uid("dp"),
+        label: "DP3",
+        afterPhaseId: p3,
+        description: "Exploit success, or transition?",
+      },
     ],
-    conditions: [
-      dc(l1, p1, 1, "Picture established", 0),
-      dc(l1, p2, 2, "Intent confirmed", 0),
-      dc(l1, p3, 3, "Targets cued", 0),
-      dc(l1, p4, 4, "Pursuit enabled", 0),
-      dc(l2, p1, 1, "Forces postured", 0),
-      dc(l2, p2, 2, "Access secured", 0),
-      dc(l2, p3, 3, "Foothold taken", 0),
-      dc(l2, p4, 4, "Freedom of action", 0),
-      dc(l3, p1, 1, "Narrative set", 0),
-      dc(l3, p2, 2, "Coalition aligned", 0),
-      dc(l3, p3, 3, "Will isolated", 0),
-      dc(l3, p4, 4, "Authority restored", 0),
+    nodes: [
+      intel1,
+      intel2,
+      intel3,
+      intel4,
+      man1,
+      man2,
+      man3,
+      man4,
+      inf1,
+      inf2,
+      inf3,
+      inf4,
+    ],
+    dependencies: [
+      dep(intel2, man2),
+      dep(man2, man3),
+      dep(inf2, inf3),
+      dep(man3, intel3),
+      dep(inf3, man4),
     ],
   };
 }
@@ -177,23 +255,24 @@ export function militaryTemplate(): OperationalDesign {
 export const TEMPLATES = [
   {
     id: "blank",
-    name: "Blank design",
-    blurb: "Three phases, two lines of effort, decision points ready to fill.",
-    nodeKind: "milestone" as const,
+    name: "Blank project",
+    blurb: "Three phases, two lines of effort, gates ready to fill.",
+    tag: "Start empty",
     create: blankDesign,
   },
   {
-    id: "programme",
-    name: "Programme CONOPS",
-    blurb: "Identify → Define → Test and develop → Realise, with milestones.",
-    nodeKind: "milestone" as const,
-    create: programmeTemplate,
+    id: "project",
+    name: "Service go-live",
+    blurb:
+      "Discover → Define → Build and test → Launch, with milestones, conditions, and dependencies.",
+    tag: "Civilian project",
+    create: projectTemplate,
   },
   {
     id: "military",
     name: "Campaign CONOPS",
-    blurb: "Shape → Deter → Seize initiative → Dominate, with decisive conditions.",
-    nodeKind: "decisive_condition" as const,
+    blurb: "Same geometry for a defence or security campaign, using conditions.",
+    tag: "Defence / security",
     create: militaryTemplate,
   },
 ] as const;

@@ -1,17 +1,16 @@
-import { conditionsInCell } from "./design";
-import type { OperationalDesign } from "./types";
+import { nodesInCell } from "./design";
+import type { NodeKind, OperationalDesign } from "./types";
 
 export const LAYOUT = {
   padX: 36,
   padY: 28,
-  titleH: 44,
   phaseHeaderH: 42,
   dpBarH: 58,
-  leftGutter: 168,
+  leftGutter: 176,
   endW: 196,
-  loeH: 96,
-  legendH: 52,
-  slot: 72,
+  loeH: 100,
+  legendH: 64,
+  slot: 76,
   phaseMin: 210,
 };
 
@@ -22,11 +21,12 @@ export interface PhaseLayout {
   width: number;
 }
 
-export interface ConditionLayout {
+export interface NodeLayout {
   id: string;
   loeId: string;
   phaseId: string;
   label: string;
+  kind: NodeKind;
   x: number;
   y: number;
 }
@@ -47,14 +47,23 @@ export interface LoeLayout {
   x2: number;
 }
 
+export interface DepLayout {
+  id: string;
+  fromId: string;
+  toId: string;
+  d: string;
+}
+
 export interface DiagramLayout {
   width: number;
   height: number;
   title: string;
+  purpose: string;
   phases: PhaseLayout[];
   loes: LoeLayout[];
-  conditions: ConditionLayout[];
+  nodes: NodeLayout[];
   dps: DpLayout[];
+  dependencies: DepLayout[];
   dpBar: { x: number; y: number; width: number; height: number };
   endState: { cx: number; cy: number; rx: number; ry: number; name: string };
   plot: { x: number; y: number; width: number; height: number };
@@ -63,12 +72,13 @@ export interface DiagramLayout {
 export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const L = LAYOUT;
   const phases = design.phases;
+  const titleH = design.purpose.trim() ? 64 : 44;
 
   const phaseWidths = phases.map((phase) => {
     const maxInPhase = Math.max(
       1,
       ...design.linesOfEffort.map(
-        (loe) => conditionsInCell(design, loe.id, phase.id).length,
+        (loe) => nodesInCell(design, loe.id, phase.id).length,
       ),
     );
     return Math.max(L.phaseMin, L.slot * (maxInPhase + 0.6));
@@ -76,7 +86,7 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
 
   const phasesWidth = phaseWidths.reduce((a, b) => a + b, 0);
   const width = L.padX * 2 + L.leftGutter + phasesWidth + L.endW;
-  const plotY = L.padY + L.titleH + L.phaseHeaderH;
+  const plotY = L.padY + titleH + L.phaseHeaderH;
   const plotH = L.dpBarH + design.linesOfEffort.length * L.loeH;
   const height = plotY + plotH + L.legendH + L.padY;
 
@@ -98,23 +108,38 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     x2: plotX + phasesWidth + 18,
   }));
 
-  const conditions: ConditionLayout[] = [];
+  const nodes: NodeLayout[] = [];
   for (const loe of loes) {
     for (const phase of phaseLayouts) {
-      const cell = conditionsInCell(design, loe.id, phase.id);
+      const cell = nodesInCell(design, loe.id, phase.id);
       const n = cell.length;
-      cell.forEach((c, i) => {
+      cell.forEach((node, i) => {
         const t = (i + 1) / (n + 1);
-        conditions.push({
-          id: c.id,
+        nodes.push({
+          id: node.id,
           loeId: loe.id,
           phaseId: phase.id,
-          label: c.label,
+          label: node.label,
+          kind: node.kind,
           x: phase.x + t * phase.width,
           y: loe.y,
         });
       });
     }
+  }
+
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const dependencies: DepLayout[] = [];
+  for (const dep of design.dependencies) {
+    const from = byId.get(dep.fromId);
+    const to = byId.get(dep.toId);
+    if (!from || !to) continue;
+    dependencies.push({
+      id: dep.id,
+      fromId: dep.fromId,
+      toId: dep.toId,
+      d: dependencyPath(from, to),
+    });
   }
 
   const dpY = plotY + L.dpBarH / 2;
@@ -134,10 +159,12 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     width,
     height,
     title: design.title,
+    purpose: design.purpose,
     phases: phaseLayouts,
     loes,
-    conditions,
+    nodes,
     dps,
+    dependencies,
     dpBar: {
       x: plotX,
       y: plotY,
@@ -153,6 +180,21 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     },
     plot: { x: plotX, y: plotY, width: phasesWidth, height: plotH },
   };
+}
+
+export function dependencyPath(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+): string {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  if (Math.abs(dy) < 6) {
+    const bulge = (dx >= 0 ? -1 : 1) * 30;
+    const mx = (a.x + b.x) / 2;
+    return `M${a.x},${a.y} Q${mx},${a.y + bulge} ${b.x},${b.y}`;
+  }
+  const mx = (a.x + b.x) / 2;
+  return `M${a.x},${a.y} C${mx},${a.y} ${mx},${b.y} ${b.x},${b.y}`;
 }
 
 export function hitPhaseAtX(

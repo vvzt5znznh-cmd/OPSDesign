@@ -1,8 +1,24 @@
 # OPSDesign
 
-An editor for **operational design / CONOPS** pictures: phases across the top, concurrent lines of effort, decision points at the gates, and a single end state.
+An editor for **operational design** pictures — usable for a civilian project or programme, not only a military campaign.
 
-The diagram lays itself out from the structure of the operation. You do not place boxes on a freeform canvas.
+The diagram lays itself out from the structure of the work. You do not place boxes on a freeform canvas.
+
+## Why this picture
+
+Operational design asks: what outcome must hold, what concurrent work produces it, what must be true along the way, and where someone has to decide. That is the same question for a service launch, a transformation, or a campaign.
+
+| On the drawing | Civilian reading | Doctrinal cousin |
+| --- | --- | --- |
+| **End state** | Desired outcome — conditions that must hold when the work is done | End state |
+| **Phases** | Stages in the life cycle | Phases |
+| **Lines of effort** | Workstreams organised by purpose | Lines of effort |
+| **Milestone** | An event or deliverable (“beta released”) | Milestone |
+| **Condition** | A state that must hold (“users are ready”) | Decisive condition |
+| **Dependency** | This cannot happen until that is true | Arranging operations / cause and effect |
+| **Decision point** | A gate: proceed, recycle, or stop | Decision point |
+
+Milestones and conditions can sit on the same line of effort. Dependencies can cross workstreams.
 
 ## Run locally
 
@@ -20,14 +36,14 @@ npm run preview
 
 ## How to use it
 
-1. Pick a template (blank, programme with **milestones**, or campaign with **decisive conditions**).
-2. Click anything on the diagram — or in the left outline — to edit it in the inspector.
-3. Hover a line of effort inside a phase and click **+** to add a node.
+1. Start from **Service go-live** (a civilian project), a blank project, or a defence/security campaign.
+2. Click anything on the diagram — or in the left outline — to edit it.
+3. Hover a line of effort inside a phase: **△** adds a milestone, **◇** adds a condition.
 4. Drag a node along its arrow to move it between phases.
-5. Toggle **Milestones** / **Decisive conditions** in the toolbar. The nodes stay; only the symbol changes (triangle vs diamond).
-6. Export **PNG**, **SVG**, or **JSON**. JSON round-trips, so you can version the design in git.
+5. **Link dependencies**: click the predecessor, then the node that depends on it. Or add predecessors in the inspector.
+6. Export **PNG**, **SVG**, or **JSON**.
 
-The current design is also saved in the browser (`localStorage`).
+The current design is also saved in the browser (`localStorage`). Older files that used a single node type still open; each node becomes a milestone or a condition.
 
 ### Keyboard
 
@@ -37,18 +53,7 @@ The current design is also saved in the browser (`localStorage`).
 | Delete / Backspace | Remove selection |
 | ⌘Z / Ctrl+Z | Undo |
 | Shift+⌘Z / Ctrl+Shift+Z | Redo |
-| Escape | Clear selection |
-
-## The picture
-
-| Element | Meaning |
-| --- | --- |
-| **End state** | Conditions that must hold when the operation is finished |
-| **Phases** | Sequential stages, left to right |
-| **Lines of effort** | Concurrent workstreams organised by purpose |
-| **Milestone** | An event or deliverable |
-| **Decisive condition** | A state that is necessary to reach the end state |
-| **Decision point** | A choice, usually at a phase boundary |
+| Escape | Clear selection, or leave link mode |
 
 ## Stack
 

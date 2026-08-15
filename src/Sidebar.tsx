@@ -1,10 +1,26 @@
 import { uid } from "./id";
-import { nodeKindLabel } from "./design";
+import { sortNodes } from "./design";
 import { useDesign } from "./state";
+import type { NodeKind } from "./types";
 
 export function Sidebar() {
   const { design, selection, setSelection, dispatch } = useDesign();
-  const kind = nodeKindLabel(design.nodeKind, true);
+
+  function targetCell() {
+    const selectedNode =
+      selection?.type === "node"
+        ? design.nodes.find((n) => n.id === selection.id)
+        : null;
+    const loeId =
+      (selection?.type === "loe" && selection.id) ||
+      selectedNode?.loeId ||
+      design.linesOfEffort[0]?.id;
+    const phaseId =
+      (selection?.type === "phase" && selection.id) ||
+      selectedNode?.phaseId ||
+      design.phases[0]?.id;
+    return { loeId, phaseId };
+  }
 
   function addPhase() {
     const id = uid("ph");
@@ -18,23 +34,12 @@ export function Sidebar() {
     setSelection({ type: "loe", id });
   }
 
-  function addCondition() {
-    const loeId =
-      (selection?.type === "loe" && selection.id) ||
-      (selection?.type === "condition"
-        ? design.conditions.find((c) => c.id === selection.id)?.loeId
-        : null) ||
-      design.linesOfEffort[0]?.id;
-    const phaseId =
-      (selection?.type === "phase" && selection.id) ||
-      (selection?.type === "condition"
-        ? design.conditions.find((c) => c.id === selection.id)?.phaseId
-        : null) ||
-      design.phases[0]?.id;
+  function addNode(kind: NodeKind) {
+    const { loeId, phaseId } = targetCell();
     if (!loeId || !phaseId) return;
-    const id = uid("c");
-    dispatch({ type: "addCondition", id, loeId, phaseId });
-    setSelection({ type: "condition", id });
+    const id = uid("n");
+    dispatch({ type: "addNode", id, loeId, phaseId, kind });
+    setSelection({ type: "node", id });
   }
 
   function addDp() {
@@ -48,6 +53,9 @@ export function Sidebar() {
     setSelection({ type: "dp", id });
   }
 
+  const milestones = sortNodes(design).filter((n) => n.kind === "milestone");
+  const conditions = sortNodes(design).filter((n) => n.kind === "condition");
+
   return (
     <aside className="sidebar">
       <div className="quick-add">
@@ -57,11 +65,14 @@ export function Sidebar() {
         <button type="button" onClick={addLoe}>
           + LoE
         </button>
-        <button type="button" onClick={addCondition}>
-          + {nodeKindLabel(design.nodeKind)}
+        <button type="button" onClick={() => addNode("milestone")}>
+          + Milestone
+        </button>
+        <button type="button" onClick={() => addNode("condition")}>
+          + Condition
         </button>
         <button type="button" onClick={addDp}>
-          + DP
+          + Gate
         </button>
       </div>
 
@@ -69,9 +80,7 @@ export function Sidebar() {
         <h2>End state</h2>
         <button
           type="button"
-          className={
-            selection?.type === "endState" ? "row selected" : "row"
-          }
+          className={selection?.type === "endState" ? "row selected" : "row"}
           onClick={() => setSelection({ type: "endState" })}
         >
           <span className="swatch end" />
@@ -123,7 +132,7 @@ export function Sidebar() {
       </section>
 
       <section>
-        <h2>Decision points</h2>
+        <h2>Decision points (gates)</h2>
         {design.decisionPoints.length === 0 ? (
           <p className="muted">None yet. Add one at a phase boundary.</p>
         ) : (
@@ -148,54 +157,63 @@ export function Sidebar() {
         )}
       </section>
 
-      <section>
-        <h2>{kind}</h2>
-        {design.conditions.length === 0 ? (
-          <p className="muted">
-            Hover a line of effort in a phase and click + to add one.
-          </p>
-        ) : (
-          <ol className="stack compact">
-            {design.conditions
-              .slice()
-              .sort((a, b) => {
-                const pa = design.phases.findIndex((p) => p.id === a.phaseId);
-                const pb = design.phases.findIndex((p) => p.id === b.phaseId);
-                if (a.loeId !== b.loeId) {
-                  const la = design.linesOfEffort.findIndex((l) => l.id === a.loeId);
-                  const lb = design.linesOfEffort.findIndex((l) => l.id === b.loeId);
-                  return la - lb;
-                }
-                if (pa !== pb) return pa - pb;
-                return a.order - b.order;
-              })
-              .map((c) => {
-                const loe = design.linesOfEffort.find((l) => l.id === c.loeId);
-                return (
-                  <li key={c.id}>
-                    <button
-                      type="button"
-                      className={
-                        selection?.type === "condition" && selection.id === c.id
-                          ? "row selected"
-                          : "row"
-                      }
-                      onClick={() => setSelection({ type: "condition", id: c.id })}
-                    >
-                      <span
-                        className="swatch sm"
-                        style={{ background: loe?.color ?? "#999" }}
-                      />
-                      <span className="row-label">{c.label}</span>
-                    </button>
-                  </li>
-                );
-              })}
-          </ol>
-        )}
-      </section>
+      <NodeList
+        title="Milestones"
+        empty="Hover a line of effort and click △ to add one."
+        nodes={milestones}
+      />
+      <NodeList
+        title="Conditions"
+        empty="Hover a line of effort and click ◇ to add one."
+        nodes={conditions}
+      />
 
       <p className="hint">Click a row to edit it in the inspector.</p>
     </aside>
+  );
+}
+
+function NodeList({
+  title,
+  empty,
+  nodes,
+}: {
+  title: string;
+  empty: string;
+  nodes: { id: string; label: string; loeId: string }[];
+}) {
+  const { design, selection, setSelection } = useDesign();
+  return (
+    <section>
+      <h2>{title}</h2>
+      {nodes.length === 0 ? (
+        <p className="muted">{empty}</p>
+      ) : (
+        <ol className="stack compact">
+          {nodes.map((n) => {
+            const loe = design.linesOfEffort.find((l) => l.id === n.loeId);
+            return (
+              <li key={n.id}>
+                <button
+                  type="button"
+                  className={
+                    selection?.type === "node" && selection.id === n.id
+                      ? "row selected"
+                      : "row"
+                  }
+                  onClick={() => setSelection({ type: "node", id: n.id })}
+                >
+                  <span
+                    className="swatch sm"
+                    style={{ background: loe?.color ?? "#999" }}
+                  />
+                  <span className="row-label">{n.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
   );
 }

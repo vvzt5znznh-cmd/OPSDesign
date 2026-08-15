@@ -1,6 +1,5 @@
 import { useRef, type RefObject } from "react";
 import { downloadPng, downloadSvg } from "./export";
-import { nodeKindLabel } from "./design";
 import { downloadJson, parseImportedDesign } from "./storage";
 import { useDesign } from "./state";
 
@@ -22,6 +21,10 @@ export function Toolbar({
     canRedo,
     present,
     setPresent,
+    linkMode,
+    setLinkMode,
+    showDependencies,
+    setShowDependencies,
   } = useDesign();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -56,24 +59,20 @@ export function Toolbar({
         <span>OPSDesign</span>
       </div>
 
-      <div className="kind-toggle" role="group" aria-label="Node type">
+      <div className="kind-toggle" role="group" aria-label="Diagram tools">
         <button
           type="button"
-          className={design.nodeKind === "milestone" ? "on" : ""}
-          onClick={() =>
-            dispatch({ type: "setNodeKind", nodeKind: "milestone" })
-          }
+          className={linkMode ? "on" : ""}
+          onClick={() => setLinkMode(!linkMode)}
         >
-          Milestones
+          Link dependencies
         </button>
         <button
           type="button"
-          className={design.nodeKind === "decisive_condition" ? "on" : ""}
-          onClick={() =>
-            dispatch({ type: "setNodeKind", nodeKind: "decisive_condition" })
-          }
+          className={showDependencies ? "on" : ""}
+          onClick={() => setShowDependencies(!showDependencies)}
         >
-          Decisive conditions
+          Show links
         </button>
       </div>
 
@@ -121,8 +120,9 @@ export function Toolbar({
         </button>
       </div>
       <p className="toolbar-note">
-        Showing {nodeKindLabel(design.nodeKind, true).toLowerCase()} on each line of
-        effort. Switch anytime — the nodes stay, the symbol changes.
+        {linkMode
+          ? "Click a node, then the node that depends on it. Escape cancels."
+          : "Milestones are events. Conditions are states that must hold. Dashed arrows are dependencies. Gates are decisions."}
       </p>
     </header>
   );
