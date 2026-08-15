@@ -68,17 +68,22 @@ export function reduceDesign(
     case "replace":
       return action.design;
     case "setTitle":
-      return { ...design, title: action.title };
+      return action.title === design.title ? design : { ...design, title: action.title };
     case "setPurpose":
-      return { ...design, purpose: action.purpose };
-    case "setEndState":
-      return {
-        ...design,
-        endState: {
-          name: action.name ?? design.endState.name,
-          description: action.description ?? design.endState.description,
-        },
-      };
+      return action.purpose === design.purpose
+        ? design
+        : { ...design, purpose: action.purpose };
+    case "setEndState": {
+      const name = action.name ?? design.endState.name;
+      const description = action.description ?? design.endState.description;
+      if (
+        name === design.endState.name &&
+        description === design.endState.description
+      ) {
+        return design;
+      }
+      return { ...design, endState: { name, description } };
+    }
     case "addPhase": {
       const phase = {
         id: action.id ?? uid("ph"),
@@ -113,13 +118,16 @@ export function reduceDesign(
           : design.decisionPoints;
       return { ...design, phases, decisionPoints };
     }
-    case "renamePhase":
+    case "renamePhase": {
+      const phase = design.phases.find((p) => p.id === action.id);
+      if (!phase || phase.name === action.name) return design;
       return {
         ...design,
         phases: design.phases.map((p) =>
           p.id === action.id ? { ...p, name: action.name } : p,
         ),
       };
+    }
     case "removePhase": {
       if (design.phases.length <= 1) return design;
       const remaining = design.phases.filter((p) => p.id !== action.id);
@@ -158,19 +166,19 @@ export function reduceDesign(
         ],
       };
     }
-    case "updateLoe":
+    case "updateLoe": {
+      const loe = design.linesOfEffort.find((l) => l.id === action.id);
+      if (!loe) return design;
+      const name = action.name ?? loe.name;
+      const color = action.color ?? loe.color;
+      if (name === loe.name && color === loe.color) return design;
       return {
         ...design,
         linesOfEffort: design.linesOfEffort.map((l) =>
-          l.id === action.id
-            ? {
-                ...l,
-                name: action.name ?? l.name,
-                color: action.color ?? l.color,
-              }
-            : l,
+          l.id === action.id ? { ...l, name, color } : l,
         ),
       };
+    }
     case "removeLoe": {
       if (design.linesOfEffort.length <= 1) return design;
       const removed = new Set(
@@ -210,32 +218,44 @@ export function reduceDesign(
           },
         ],
       };
-    case "updateNode":
+    case "updateNode": {
+      const node = design.nodes.find((n) => n.id === action.id);
+      if (!node) return design;
+      const label = action.label ?? node.label;
+      const description = action.description ?? node.description;
+      const loeId = action.loeId ?? node.loeId;
+      const phaseId = action.phaseId ?? node.phaseId;
+      const kind = action.kind ?? node.kind;
+      const moved = loeId !== node.loeId || phaseId !== node.phaseId;
+      if (
+        label === node.label &&
+        description === node.description &&
+        kind === node.kind &&
+        !moved
+      ) {
+        return design;
+      }
       return {
         ...design,
         nodes: design.nodes.map((n) =>
           n.id === action.id
             ? {
                 ...n,
-                label: action.label ?? n.label,
-                description: action.description ?? n.description,
-                loeId: action.loeId ?? n.loeId,
-                phaseId: action.phaseId ?? n.phaseId,
-                kind: action.kind ?? n.kind,
-                order:
-                  (action.phaseId && action.phaseId !== n.phaseId) ||
-                  (action.loeId && action.loeId !== n.loeId)
-                    ? nextOrder(
-                        design,
-                        action.loeId ?? n.loeId,
-                        action.phaseId ?? n.phaseId,
-                      )
-                    : n.order,
+                label,
+                description,
+                loeId,
+                phaseId,
+                kind,
+                order: moved
+                  ? nextOrder(design, loeId, phaseId)
+                  : n.order,
               }
             : n,
         ),
       };
+    }
     case "removeNode":
+      if (!design.nodes.some((n) => n.id === action.id)) return design;
       return {
         ...design,
         nodes: design.nodes.filter((n) => n.id !== action.id),
@@ -283,6 +303,7 @@ export function reduceDesign(
       };
     }
     case "removeDependency":
+      if (!design.dependencies.some((d) => d.id === action.id)) return design;
       return {
         ...design,
         dependencies: design.dependencies.filter((d) => d.id !== action.id),
@@ -300,21 +321,30 @@ export function reduceDesign(
           },
         ],
       };
-    case "updateDp":
+    case "updateDp": {
+      const dp = design.decisionPoints.find((d) => d.id === action.id);
+      if (!dp) return design;
+      const label = action.label ?? dp.label;
+      const description = action.description ?? dp.description;
+      const afterPhaseId = action.afterPhaseId ?? dp.afterPhaseId;
+      if (
+        label === dp.label &&
+        description === dp.description &&
+        afterPhaseId === dp.afterPhaseId
+      ) {
+        return design;
+      }
       return {
         ...design,
-        decisionPoints: design.decisionPoints.map((dp) =>
-          dp.id === action.id
-            ? {
-                ...dp,
-                label: action.label ?? dp.label,
-                description: action.description ?? dp.description,
-                afterPhaseId: action.afterPhaseId ?? dp.afterPhaseId,
-              }
-            : dp,
+        decisionPoints: design.decisionPoints.map((item) =>
+          item.id === action.id
+            ? { ...item, label, description, afterPhaseId }
+            : item,
         ),
       };
+    }
     case "removeDp":
+      if (!design.decisionPoints.some((d) => d.id === action.id)) return design;
       return {
         ...design,
         decisionPoints: design.decisionPoints.filter((dp) => dp.id !== action.id),

@@ -4,6 +4,11 @@ import { uid } from "./id";
 import { useDesign } from "./state";
 import { LOE_COLORS } from "./types";
 
+function commit(previous: string, next: string, apply: () => void) {
+  if (next === previous) return;
+  apply();
+}
+
 function Field({
   label,
   children,
@@ -58,7 +63,11 @@ export function Inspector() {
           <input
             key={design.id}
             defaultValue={design.title}
-            onBlur={(e) => dispatch({ type: "setTitle", title: e.target.value })}
+            onBlur={(e) =>
+              commit(design.title, e.target.value, () =>
+                dispatch({ type: "setTitle", title: e.target.value }),
+              )
+            }
             onKeyDown={(e) => {
               if (e.key === "Enter") (e.target as HTMLInputElement).blur();
             }}
@@ -71,7 +80,9 @@ export function Inspector() {
             defaultValue={design.purpose}
             placeholder="What this work is for, in one sentence."
             onBlur={(e) =>
-              dispatch({ type: "setPurpose", purpose: e.target.value })
+              commit(design.purpose, e.target.value, () =>
+                dispatch({ type: "setPurpose", purpose: e.target.value }),
+              )
             }
           />
         </Field>
@@ -91,7 +102,11 @@ export function Inspector() {
           <input
             key="es-name"
             defaultValue={design.endState.name}
-            onBlur={(e) => dispatch({ type: "setEndState", name: e.target.value })}
+            onBlur={(e) =>
+              commit(design.endState.name, e.target.value, () =>
+                dispatch({ type: "setEndState", name: e.target.value }),
+              )
+            }
           />
         </Field>
         <Field label="Description">
@@ -100,7 +115,12 @@ export function Inspector() {
             rows={5}
             defaultValue={design.endState.description}
             onBlur={(e) =>
-              dispatch({ type: "setEndState", description: e.target.value })
+              commit(design.endState.description, e.target.value, () =>
+                dispatch({
+                  type: "setEndState",
+                  description: e.target.value,
+                }),
+              )
             }
             placeholder="What will be true for users, the organisation, and residual risk?"
           />
@@ -121,7 +141,13 @@ export function Inspector() {
             key={phase.id}
             defaultValue={phase.name}
             onBlur={(e) =>
-              dispatch({ type: "renamePhase", id: phase.id, name: e.target.value })
+              commit(phase.name, e.target.value, () =>
+                dispatch({
+                  type: "renamePhase",
+                  id: phase.id,
+                  name: e.target.value,
+                }),
+              )
             }
           />
         </Field>
@@ -166,7 +192,13 @@ export function Inspector() {
             key={loe.id}
             defaultValue={loe.name}
             onBlur={(e) =>
-              dispatch({ type: "updateLoe", id: loe.id, name: e.target.value })
+              commit(loe.name, e.target.value, () =>
+                dispatch({
+                  type: "updateLoe",
+                  id: loe.id,
+                  name: e.target.value,
+                }),
+              )
             }
           />
         </Field>
@@ -251,7 +283,9 @@ export function Inspector() {
             key={n.id}
             defaultValue={n.label}
             onBlur={(e) =>
-              dispatch({ type: "updateNode", id: n.id, label: e.target.value })
+              commit(n.label, e.target.value, () =>
+                dispatch({ type: "updateNode", id: n.id, label: e.target.value }),
+              )
             }
           />
         </Field>
@@ -261,11 +295,13 @@ export function Inspector() {
             rows={3}
             defaultValue={n.description}
             onBlur={(e) =>
-              dispatch({
-                type: "updateNode",
-                id: n.id,
-                description: e.target.value,
-              })
+              commit(n.description, e.target.value, () =>
+                dispatch({
+                  type: "updateNode",
+                  id: n.id,
+                  description: e.target.value,
+                }),
+              )
             }
           />
         </Field>
@@ -415,7 +451,9 @@ export function Inspector() {
             key={dp.id}
             defaultValue={dp.label}
             onBlur={(e) =>
-              dispatch({ type: "updateDp", id: dp.id, label: e.target.value })
+              commit(dp.label, e.target.value, () =>
+                dispatch({ type: "updateDp", id: dp.id, label: e.target.value }),
+              )
             }
           />
         </Field>
@@ -426,11 +464,13 @@ export function Inspector() {
             defaultValue={dp.description}
             placeholder="Proceed to the next stage? On what evidence?"
             onBlur={(e) =>
-              dispatch({
-                type: "updateDp",
-                id: dp.id,
-                description: e.target.value,
-              })
+              commit(dp.description, e.target.value, () =>
+                dispatch({
+                  type: "updateDp",
+                  id: dp.id,
+                  description: e.target.value,
+                }),
+              )
             }
           />
         </Field>

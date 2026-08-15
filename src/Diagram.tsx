@@ -110,6 +110,7 @@ export function Diagram({
     y: number;
     originX: number;
     active: boolean;
+    pointerId: number;
   } | null>(null);
   const dragRef = useRef(drag);
   dragRef.current = drag;
@@ -206,28 +207,46 @@ export function Diagram({
       }
       return;
     }
-    e.currentTarget.setPointerCapture(e.pointerId);
+    const pointer = svgRef.current
+      ? svgPoint(svgRef.current, e.clientX, e.clientY)
+      : { x, y };
     setSelection({ type: "node", id });
-    setDrag({ id, x, y, originX: x, active: false });
+    setDrag({
+      id,
+      x,
+      y,
+      originX: pointer.x,
+      active: false,
+      pointerId: e.pointerId,
+    });
   }
 
   function onPointerMove(e: PointerEvent<SVGSVGElement>) {
     const current = dragRef.current;
     if (!current || !svgRef.current) return;
     const p = svgPoint(svgRef.current, e.clientX, e.clientY);
-    const active = current.active || Math.abs(p.x - current.originX) > 6;
+    const active =
+      current.active || Math.abs(p.x - current.originX) > 8;
+    if (!active) return;
+    if (!current.active) {
+      svgRef.current.setPointerCapture(e.pointerId);
+    }
     setDrag({
       id: current.id,
       x: p.x,
       y: current.y,
       originX: current.originX,
-      active,
+      active: true,
+      pointerId: current.pointerId,
     });
   }
 
   function onPointerUp(e: PointerEvent<SVGSVGElement>) {
     const current = dragRef.current;
     if (!current || !svgRef.current) return;
+    if (svgRef.current.hasPointerCapture(e.pointerId)) {
+      svgRef.current.releasePointerCapture(e.pointerId);
+    }
     if (current.active) {
       const p = svgPoint(svgRef.current, e.clientX, e.clientY);
       dropAt(laidOut, current.id, p.x);
@@ -265,6 +284,7 @@ export function Diagram({
       className={linkMode ? "diagram-svg link-mode" : "diagram-svg"}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
       onPointerLeave={() => setHoverCell(null)}
       onClick={() => {
         if (skipDeselect.current) {
@@ -485,7 +505,10 @@ export function Diagram({
             }
             linking={linkFrom === n.id}
             onPointerDown={(e) => onNodePointerDown(e, n.id, n.x, n.y)}
-            onDoubleClick={() => setRenameId(n.id)}
+            onDoubleClick={() => {
+              setDrag(null);
+              setRenameId(n.id);
+            }}
           />
         );
       })}
