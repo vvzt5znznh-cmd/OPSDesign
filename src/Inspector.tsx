@@ -249,7 +249,6 @@ export function Inspector() {
         <Field label="Label">
           <input
             key={n.id}
-            autoFocus
             defaultValue={n.label}
             onBlur={(e) =>
               dispatch({ type: "updateNode", id: n.id, label: e.target.value })

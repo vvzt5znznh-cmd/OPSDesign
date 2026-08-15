@@ -461,9 +461,11 @@ export function Diagram({
       {hoverCell && !drag?.active && !linkMode && (
         <AddPills
           x={
-            (laidOut.phases.find((p) => p.id === hoverCell.phaseId)?.x ?? 0) + 10
+            (laidOut.phases.find((p) => p.id === hoverCell.phaseId)?.x ?? 0) +
+            (laidOut.phases.find((p) => p.id === hoverCell.phaseId)?.width ?? 0) -
+            104
           }
-          y={(laidOut.loes.find((l) => l.id === hoverCell.loeId)?.y ?? 0) - 46}
+          y={(laidOut.loes.find((l) => l.id === hoverCell.loeId)?.y ?? 0) - 26}
           onMilestone={() => addAtHover("milestone")}
           onCondition={() => addAtHover("condition")}
         />
@@ -627,7 +629,7 @@ function AddPills({
         </text>
       </g>
       <g
-        transform="translate(98,0)"
+        transform="translate(0,26)"
         onClick={(e) => {
           e.stopPropagation();
           onCondition();
