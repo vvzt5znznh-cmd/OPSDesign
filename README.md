@@ -20,6 +20,12 @@ Operational design asks: what outcome must hold, what concurrent work produces i
 
 Milestones and conditions can sit on the same line of effort. Dependencies can cross workstreams.
 
+## Live site
+
+https://vvzt5znznh-cmd.github.io/OPSDesign/
+
+Pushes to `main` build and publish via GitHub Actions. In the repo: **Settings → Pages → Source → GitHub Actions**.
+
 ## Run locally
 
 ```bash

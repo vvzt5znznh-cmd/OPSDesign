@@ -2,6 +2,7 @@
   "name": "opsdesign",
   "private": true,
   "version": "0.1.0",
+  "homepage": "https://vvzt5znznh-cmd.github.io/OPSDesign/",
   "type": "module",
   "scripts": {
     "dev": "vite",
