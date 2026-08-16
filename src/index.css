@@ -681,6 +681,33 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.llm-steps {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  padding-left: 1.2em;
+}
+
+.llm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+
+.llm-preview {
+  max-height: 220px;
+  overflow: auto;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--elev);
+  color: var(--ink);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
 .modal-close {
   margin-top: 8px;
 }

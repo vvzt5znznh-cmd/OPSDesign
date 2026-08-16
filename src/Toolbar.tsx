@@ -3,6 +3,7 @@ import { downloadPng, downloadSvg } from "./export";
 import { downloadPptx } from "./pptx";
 import { Menu } from "./Menu";
 import { downloadJson, parseImportedDesign } from "./storage";
+import { LlmModal } from "./LlmModal";
 import { useTheme } from "./theme";
 import { useDesign } from "./state";
 
@@ -30,6 +31,7 @@ export function Toolbar({
   const { theme, toggleTheme, diagram } = useTheme();
   const fileRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(design.title);
+  const [llmOpen, setLlmOpen] = useState(false);
 
   useEffect(() => {
     setTitle(design.title);
@@ -108,6 +110,9 @@ export function Toolbar({
             <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>
               Open JSON…
             </button>
+            <button type="button" role="menuitem" onClick={() => setLlmOpen(true)}>
+              Ask an LLM…
+            </button>
             <button type="button" role="menuitem" onClick={() => downloadJson(design)}>
               Save JSON
             </button>
@@ -166,6 +171,7 @@ export function Toolbar({
           </button>
         </div>
       </div>
+      {llmOpen && <LlmModal onClose={() => setLlmOpen(false)} />}
     </header>
   );
 }

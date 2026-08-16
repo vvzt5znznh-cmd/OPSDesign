@@ -56,8 +56,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           place it in a phase or after it. Use the + marks to add a phase or
           workstream.{" "}
           <strong>Link</strong>, then click A then B — B sits to the right of A.
-          File → Export PowerPoint makes an editable briefing slide that matches
-          the picture. Dependency links are PowerPoint connectors glued to the
+          File → Ask an LLM… copies a prompt and sample JSON so a language model
+          can draft a picture from a plain-language brief; File → Open JSON loads
+          the file it returns. File → Export PowerPoint makes an editable
+          briefing slide that matches the picture. Dependency links are PowerPoint connectors glued to the
           figures — copy one, or draw a new Elbow / Straight connector, and snap
           it to a milestone or condition. End-state name and description sit on
           the panel; other inspector detail goes to speaker notes.
