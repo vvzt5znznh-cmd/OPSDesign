@@ -175,6 +175,21 @@ export function columnAtX(phase: PhaseLayout, x: number): number {
   return Math.max(0, Math.min(phase.slots - 1, col));
 }
 
+/** Columns that fit in the default phase width, without a spare that expands on drop. */
+export function minPhaseSlots(): number {
+  return Math.max(2, Math.round(LAYOUT.phaseMin / LAYOUT.slot));
+}
+
+/** How wide a phase is for a given number of occupied columns (1-based). */
+export function phaseMetrics(usedColumns: number): { slots: number; width: number } {
+  const used = Math.max(1, Math.floor(usedColumns));
+  const minSlots = minPhaseSlots();
+  if (used <= minSlots) {
+    return { slots: minSlots, width: LAYOUT.phaseMin };
+  }
+  return { slots: used, width: LAYOUT.slot * used };
+}
+
 export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const L = LAYOUT;
   const phases = design.phases;
@@ -185,14 +200,9 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     const inPhase = design.nodes.filter((n) => n.phaseId === phase.id);
     const used = inPhase.reduce(
       (max, n) => Math.max(max, (columns.get(n.id) ?? 0) + 1),
-      1,
+      0,
     );
-    const slots = used + 1;
-    const width = Math.max(L.phaseMin, L.slot * slots);
-    return {
-      slots: Math.max(slots, Math.round(width / L.slot)),
-      width,
-    };
+    return phaseMetrics(used);
   });
 
   const phasesWidth = phaseMeta.reduce((a, p) => a + p.width, 0);
@@ -396,7 +406,7 @@ export function hitPhaseAtX(
 export function snapGateAtX(
   phases: PhaseLayout[],
   x: number,
-): { phaseId: string; placement: GatePlacement; order: number } | null {
+): { phaseId: string; placement: GatePlacement; order: number; x: number } | null {
   if (phases.length === 0) return null;
   type Snap = {
     x: number;

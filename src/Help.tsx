@@ -51,9 +51,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         </div>
         <p className="help-how">
           Hover a workstream in a phase, or click the + in an empty cell, to add
-          a milestone or condition. Drag nodes along a workstream. Drag a gate
-          along the bar to place it in a phase or after it. Click the bar to add
-          a gate. Use the + marks to add a phase, workstream, or gate.{" "}
+          a milestone or condition. Hover the gate bar and click the + to add a
+          decision. Drag nodes along a workstream. Drag a gate along the bar to
+          place it in a phase or after it. Use the + marks to add a phase or
+          workstream.{" "}
           <strong>Link</strong>, then click A then B — B sits to the right of A.
           File → Export PowerPoint makes an editable briefing slide that matches
           the picture. Dependency links are PowerPoint connectors glued to the

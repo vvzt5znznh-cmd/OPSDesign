@@ -466,7 +466,7 @@ export function Inspector() {
         <Head>Gate</Head>
         <p className="muted">
           Go, recycle, or stop. Drag along the bar to sit inside a phase, or on
-          the seam after it.
+          the seam after it. Hover the bar and click + to add another.
         </p>
         <Field label="Label">
           <input

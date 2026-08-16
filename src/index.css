@@ -358,7 +358,6 @@ textarea:focus-visible {
 
 .diagram-svg {
   display: block;
-  max-width: 100%;
   height: auto;
   background: var(--diagram-bg);
   border-radius: 10px;

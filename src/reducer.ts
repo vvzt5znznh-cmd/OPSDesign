@@ -98,30 +98,7 @@ export function reduceDesign(
         : phases.length - 1;
       const insertAt = idx >= 0 ? idx + 1 : phases.length;
       phases.splice(insertAt, 0, phase);
-      const dpAfterId =
-        insertAt < phases.length - 1
-          ? phase.id
-          : insertAt > 0
-            ? phases[insertAt - 1].id
-            : null;
-      const hasDp =
-        dpAfterId != null &&
-        design.decisionPoints.some((dp) => dp.afterPhaseId === dpAfterId);
-      const decisionPoints =
-        dpAfterId && !hasDp
-          ? [
-              ...design.decisionPoints,
-              {
-                id: uid("dp"),
-                label: `Decision ${design.decisionPoints.length + 1}`,
-                afterPhaseId: dpAfterId,
-                placement: "after" as const,
-                order: 0,
-                description: "",
-              },
-            ]
-          : design.decisionPoints;
-      return { ...design, phases, decisionPoints };
+      return { ...design, phases };
     }
     case "renamePhase": {
       const phase = design.phases.find((p) => p.id === action.id);

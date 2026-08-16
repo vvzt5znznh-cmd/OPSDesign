@@ -98,6 +98,12 @@ export function Diagram({
     loeId: string;
     phaseId: string;
   } | null>(null);
+  const [hoverGate, setHoverGate] = useState<{
+    x: number;
+    phaseId: string;
+    placement: "in" | "after";
+    order: number;
+  } | null>(null);
   const [addMenu, setAddMenu] = useState<{
     loeId: string;
     phaseId: string;
@@ -191,6 +197,7 @@ export function Diagram({
     y: number,
   ) {
     e.stopPropagation();
+    skipDeselect.current = true;
     if (linkMode) {
       if (!linkFrom) {
         setLinkFrom(id);
@@ -213,6 +220,7 @@ export function Diagram({
       ? svgPoint(svgRef.current, e.clientX, e.clientY)
       : { x, y };
     setSelection({ type: "node", id });
+    skipDeselect.current = true;
     setDrag({
       id,
       x,
@@ -274,8 +282,8 @@ export function Diagram({
             order: snap.order,
           });
         }
-        skipDeselect.current = true;
       }
+      skipDeselect.current = true;
       setDpDrag(null);
       return;
     }
@@ -287,8 +295,8 @@ export function Diagram({
     if (current.active) {
       const p = svgPoint(svgRef.current, e.clientX, e.clientY);
       dropAt(laidOut, current.id, p.x);
-      skipDeselect.current = true;
     }
+    skipDeselect.current = true;
     setDrag(null);
   }
 
@@ -468,29 +476,52 @@ export function Diagram({
         </text>
       </g>
 
-      <rect
-        x={laidOut.dpBar.x}
-        y={laidOut.dpBar.y}
-        width={laidOut.dpBar.width}
-        height={laidOut.dpBar.height}
-        fill={palette.dpBar}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (present || linkMode || !svgRef.current) return;
-          const p = svgPoint(svgRef.current, e.clientX, e.clientY);
-          const snap = snapGateAtX(laidOut.phases, p.x);
-          if (!snap) return;
-          const id = uid("dp");
-          dispatch({
-            type: "addDp",
-            id,
-            afterPhaseId: snap.phaseId,
-            placement: snap.placement,
-            order: snap.order,
-          });
-          setSelection({ type: "dp", id });
-        }}
-      />
+      <g
+        className="gate-rail"
+        onPointerLeave={() => setHoverGate(null)}
+      >
+        <rect
+          x={laidOut.dpBar.x}
+          y={laidOut.dpBar.y}
+          width={laidOut.dpBar.width}
+          height={laidOut.dpBar.height}
+          fill={palette.dpBar}
+          onPointerMove={(e) => {
+            if (present || linkMode || dpDrag || !svgRef.current) return;
+            const p = svgPoint(svgRef.current, e.clientX, e.clientY);
+            const snap = snapGateAtX(laidOut.phases, p.x);
+            if (!snap) {
+              setHoverGate(null);
+              return;
+            }
+            const taken = laidOut.dps.some((dp) => Math.abs(dp.x - snap.x) < 22);
+            setHoverGate(taken ? null : snap);
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        />
+        {!present && !linkMode && !dpDrag?.active && hoverGate && (
+          <CellPlus
+            x={hoverGate.x}
+            y={laidOut.dpBar.y + laidOut.dpBar.height / 2}
+            title="Add gate"
+            onClick={() => {
+              const id = uid("dp");
+              dispatch({
+                type: "addDp",
+                id,
+                afterPhaseId: hoverGate.phaseId,
+                placement: hoverGate.placement,
+                order: hoverGate.order,
+              });
+              setSelection({ type: "dp", id });
+              setHoverGate(null);
+              skipDeselect.current = true;
+            }}
+          />
+        )}
+      </g>
 
       {laidOut.loes.map((loe) => (
         <g key={loe.id}>
@@ -704,6 +735,7 @@ export function Diagram({
           className={dpDrag?.id === dp.id ? "dp-mark dragging" : "dp-mark"}
           onPointerDown={(e) => {
             e.stopPropagation();
+            skipDeselect.current = true;
             if (linkMode || present) {
               setSelection({ type: "dp", id: dp.id });
               return;
@@ -726,6 +758,8 @@ export function Diagram({
             setSelection({ type: "dp", id: dp.id });
           }}
         >
+          <circle r="20" fill="transparent" data-ui="true" />
+          <rect x="-56" y="16" width="112" height="30" fill="transparent" />
           <path
             d={starPath(13)}
             fill="#2E7D32"
@@ -862,23 +896,6 @@ export function Diagram({
               }}
             />
           )}
-          <PlusMark
-            x={laidOut.dpBar.x - 20}
-            y={laidOut.dpBar.y + laidOut.dpBar.height / 2}
-            label="Add gate"
-            onClick={() => {
-              const last = design.phases[design.phases.length - 1];
-              if (!last) return;
-              const id = uid("dp");
-              dispatch({
-                type: "addDp",
-                id,
-                afterPhaseId: last.id,
-                placement: "after",
-              });
-              setSelection({ type: "dp", id });
-            }}
-          />
         </>
       )}
 
@@ -891,10 +908,12 @@ function CellPlus({
   x,
   y,
   onClick,
+  title = "Add milestone or condition",
 }: {
   x: number;
   y: number;
   onClick: () => void;
+  title?: string;
 }) {
   const { diagram: palette } = useTheme();
   return (
@@ -907,7 +926,7 @@ function CellPlus({
         onClick();
       }}
     >
-      <title>Add milestone or condition</title>
+      <title>{title}</title>
       <circle r="9" fill={palette.plus} fillOpacity="0.18" />
       <path
         d="M-4.5,0 H4.5 M0,-4.5 V4.5"
