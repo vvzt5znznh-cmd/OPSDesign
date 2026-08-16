@@ -463,7 +463,10 @@ export function Inspector() {
     return (
       <aside className="inspector">
         <Head>Gate</Head>
-        <p className="muted">Go, recycle, or stop — usually between stages.</p>
+        <p className="muted">
+          Go, recycle, or stop. Drag along the bar to sit inside a phase, or on
+          the seam after it.
+        </p>
         <Field label="Label">
           <input
             key={dp.id}
@@ -480,7 +483,7 @@ export function Inspector() {
             key={`${dp.id}-d`}
             rows={4}
             defaultValue={dp.description}
-            placeholder="Proceed to the next stage? On what evidence?"
+            placeholder="Proceed? Recycle? Stop? On what evidence?"
             onBlur={(e) =>
               commit(dp.description, e.target.value, () =>
                 dispatch({
@@ -492,7 +495,7 @@ export function Inspector() {
             }
           />
         </Field>
-        <Field label="After phase">
+        <Field label="Phase">
           <select
             value={dp.afterPhaseId}
             onChange={(e) =>
@@ -510,6 +513,26 @@ export function Inspector() {
             ))}
           </select>
         </Field>
+        <div className="kind-toggle inspector-toggle">
+          <button
+            type="button"
+            className={dp.placement === "in" ? "on" : ""}
+            onClick={() =>
+              dispatch({ type: "updateDp", id: dp.id, placement: "in" })
+            }
+          >
+            In phase
+          </button>
+          <button
+            type="button"
+            className={dp.placement !== "in" ? "on" : ""}
+            onClick={() =>
+              dispatch({ type: "updateDp", id: dp.id, placement: "after" })
+            }
+          >
+            After phase
+          </button>
+        </div>
         <button
           type="button"
           className="danger"

@@ -391,7 +391,16 @@ textarea:focus-visible {
   cursor: grabbing;
 }
 
-.dp-mark,
+.dp-mark {
+  cursor: grab;
+}
+
+.dp-mark.dragging {
+  opacity: 0.92;
+  pointer-events: none;
+  cursor: grabbing;
+}
+
 .end-state,
 .add-on-canvas {
   cursor: pointer;

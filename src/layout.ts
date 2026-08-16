@@ -1,4 +1,4 @@
-import type { NodeKind, OperationalDesign } from "./types";
+import type { GatePlacement, NodeKind, OperationalDesign } from "./types";
 
 export const LAYOUT = {
   padX: 40,
@@ -68,8 +68,14 @@ export interface DiagramLayout {
   dps: DpLayout[];
   dependencies: DepLayout[];
   dpBar: { x: number; y: number; width: number; height: number };
-  outcomeCol: { x: number; y: number; width: number; height: number };
-  endState: { cx: number; cy: number; rx: number; ry: number; name: string };
+  endCol: { x: number; y: number; width: number; height: number };
+  endState: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    name: string;
+  };
   plot: { x: number; y: number; width: number; height: number };
 }
 
@@ -195,6 +201,11 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const plotX = L.padX + L.leftGutter;
   const outcomeX = plotX + phasesWidth + L.addGap;
   const loeTop = plotY + L.dpBarH;
+  const loeAreaH = Math.max(L.loeH, design.linesOfEffort.length * L.loeH);
+  const cardW = 148;
+  const cardH = 56;
+  const endX = outcomeX + (L.outcomeW - cardW) / 2;
+  const endY = loeTop + loeAreaH / 2 - cardH / 2;
   const loes: LoeLayout[] = design.linesOfEffort.map((loe, i) => ({
     id: loe.id,
     name: loe.name,
@@ -202,7 +213,7 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     purpose: loe.purpose ?? "",
     y: loeTop + i * L.loeH + L.loeH / 2,
     x1: plotX - 8,
-    x2: outcomeX + 10,
+    x2: endX - 8,
   }));
   const loeY = new Map(loes.map((l) => [l.id, l.y]));
   const phaseById = new Map(phaseLayouts.map((p) => [p.id, p]));
@@ -241,17 +252,38 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   }
 
   const dpY = plotY + L.dpBarH / 2;
-  const dps: DpLayout[] = design.decisionPoints.map((dp) => {
-    const phase = phaseLayouts.find((p) => p.id === dp.afterPhaseId);
-    const boundaryX = phase ? phase.x + phase.width : plotX + phasesWidth;
-    return { id: dp.id, label: dp.label, x: boundaryX, y: dpY };
-  });
+  const dps: DpLayout[] = [];
+  for (const phase of phaseLayouts) {
+    const inPhase = design.decisionPoints
+      .filter((dp) => dp.afterPhaseId === phase.id && dp.placement === "in")
+      .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+    inPhase.forEach((dp, i) => {
+      const x =
+        phase.x + ((i + 1) / (inPhase.length + 1)) * phase.width;
+      dps.push({ id: dp.id, label: dp.label, x, y: dpY });
+    });
+    const afterPhase = design.decisionPoints.filter(
+      (dp) => dp.afterPhaseId === phase.id && dp.placement !== "in",
+    );
+    afterPhase.forEach((dp, i) => {
+      dps.push({
+        id: dp.id,
+        label: dp.label,
+        x: phase.x + phase.width + i * 18,
+        y: dpY,
+      });
+    });
+  }
+  for (const dp of design.decisionPoints) {
+    if (dps.some((d) => d.id === dp.id)) continue;
+    dps.push({
+      id: dp.id,
+      label: dp.label,
+      x: plotX + phasesWidth,
+      y: dpY,
+    });
+  }
 
-  const loeAreaH = Math.max(L.loeH, design.linesOfEffort.length * L.loeH);
-  const endCx = outcomeX + L.outcomeW / 2;
-  const endCy = loeTop + loeAreaH / 2;
-  const endRy = Math.max(72, loeAreaH * 0.42);
-  const endRx = 78;
   const bandY = plotY - 42;
   const bandH = plotH + 42;
 
@@ -271,17 +303,17 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
       width: phasesWidth,
       height: L.dpBarH,
     },
-    outcomeCol: {
+    endCol: {
       x: outcomeX,
       y: bandY,
       width: L.outcomeW,
       height: bandH,
     },
     endState: {
-      cx: endCx,
-      cy: endCy,
-      rx: endRx,
-      ry: endRy,
+      x: endX,
+      y: endY,
+      width: cardW,
+      height: cardH,
       name: design.endState.name,
     },
     plot: { x: plotX, y: plotY, width: phasesWidth, height: plotH },
@@ -312,4 +344,45 @@ export function hitPhaseAtX(
     laidOut.phases[laidOut.phases.length - 1] ??
     null
   );
+}
+
+export function snapGateAtX(
+  phases: PhaseLayout[],
+  x: number,
+): { phaseId: string; placement: GatePlacement; order: number } | null {
+  if (phases.length === 0) return null;
+  type Snap = {
+    x: number;
+    phaseId: string;
+    placement: GatePlacement;
+    order: number;
+  };
+  const snaps: Snap[] = [];
+  for (const phase of phases) {
+    const slots = Math.max(2, phase.slots);
+    for (let order = 0; order < slots; order++) {
+      snaps.push({
+        x: phase.x + ((order + 0.5) / slots) * phase.width,
+        phaseId: phase.id,
+        placement: "in",
+        order,
+      });
+    }
+    snaps.push({
+      x: phase.x + phase.width,
+      phaseId: phase.id,
+      placement: "after",
+      order: 0,
+    });
+  }
+  let best = snaps[0];
+  let dist = Math.abs(x - best.x);
+  for (const snap of snaps) {
+    const d = Math.abs(x - snap.x);
+    if (d < dist) {
+      best = snap;
+      dist = d;
+    }
+  }
+  return best;
 }

@@ -42,13 +42,15 @@ export type DesignAction =
   | { type: "placeNode"; id: string; phaseId: string; order: number }
   | { type: "addDependency"; fromId: string; toId: string; id?: string }
   | { type: "removeDependency"; id: string }
-  | { type: "addDp"; afterPhaseId: string; id?: string }
+  | { type: "addDp"; afterPhaseId: string; id?: string; placement?: "in" | "after"; order?: number }
   | {
       type: "updateDp";
       id: string;
       label?: string;
       description?: string;
       afterPhaseId?: string;
+      placement?: "in" | "after";
+      order?: number;
     }
   | { type: "removeDp"; id: string };
 
@@ -113,6 +115,8 @@ export function reduceDesign(
                 id: uid("dp"),
                 label: `Decision ${design.decisionPoints.length + 1}`,
                 afterPhaseId: dpAfterId,
+                placement: "after" as const,
+                order: 0,
                 description: "",
               },
             ]
@@ -351,6 +355,8 @@ export function reduceDesign(
             id: action.id ?? uid("dp"),
             label: `Decision ${design.decisionPoints.length + 1}`,
             afterPhaseId: action.afterPhaseId,
+            placement: action.placement ?? "after",
+            order: action.order ?? 0,
             description: "",
           },
         ],
@@ -361,10 +367,14 @@ export function reduceDesign(
       const label = action.label ?? dp.label;
       const description = action.description ?? dp.description;
       const afterPhaseId = action.afterPhaseId ?? dp.afterPhaseId;
+      const placement = action.placement ?? dp.placement ?? "after";
+      const order = action.order ?? dp.order ?? 0;
       if (
         label === dp.label &&
         description === dp.description &&
-        afterPhaseId === dp.afterPhaseId
+        afterPhaseId === dp.afterPhaseId &&
+        placement === dp.placement &&
+        order === dp.order
       ) {
         return design;
       }
@@ -372,7 +382,7 @@ export function reduceDesign(
         ...design,
         decisionPoints: design.decisionPoints.map((item) =>
           item.id === action.id
-            ? { ...item, label, description, afterPhaseId }
+            ? { ...item, label, description, afterPhaseId, placement, order }
             : item,
         ),
       };

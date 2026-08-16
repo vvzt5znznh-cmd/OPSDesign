@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { uid } from "./id";
-import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, type DiagramLayout } from "./layout";
+import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, type DiagramLayout } from "./layout";
 import { useDesign } from "./state";
 import { useTheme, type DiagramPalette } from "./theme";
 import {
@@ -78,7 +78,7 @@ function diagramCss(p: DiagramPalette): string {
   .svg-phase { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; fill: ${p.phase}; }
   .svg-loe { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; }
   .svg-loe-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 9px; font-weight: 500; fill: ${p.purpose}; }
-  .svg-outcome { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; fill: ${p.purpose}; letter-spacing: 0.14em; }
+  .svg-end-col { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; fill: ${p.purpose}; letter-spacing: 0.12em; }
   .svg-condition, .svg-dp-label, .svg-legend { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: ${p.label}; }
   .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 700; fill: #fff; }
   .dep-line { fill: none; stroke: ${p.dep}; stroke-width: 1.4; stroke-dasharray: 5 4; }
@@ -122,8 +122,18 @@ export function Diagram({
     active: boolean;
     pointerId: number;
   } | null>(null);
+  const [dpDrag, setDpDrag] = useState<{
+    id: string;
+    x: number;
+    y: number;
+    originX: number;
+    active: boolean;
+    pointerId: number;
+  } | null>(null);
   const dragRef = useRef(drag);
   dragRef.current = drag;
+  const dpDragRef = useRef(dpDrag);
+  dpDragRef.current = dpDrag;
   const skipDeselect = useRef(false);
   const [renameId, setRenameId] = useState<string | null>(null);
 
@@ -226,11 +236,24 @@ export function Diagram({
   }
 
   function onPointerMove(e: PointerEvent<SVGSVGElement>) {
-    const current = dragRef.current;
-    if (!current || !svgRef.current) return;
+    if (!svgRef.current) return;
     const p = svgPoint(svgRef.current, e.clientX, e.clientY);
-    const active =
-      current.active || Math.abs(p.x - current.originX) > 8;
+    const gate = dpDragRef.current;
+    if (gate) {
+      const active = gate.active || Math.abs(p.x - gate.originX) > 8;
+      if (active) {
+        if (!gate.active) svgRef.current.setPointerCapture(e.pointerId);
+        setDpDrag({
+          ...gate,
+          x: p.x,
+          active: true,
+        });
+      }
+      return;
+    }
+    const current = dragRef.current;
+    if (!current) return;
+    const active = current.active || Math.abs(p.x - current.originX) > 8;
     if (!active) return;
     if (!current.active) {
       svgRef.current.setPointerCapture(e.pointerId);
@@ -246,6 +269,28 @@ export function Diagram({
   }
 
   function onPointerUp(e: PointerEvent<SVGSVGElement>) {
+    const gate = dpDragRef.current;
+    if (gate && svgRef.current) {
+      if (svgRef.current.hasPointerCapture(e.pointerId)) {
+        svgRef.current.releasePointerCapture(e.pointerId);
+      }
+      if (gate.active) {
+        const p = svgPoint(svgRef.current, e.clientX, e.clientY);
+        const snap = snapGateAtX(laidOut.phases, p.x);
+        if (snap) {
+          dispatch({
+            type: "updateDp",
+            id: gate.id,
+            afterPhaseId: snap.phaseId,
+            placement: snap.placement,
+            order: snap.order,
+          });
+        }
+        skipDeselect.current = true;
+      }
+      setDpDrag(null);
+      return;
+    }
     const current = dragRef.current;
     if (!current || !svgRef.current) return;
     if (svgRef.current.hasPointerCapture(e.pointerId)) {
@@ -412,26 +457,26 @@ export function Diagram({
       ))}
 
       <g
-        className="outcome-col"
+        className="end-col"
         onClick={(e) => {
           e.stopPropagation();
           setSelection({ type: "endState" });
         }}
       >
         <rect
-          x={laidOut.outcomeCol.x}
-          y={laidOut.outcomeCol.y}
-          width={laidOut.outcomeCol.width}
-          height={laidOut.outcomeCol.height}
+          x={laidOut.endCol.x}
+          y={laidOut.endCol.y}
+          width={laidOut.endCol.width}
+          height={laidOut.endCol.height}
           fill={palette.phaseA}
         />
         <text
-          x={laidOut.outcomeCol.x + laidOut.outcomeCol.width / 2}
+          x={laidOut.endCol.x + laidOut.endCol.width / 2}
           y={laidOut.plot.y - 16}
           textAnchor="middle"
-          className="svg-outcome"
+          className="svg-end-col"
         >
-          OUTCOME
+          END STATE
         </text>
       </g>
 
@@ -441,6 +486,22 @@ export function Diagram({
         width={laidOut.dpBar.width}
         height={laidOut.dpBar.height}
         fill={palette.dpBar}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (present || linkMode || !svgRef.current) return;
+          const p = svgPoint(svgRef.current, e.clientX, e.clientY);
+          const snap = snapGateAtX(laidOut.phases, p.x);
+          if (!snap) return;
+          const id = uid("dp");
+          dispatch({
+            type: "addDp",
+            id,
+            afterPhaseId: snap.phaseId,
+            placement: snap.placement,
+            order: snap.order,
+          });
+          setSelection({ type: "dp", id });
+        }}
       />
 
       {laidOut.loes.map((loe) => (
@@ -448,7 +509,7 @@ export function Diagram({
           <line
             x1={loe.x1}
             y1={loe.y}
-            x2={laidOut.endState.cx - laidOut.endState.rx - 6}
+            x2={laidOut.endState.x - 8}
             y2={loe.y}
             stroke={loe.color}
             strokeWidth={12}
@@ -488,6 +549,18 @@ export function Diagram({
             : null}
         </g>
       ))}
+
+      {laidOut.loes.length > 1 && (
+        <line
+          x1={laidOut.endState.x - 8}
+          y1={laidOut.loes[0].y}
+          x2={laidOut.endState.x - 8}
+          y2={laidOut.loes[laidOut.loes.length - 1].y}
+          stroke={palette.dep}
+          strokeWidth="1.25"
+          strokeOpacity="0.55"
+        />
+      )}
 
       {laidOut.dependencies.map((dep) => (
         <g key={dep.id}>
@@ -566,7 +639,7 @@ export function Diagram({
           }),
         )}
 
-      {menuCell && !drag?.active && !linkMode && !present && (
+      {menuCell && !drag?.active && !dpDrag?.active && !linkMode && !present && (
         <AddPills
           x={
             (laidOut.phases.find((p) => p.id === menuCell.phaseId)?.x ?? 0) +
@@ -646,11 +719,32 @@ export function Diagram({
             </foreignObject>
           ))}
 
-      {laidOut.dps.map((dp) => (
+      {laidOut.dps.map((dp) => {
+        if (dpDrag?.active && dpDrag.id === dp.id) return null;
+        return (
         <g
           key={dp.id}
           transform={`translate(${dp.x}, ${dp.y})`}
-          className="dp-mark"
+          className={dpDrag?.id === dp.id ? "dp-mark dragging" : "dp-mark"}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            if (linkMode || present) {
+              setSelection({ type: "dp", id: dp.id });
+              return;
+            }
+            setSelection({ type: "dp", id: dp.id });
+            const pointer = svgRef.current
+              ? svgPoint(svgRef.current, e.clientX, e.clientY)
+              : { x: dp.x, y: dp.y };
+            setDpDrag({
+              id: dp.id,
+              x: dp.x,
+              y: dp.y,
+              originX: pointer.x,
+              active: false,
+              pointerId: e.pointerId,
+            });
+          }}
           onClick={(e) => {
             e.stopPropagation();
             setSelection({ type: "dp", id: dp.id });
@@ -674,7 +768,38 @@ export function Diagram({
             </text>
           ))}
         </g>
-      ))}
+        );
+      })}
+
+      {dpDrag?.active &&
+        (() => {
+          const src = laidOut.dps.find((d) => d.id === dpDrag.id);
+          const label = src?.label ?? "";
+          return (
+            <g
+              transform={`translate(${dpDrag.x}, ${dpDrag.y})`}
+              className="dp-mark dragging"
+            >
+              <path
+                d={starPath(13)}
+                fill="#2E7D32"
+                stroke="#c4a35a"
+                strokeWidth="2.5"
+                filter="url(#soft)"
+              />
+              {wrapLabel(label, 14, 2).map((line, i) => (
+                <text
+                  key={i}
+                  y={24 + i * 12}
+                  textAnchor="middle"
+                  className="svg-dp-label"
+                >
+                  {line}
+                </text>
+              ))}
+            </g>
+          );
+        })()}
 
       <g
         className="end-state"
@@ -683,21 +808,26 @@ export function Diagram({
           setSelection({ type: "endState" });
         }}
       >
-        <ellipse
-          cx={laidOut.endState.cx}
-          cy={laidOut.endState.cy}
-          rx={laidOut.endState.rx}
-          ry={laidOut.endState.ry}
+        <rect
+          x={laidOut.endState.x}
+          y={laidOut.endState.y}
+          width={laidOut.endState.width}
+          height={laidOut.endState.height}
+          rx="8"
           fill="#1A365D"
-          stroke={isSelected(selection, "endState") ? "#c4a35a" : "#0f2744"}
-          strokeWidth={isSelected(selection, "endState") ? 3 : 1.5}
-          filter="url(#soft)"
+          stroke={isSelected(selection, "endState") ? "#c4a35a" : "#2c5282"}
+          strokeWidth={isSelected(selection, "endState") ? 2.4 : 1.2}
         />
-        {wrapLabel(laidOut.endState.name, 12, 3).map((line, i, arr) => (
+        {wrapLabel(laidOut.endState.name, 16, 2).map((line, i, arr) => (
           <text
             key={i}
-            x={laidOut.endState.cx}
-            y={laidOut.endState.cy + 6 + (i - (arr.length - 1) / 2) * 15}
+            x={laidOut.endState.x + laidOut.endState.width / 2}
+            y={
+              laidOut.endState.y +
+              laidOut.endState.height / 2 +
+              5 +
+              (i - (arr.length - 1) / 2) * 16
+            }
             textAnchor="middle"
             className="svg-end"
           >
@@ -713,7 +843,7 @@ export function Diagram({
               x={
                 (laidOut.phases[laidOut.phases.length - 1].x +
                   laidOut.phases[laidOut.phases.length - 1].width +
-                  laidOut.outcomeCol.x) /
+                  laidOut.endCol.x) /
                 2
               }
               y={laidOut.plot.y - 22}
@@ -743,11 +873,15 @@ export function Diagram({
             y={laidOut.dpBar.y + laidOut.dpBar.height / 2}
             label="Add gate"
             onClick={() => {
-              const afterPhaseId =
-                design.phases[design.phases.length - 1]?.id;
-              if (!afterPhaseId) return;
+              const last = design.phases[design.phases.length - 1];
+              if (!last) return;
               const id = uid("dp");
-              dispatch({ type: "addDp", id, afterPhaseId });
+              dispatch({
+                type: "addDp",
+                id,
+                afterPhaseId: last.id,
+                placement: "after",
+              });
               setSelection({ type: "dp", id });
             }}
           />

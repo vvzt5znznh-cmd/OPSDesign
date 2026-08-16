@@ -30,10 +30,17 @@ export interface Dependency {
   toId: string;
 }
 
+export type GatePlacement = "in" | "after";
+
 export interface DecisionPoint {
   id: string;
   label: string;
+  /** Phase this gate belongs to. */
   afterPhaseId: string;
+  /** Inside the phase, or on the seam after it. */
+  placement: GatePlacement;
+  /** Preferred slot when placement is "in". */
+  order: number;
   description: string;
 }
 

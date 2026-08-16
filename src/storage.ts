@@ -1,4 +1,4 @@
-import { LOE_COLORS, type DesignNode, type Dependency, type LineOfEffort, type OperationalDesign } from "./types";
+import { LOE_COLORS, type DecisionPoint, type DesignNode, type Dependency, type LineOfEffort, type OperationalDesign } from "./types";
 import { blankDesign } from "./templates";
 
 const KEY = "opsdesign:current";
@@ -38,6 +38,18 @@ function migrateLoe(raw: Record<string, unknown>, index: number): LineOfEffort |
     name: asString(raw.name, `Workstream ${index + 1}`),
     color: asString(raw.color, LOE_COLORS[index % LOE_COLORS.length]),
     purpose: asString(raw.purpose),
+  };
+}
+
+function migrateDp(raw: Record<string, unknown>): DecisionPoint | null {
+  if (typeof raw.id !== "string") return null;
+  return {
+    id: raw.id,
+    label: asString(raw.label, "Decision"),
+    afterPhaseId: asString(raw.afterPhaseId),
+    placement: raw.placement === "in" ? "in" : "after",
+    order: typeof raw.order === "number" ? raw.order : 0,
+    description: asString(raw.description),
   };
 }
 
@@ -102,7 +114,11 @@ export function normalizeDesign(value: unknown): OperationalDesign | null {
     nodes,
     dependencies,
     decisionPoints: Array.isArray(value.decisionPoints)
-      ? (value.decisionPoints as OperationalDesign["decisionPoints"])
+      ? value.decisionPoints.flatMap((item) => {
+          if (!isRecord(item)) return [];
+          const dp = migrateDp(item);
+          return dp ? [dp] : [];
+        })
       : [],
   };
 }
