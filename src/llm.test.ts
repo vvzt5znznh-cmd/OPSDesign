@@ -56,6 +56,18 @@ describe("LLM sample design", () => {
     expect(again.id).toBe(SAMPLE_DESIGN.id);
     expect(again.nodes).toHaveLength(SAMPLE_DESIGN.nodes.length);
   });
+
+  it("puts extra wording only on the end-state panel", () => {
+    expect(SAMPLE_DESIGN.endState.description.trim()).not.toBe("");
+    for (const n of SAMPLE_DESIGN.nodes) {
+      expect(n.description).toBe("");
+      expect(n.label.trim()).not.toBe("");
+    }
+    for (const dp of SAMPLE_DESIGN.decisionPoints) {
+      expect(dp.description).toBe("");
+      expect(dp.label.trim()).not.toBe("");
+    }
+  });
 });
 
 describe("LLM prompt", () => {

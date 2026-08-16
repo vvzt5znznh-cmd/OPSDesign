@@ -88,8 +88,8 @@ export function Inspector() {
         <Head>End state</Head>
         <p className="muted">
           The panel on the right. Every workstream reads into it. Name is the
-          heading; description sits under it. Colour is a light wash — keep it
-          part of the picture, not a billboard.
+          heading; what will be true sits under it. Colour is a light wash —
+          keep it part of the picture, not a billboard.
         </p>
         <Field label="Name">
           <input
@@ -102,7 +102,7 @@ export function Inspector() {
             }
           />
         </Field>
-        <Field label="Description">
+        <Field label="What will be true">
           <textarea
             key="es-desc"
             rows={5}
@@ -115,7 +115,7 @@ export function Inspector() {
                 }),
               )
             }
-            placeholder="What will be true — shown under the name on the panel."
+            placeholder="Shown under the name on the panel."
           />
         </Field>
         <Field label="Colour">
@@ -310,8 +310,8 @@ export function Inspector() {
         </div>
         <p className="muted">
           {n.kind === "milestone"
-            ? "An event or deliverable."
-            : "A state that must hold."}
+            ? "An event or deliverable. The label is the text on the picture."
+            : "A state that must hold. The label is the text on the picture."}
         </p>
         <Field label="Label">
           <input
@@ -320,22 +320,6 @@ export function Inspector() {
             onBlur={(e) =>
               commit(n.label, e.target.value, () =>
                 dispatch({ type: "updateNode", id: n.id, label: e.target.value }),
-              )
-            }
-          />
-        </Field>
-        <Field label="Description">
-          <textarea
-            key={`${n.id}-d`}
-            rows={3}
-            defaultValue={n.description}
-            onBlur={(e) =>
-              commit(n.description, e.target.value, () =>
-                dispatch({
-                  type: "updateNode",
-                  id: n.id,
-                  description: e.target.value,
-                }),
               )
             }
           />
@@ -481,33 +465,18 @@ export function Inspector() {
       <aside className="inspector">
         <Head>Gate</Head>
         <p className="muted">
-          Go, recycle, or stop. Drag along the bar to sit inside a phase, or on
-          the seam after it. Hover the bar and click + to add another.
+          Go, recycle, or stop. Name it as the decision — that label sits under
+          the star. Drag along the bar to sit inside a phase, or on the seam
+          after it. Hover the bar and click + to add another.
         </p>
         <Field label="Label">
           <input
             key={dp.id}
             defaultValue={dp.label}
+            placeholder="Proceed? Recycle? Stop?"
             onBlur={(e) =>
               commit(dp.label, e.target.value, () =>
                 dispatch({ type: "updateDp", id: dp.id, label: e.target.value }),
-              )
-            }
-          />
-        </Field>
-        <Field label="What is being decided?">
-          <textarea
-            key={`${dp.id}-d`}
-            rows={4}
-            defaultValue={dp.description}
-            placeholder="Proceed? Recycle? Stop? On what evidence?"
-            onBlur={(e) =>
-              commit(dp.description, e.target.value, () =>
-                dispatch({
-                  type: "updateDp",
-                  id: dp.id,
-                  description: e.target.value,
-                }),
               )
             }
           />

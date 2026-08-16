@@ -45,7 +45,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-discover",
       label: "M1: Problem framed",
-      description: "We can say who is blocked today and why the phone line fails them.",
+      description: "",
       order: 0,
     },
     {
@@ -54,7 +54,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-discover",
       label: "C1: Need is understood",
-      description: "Patients and clinics agree the jobs to be done.",
+      description: "",
       order: 1,
     },
     {
@@ -63,7 +63,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-define",
       label: "M2: Options chosen",
-      description: "Preferred journey is on paper, with what we will not build.",
+      description: "",
       order: 0,
     },
     {
@@ -72,7 +72,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-define",
       label: "C2: Solution is agreed",
-      description: "Sponsors have accepted scope, sequence, and residual risk.",
+      description: "",
       order: 1,
     },
     {
@@ -81,7 +81,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-build",
       label: "M3: Beta released",
-      description: "A working journey is in the hands of a clinic cohort.",
+      description: "",
       order: 0,
     },
     {
@@ -90,7 +90,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-launch",
       label: "M4: Go-live",
-      description: "Phone booking is no longer the default path.",
+      description: "",
       order: 0,
     },
     {
@@ -99,7 +99,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-assurance",
       phaseId: "ph-discover",
       label: "C1: Risks are visible",
-      description: "Clinical, privacy, and operational risks are on one list.",
+      description: "",
       order: 0,
     },
     {
@@ -108,7 +108,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-assurance",
       phaseId: "ph-define",
       label: "C2: Funding is committed",
-      description: "Build and hypercare are funded.",
+      description: "",
       order: 0,
     },
     {
@@ -117,7 +117,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-assurance",
       phaseId: "ph-build",
       label: "M3: Tests passed",
-      description: "Critical paths, access, and failure modes have been tested.",
+      description: "",
       order: 0,
     },
     {
@@ -126,7 +126,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-assurance",
       phaseId: "ph-launch",
       label: "C3: Support is in place",
-      description: "Clinics know how to escalate. A human path still exists.",
+      description: "",
       order: 0,
     },
     {
@@ -135,7 +135,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-adoption",
       phaseId: "ph-discover",
       label: "C1: Clinics are engaged",
-      description: "The clinics who must change have named owners.",
+      description: "",
       order: 0,
     },
     {
@@ -144,7 +144,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-adoption",
       phaseId: "ph-build",
       label: "M3: Training delivered",
-      description: "Frontline staff have practised the new process.",
+      description: "",
       order: 0,
     },
     {
@@ -153,7 +153,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-adoption",
       phaseId: "ph-launch",
       label: "C2: Users are ready",
-      description: "Patients can find and complete booking without a campaign of calls.",
+      description: "",
       order: 0,
     },
   ],
@@ -196,7 +196,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       afterPhaseId: "ph-discover",
       placement: "after",
       order: 0,
-      description: "Is the problem sharp enough to fund a definition stage?",
+      description: "",
     },
     {
       id: "dp-build",
@@ -204,7 +204,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       afterPhaseId: "ph-define",
       placement: "after",
       order: 0,
-      description: "Scope, funding, and residual risk are accepted.",
+      description: "",
     },
     {
       id: "dp-go-live",
@@ -212,7 +212,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       afterPhaseId: "ph-build",
       placement: "in",
       order: 1,
-      description: "Tests passed, support ready, clinics willing.",
+      description: "",
     },
   ],
 };
@@ -230,9 +230,9 @@ Operational design asks: what must be true when we are done, what concurrent wor
 - **End state**: the outcome that must hold when the work is done — a set of conditions, not a date. \`name\` is a short heading on the panel (e.g. LIVE AND USED). \`description\` is 1–3 sentences of what will be true.
 - **Phase**: a stage left to right (Discover, Define, Build, Launch — or the user's names).
 - **Workstream / line of effort**: concurrent work organised by purpose. \`name\` is short. \`purpose\` is one line under the name (the job that stream does).
-- **Milestone** (\`kind\`: "milestone"): an event or deliverable. It happened, or it did not. Label like "M1: Problem framed".
-- **Condition** (\`kind\`: "condition"): a state that must hold. "Funding is committed." "Users are ready." Label like "C1: Need is understood".
-- **Gate / decision** (\`decisionPoints\`): a decision to proceed, recycle, or stop. Name it as the question or decision, not "Gate 1". \`placement\` is "in" (inside the phase) or "after" (on the seam after that phase). \`afterPhaseId\` is the phase the gate belongs to.
+- **Milestone** (\`kind\`: "milestone"): an event or deliverable. It happened, or it did not. \`label\` is the text on the figure, e.g. "M1: Problem framed". \`description\` must be "".
+- **Condition** (\`kind\`: "condition"): a state that must hold. "Funding is committed." "Users are ready." \`label\` is the text on the figure, e.g. "C1: Need is understood". \`description\` must be "".
+- **Gate / decision** (\`decisionPoints\`): a decision to proceed, recycle, or stop. \`label\` is the text under the star — name it as the question or decision, not "Gate 1". \`description\` must be "". \`placement\` is "in" (inside the phase) or "after" (on the seam after that phase). \`afterPhaseId\` is the phase the gate belongs to.
 - **Dependency**: from A to B means A must be true or complete before B. Use these for cross-workstream coupling (the interesting ones) and for a few same-stream sequences. No cycles. Both IDs must be nodes.
 
 ## JSON shape
@@ -266,7 +266,7 @@ Root object:
 
 ## Rules
 1. Output **only** a single JSON object. No markdown, no commentary, no trailing text.
-2. Copy the field names and nesting of the sample exactly. Do not add fields. Do not omit required fields. Use "" if a description is unknown.
+2. Copy the field names and nesting of the sample exactly. Do not add fields. Do not omit required fields. Node and gate \`description\` must be "". Only \`endState.description\` is drawn (under the name on the panel).
 3. Every \`phaseId\`, \`loeId\`, \`afterPhaseId\`, \`fromId\`, and \`toId\` must match an id you defined.
 4. IDs must be unique strings. Prefer readable kebab-case: \`op-…\`, \`ph-…\`, \`loe-…\`, \`n-…\`, \`dp-…\`, \`dep-…\`.
 5. \`order\` is the left-to-right slot in that workstream+phase, starting at 0. Two things in the same cell: 0 then 1.

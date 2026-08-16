@@ -49,7 +49,7 @@ npm run preview
 ## How to use it
 
 1. Start from **Service go-live** (a civilian project), a blank project, or a defence/security campaign.
-2. Click anything on the diagram to edit it. The end-state panel takes a name, a description, and a colour wash.
+2. Click anything on the diagram to edit it. Labels are the text on the picture. The end-state panel takes a name, what will be true (shown under the name), and a colour wash.
 3. Hover a workstream in a phase: **+** then Milestone or Condition. Hover the gate bar and click **+** to add a decision. Use the **+** marks to add a phase or workstream.
 4. Drag a node along its arrow to move it earlier or later — within a phase or into another. A node that depends on another sits to the right of it, including across workstreams. Drag a gate along the bar to sit in a phase or after it.
 5. **Link**: click what must happen first, then what depends on it.
