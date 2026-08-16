@@ -1,14 +1,14 @@
 # OPSDesign
 
-An editor for **operational design** pictures — usable for a civilian project or programme, not only a military campaign.
+An editor for **operational design** pictures. Concurrent workstreams, gates, and an outcome — the picture lays itself out.
 
-The diagram lays itself out from the structure of the work. You do not place boxes on a freeform canvas.
+You do not place boxes on a freeform canvas.
 
 ## Why this picture
 
 Operational design asks: what outcome must hold, what concurrent work produces it, what must be true along the way, and where someone has to decide. That is the same question for a service launch, a transformation, or a campaign.
 
-| On the drawing | Civilian reading | Doctrinal cousin |
+| On the drawing | Meaning | Also called |
 | --- | --- | --- |
 | **End state** | Desired outcome — conditions that must hold when the work is done | End state |
 | **Phases** | Stages in the life cycle | Phases |
@@ -50,7 +50,7 @@ npm run preview
 
 ## How to use it
 
-1. You land on a picture. First visit is a blank project; coming back restores the last one from this browser. File → New… picks a layout (blank, service go-live, or campaign).
+1. You land on a picture. First visit is blank; coming back restores the last one from this browser. File → New… starts from a sample (empty, service go-live, or campaign).
 2. Click anything on the diagram to edit it. Labels are the text on the picture. The end-state panel takes a name, what will be true (shown under the name), and a colour wash.
 3. Hover a workstream in a phase: **+** then Milestone or Condition. Hover the gate bar and click **+** to add a decision. Use the **+** marks to add a phase or workstream.
 4. Drag a node along its arrow to move it earlier or later — within a phase or into another. A node that depends on another sits to the right of it, including across workstreams. Drag a gate along the bar to sit in a phase or after it.

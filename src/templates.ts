@@ -299,9 +299,9 @@ export function militaryTemplate(): OperationalDesign {
 export const TEMPLATES = [
   {
     id: "blank",
-    name: "Blank project",
+    name: "Blank",
     blurb: "Three phases, two workstreams, decisions ready to name.",
-    tag: "Start empty",
+    tag: "Empty",
     create: blankDesign,
   },
   {
@@ -309,14 +309,15 @@ export const TEMPLATES = [
     name: "Service go-live",
     blurb:
       "Discover → Define → Build and test → Launch, with milestones, conditions, and dependencies.",
-    tag: "Civilian project",
+    tag: "Sample",
     create: projectTemplate,
   },
   {
     id: "military",
-    name: "Campaign CONOPS",
-    blurb: "Same geometry for a defence or security campaign, using conditions.",
-    tag: "Defence / security",
+    name: "Campaign",
+    blurb:
+      "Shape → Deter → Seize initiative → Dominate, with conditions across workstreams.",
+    tag: "Sample",
     create: militaryTemplate,
   },
 ] as const;

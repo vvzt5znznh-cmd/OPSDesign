@@ -16,9 +16,9 @@ export function LayoutPicker({
         aria-labelledby="layout-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="layout-title">Start from a layout</h2>
+        <h2 id="layout-title">Start from a sample</h2>
         <p>
-          Blank, a civilian go-live, or a campaign. Your current picture is kept
+          An empty picture, or a filled-in example. Your current picture is kept
           — Undo, or File → Restore previous.
         </p>
         <div className="template-grid">

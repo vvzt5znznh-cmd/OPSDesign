@@ -274,7 +274,7 @@ Root object:
 7. Typical size: 3–5 phases, 2–4 workstreams, 2–4 nodes per stream, 2–4 gates, a handful of dependencies. Prefer a readable picture over a complete WBS.
 8. End state is not a date, a deliverable, or "project complete". Gates are decisions, not milestones.
 9. Invent a new \`id\` for the root (not the sample's id). Title and purpose come from the user's description.
-10. If the user is vague, still produce a coherent picture and keep purpose/end state explicit. Civilian and defence projects use the same schema.
+10. If the user is vague, still produce a coherent picture and keep purpose/end state explicit. The same schema covers any kind of project.
 
 ## Sample
 Match this structure. Replace the content with the user's project.
