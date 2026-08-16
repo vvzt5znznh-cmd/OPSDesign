@@ -24,13 +24,15 @@ Milestones and conditions can sit on the same line of effort. Dependencies can c
 
 https://vvzt5znznh-cmd.github.io/OPSDesign/
 
-The live site is GitHub Pages from the `main` branch. Pushes to `main` also run a production build in Actions. To refresh the files Pages serves:
+The live site is GitHub Pages from the `main` branch (`/` root). After a source change:
 
 ```bash
 npm run pages
 ```
 
-That writes `index.html`, `404.html`, and `assets/` at the repo root. Commit those together with the source change.
+That writes `index.html`, `404.html`, and `assets/` at the repo root. Commit those with the source change.
+
+To skip that step: in the GitHub repo, **Settings → Pages → Source → GitHub Actions**. A workflow already builds `dist/` on every push to `main`. After that switch, live is just merging to `main` — no generated files in git.
 
 ## Run locally
 
