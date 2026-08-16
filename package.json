@@ -11,6 +11,7 @@
     "pages": "bash scripts/sync-pages.sh"
   },
   "dependencies": {
+    "pptxgenjs": "^4.0.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

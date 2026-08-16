@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { downloadPng, downloadSvg } from "./export";
+import { downloadPptx } from "./pptx";
 import { Menu } from "./Menu";
 import { downloadJson, parseImportedDesign } from "./storage";
 import { useTheme } from "./theme";
@@ -115,6 +116,21 @@ export function Toolbar({
             </button>
             <button type="button" role="menuitem" onClick={exportSvg}>
               Export SVG
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                void downloadPptx(design, diagram).catch((err) => {
+                  window.alert(
+                    err instanceof Error
+                      ? err.message
+                      : "PowerPoint export failed.",
+                  );
+                });
+              }}
+            >
+              Export PowerPoint…
             </button>
           </Menu>
           <input

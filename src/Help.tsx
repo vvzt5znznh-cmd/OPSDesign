@@ -54,6 +54,9 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           along the bar to place it in a phase or after it. Click the bar to add
           a gate. Use the + marks to add a phase, workstream, or gate.{" "}
           <strong>Link</strong>, then click A then B — B sits to the right of A.
+          File → Export PowerPoint makes an editable briefing slide that matches
+          the picture; inspector detail goes to speaker notes so it stays off
+          the shared slide.
         </p>
         <button type="button" className="modal-close" onClick={onClose}>
           Close
