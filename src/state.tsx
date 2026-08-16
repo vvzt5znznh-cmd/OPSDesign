@@ -26,8 +26,6 @@ interface DesignContextValue {
   setLinkMode: (v: boolean) => void;
   linkFrom: string | null;
   setLinkFrom: (id: string | null) => void;
-  showDependencies: boolean;
-  setShowDependencies: (v: boolean) => void;
 }
 
 const DesignContext = createContext<DesignContextValue | null>(null);
@@ -46,7 +44,6 @@ export function DesignProvider({
   const [canRedo, setCanRedo] = useState(false);
   const [linkMode, setLinkModeState] = useState(false);
   const [linkFrom, setLinkFrom] = useState<string | null>(null);
-  const [showDependencies, setShowDependencies] = useState(true);
   const undoStack = useRef<OperationalDesign[]>([]);
   const redoStack = useRef<OperationalDesign[]>([]);
 
@@ -112,8 +109,6 @@ export function DesignProvider({
       setLinkMode,
       linkFrom,
       setLinkFrom,
-      showDependencies,
-      setShowDependencies,
     }),
     [
       design,
@@ -127,7 +122,6 @@ export function DesignProvider({
       linkMode,
       setLinkMode,
       linkFrom,
-      showDependencies,
     ],
   );
 

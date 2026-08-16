@@ -15,8 +15,8 @@ export function Welcome({
           <p className="eyebrow">Operational design</p>
           <h1>OPSDesign</h1>
           <p className="lede">
-            Draw the project as concurrent workstreams, gates between stages,
-            and an outcome on the right. The picture lays itself out.
+            Draw the project as concurrent workstreams, gates, and an outcome.
+            The picture lays itself out.
           </p>
         </div>
         <MiniConops />

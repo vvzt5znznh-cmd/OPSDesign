@@ -24,8 +24,6 @@ export function Toolbar({
     setPresent,
     linkMode,
     setLinkMode,
-    showDependencies,
-    setShowDependencies,
   } = useDesign();
   const fileRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(design.title);
@@ -92,16 +90,6 @@ export function Toolbar({
           >
             {linkMode ? "Linking…" : "Link"}
           </button>
-          <button
-            type="button"
-            className={showDependencies ? "tool on" : "tool"}
-            onClick={() => setShowDependencies(!showDependencies)}
-            title="Show or hide dependency arrows"
-          >
-            Links
-          </button>
-        </div>
-        <div className="tool-group hide-present">
           <button type="button" className="tool" onClick={undo} disabled={!canUndo}>
             Undo
           </button>
@@ -120,13 +108,11 @@ export function Toolbar({
             <button type="button" role="menuitem" onClick={() => downloadJson(design)}>
               Save JSON
             </button>
-          </Menu>
-          <Menu label="Export">
             <button type="button" role="menuitem" onClick={() => void exportPng()}>
-              PNG image
+              Export PNG
             </button>
             <button type="button" role="menuitem" onClick={exportSvg}>
-              SVG vector
+              Export SVG
             </button>
           </Menu>
           <input
@@ -139,11 +125,11 @@ export function Toolbar({
               e.target.value = "";
             }}
           />
+          <button type="button" className="tool" onClick={onHelp} title="Help">
+            ?
+          </button>
         </div>
         <div className="tool-group">
-          <button type="button" className="tool hide-present" onClick={onHelp}>
-            Help
-          </button>
           <button
             type="button"
             className="tool keep-present"

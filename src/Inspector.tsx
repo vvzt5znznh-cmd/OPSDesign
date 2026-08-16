@@ -9,6 +9,23 @@ function commit(previous: string, next: string, apply: () => void) {
   apply();
 }
 
+function Head({ children }: { children: ReactNode }) {
+  const { setSelection } = useDesign();
+  return (
+    <div className="inspector-head">
+      <h2>{children}</h2>
+      <button
+        type="button"
+        className="inspector-close"
+        onClick={() => setSelection(null)}
+        aria-label="Close"
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
 function Field({
   label,
   children,
@@ -25,41 +42,15 @@ function Field({
 }
 
 export function Inspector() {
-  const { design, selection, dispatch, setLinkMode, setLinkFrom } = useDesign();
+  const { design, selection, dispatch, setSelection, setLinkMode, setLinkFrom } =
+    useDesign();
 
-  if (!selection) {
-    return (
-      <aside className="inspector">
-        <h2>Properties</h2>
-        <p className="lede-sm">Click anything on the picture to edit it here.</p>
-        <ol className="how">
-          <li>Hover a coloured line in a phase.</li>
-          <li>Add a milestone (event) or a condition (state).</li>
-          <li>Drag along the line to move earlier or later — including within a phase.</li>
-          <li>
-            Press <strong>Link</strong>, then click A then B. B sits to the right of A.
-          </li>
-        </ol>
-        <div className="legend-card">
-          <p>
-            <span className="mark triangle" /> Milestone — an event
-          </p>
-          <p>
-            <span className="mark diamond" /> Condition — a state that must hold
-          </p>
-          <p>
-            <span className="star">★</span> Gate — a decision
-          </p>
-          <p className="dep-key">— — Dependency</p>
-        </div>
-      </aside>
-    );
-  }
+  if (!selection) return null;
 
   if (selection.type === "title") {
     return (
       <aside className="inspector">
-        <h2>Project</h2>
+        <Head>Project</Head>
         <Field label="Title">
           <input
             key={design.id}
@@ -94,7 +85,7 @@ export function Inspector() {
   if (selection.type === "endState") {
     return (
       <aside className="inspector">
-        <h2>End state</h2>
+        <Head>End state</Head>
         <p className="muted">
           The outcome that must hold when the work is done — a set of
           conditions, not a date.
@@ -136,7 +127,7 @@ export function Inspector() {
     const idx = design.phases.findIndex((p) => p.id === phase.id);
     return (
       <aside className="inspector">
-        <h2>Phase (stage)</h2>
+        <Head>Phase</Head>
         <Field label="Name">
           <input
             key={phase.id}
@@ -170,6 +161,16 @@ export function Inspector() {
         </div>
         <button
           type="button"
+          onClick={() => {
+            const id = uid("ph");
+            dispatch({ type: "addPhase", afterId: phase.id, id });
+            setSelection({ type: "phase", id });
+          }}
+        >
+          Add phase after
+        </button>
+        <button
+          type="button"
           className="danger"
           disabled={design.phases.length <= 1}
           onClick={() => dispatch({ type: "removePhase", id: phase.id })}
@@ -186,8 +187,8 @@ export function Inspector() {
     const idx = design.linesOfEffort.findIndex((l) => l.id === loe.id);
     return (
       <aside className="inspector">
-        <h2>Workstream</h2>
-        <p className="muted">A line of effort — concurrent work organised by purpose.</p>
+        <Head>Workstream</Head>
+        <p className="muted">Concurrent work organised by purpose.</p>
         <Field label="Name">
           <input
             key={loe.id}
@@ -253,7 +254,7 @@ export function Inspector() {
     const others = design.nodes.filter((x) => x.id !== n.id);
     return (
       <aside className="inspector">
-        <h2>{nodeKindLabel(n.kind)}</h2>
+        <Head>{nodeKindLabel(n.kind)}</Head>
         <div className="kind-toggle inspector-toggle">
           <button
             type="button"
@@ -277,8 +278,7 @@ export function Inspector() {
         <p className="muted">
           {n.kind === "milestone"
             ? "An event or deliverable."
-            : "A state that must hold to reach the end state."}{" "}
-          Drag it along the workstream to move earlier or later in the phase.
+            : "A state that must hold."}
         </p>
         <Field label="Label">
           <input
@@ -426,7 +426,7 @@ export function Inspector() {
     const to = design.nodes.find((n) => n.id === dep.toId);
     return (
       <aside className="inspector">
-        <h2>Dependency</h2>
+        <Head>Dependency</Head>
         <p className="muted">
           {from?.label ?? "From"} must be true or complete before {to?.label ?? "to"}.
         </p>
@@ -446,8 +446,8 @@ export function Inspector() {
     if (!dp) return null;
     return (
       <aside className="inspector">
-        <h2>Decision point (gate)</h2>
-        <p className="muted">A go / recycle / stop choice, usually between stages.</p>
+        <Head>Gate</Head>
+        <p className="muted">Go, recycle, or stop — usually between stages.</p>
         <Field label="Label">
           <input
             key={dp.id}

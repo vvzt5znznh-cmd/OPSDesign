@@ -80,6 +80,8 @@ const DIAGRAM_CSS = `
   .svg-end-kicker { font-family: Arial, Helvetica, sans-serif; font-size: 8px; font-weight: 600; fill: rgba(255,255,255,0.7); letter-spacing: 0.12em; }
   .dep-line { fill: none; stroke: #7a8494; stroke-width: 1.4; stroke-dasharray: 5 4; }
   .add-pill-text { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: #fff; }
+  .canvas-plus { cursor: pointer; }
+  .canvas-plus:hover circle { fill: #2a3348; }
 `;
 
 export function Diagram({
@@ -96,7 +98,7 @@ export function Diagram({
     setLinkMode,
     linkFrom,
     setLinkFrom,
-    showDependencies,
+    present,
   } = useDesign();
   const laidOut = useMemo(() => layoutDiagram(design), [design]);
   const [hoverCell, setHoverCell] = useState<{
@@ -418,32 +420,31 @@ export function Diagram({
         </g>
       ))}
 
-      {showDependencies &&
-        laidOut.dependencies.map((dep) => (
-          <g key={dep.id}>
-            <path
-              d={dep.d}
-              className="dep-line"
-              markerEnd="url(#dep-arrow)"
-              stroke={
-                isSelected(selection, "dependency", dep.id) ? "#c4a35a" : "#7a8494"
-              }
-              strokeWidth={isSelected(selection, "dependency", dep.id) ? 2.2 : 1.4}
-            />
-            <path
-              d={dep.d}
-              data-ui="true"
-              fill="none"
-              stroke="transparent"
-              strokeWidth="12"
-              className="dep-hit"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelection({ type: "dependency", id: dep.id });
-              }}
-            />
-          </g>
-        ))}
+      {laidOut.dependencies.map((dep) => (
+        <g key={dep.id}>
+          <path
+            d={dep.d}
+            className="dep-line"
+            markerEnd="url(#dep-arrow)"
+            stroke={
+              isSelected(selection, "dependency", dep.id) ? "#c4a35a" : "#7a8494"
+            }
+            strokeWidth={isSelected(selection, "dependency", dep.id) ? 2.2 : 1.4}
+          />
+          <path
+            d={dep.d}
+            data-ui="true"
+            fill="none"
+            stroke="transparent"
+            strokeWidth="12"
+            className="dep-hit"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelection({ type: "dependency", id: dep.id });
+            }}
+          />
+        </g>
+      ))}
 
       {laidOut.phases.map((phase) =>
         laidOut.loes.map((loe) => (
@@ -610,8 +611,83 @@ export function Diagram({
         )}
       </g>
 
+      {!present && (
+        <>
+          {laidOut.phases.length > 0 && (
+            <PlusMark
+              x={
+                laidOut.phases[laidOut.phases.length - 1].x +
+                laidOut.phases[laidOut.phases.length - 1].width +
+                16
+              }
+              y={laidOut.plot.y - 22}
+              label="Add phase"
+              onClick={() => {
+                const afterId = laidOut.phases[laidOut.phases.length - 1].id;
+                const id = uid("ph");
+                dispatch({ type: "addPhase", afterId, id });
+                setSelection({ type: "phase", id });
+              }}
+            />
+          )}
+          {laidOut.loes.length > 0 && (
+            <PlusMark
+              x={40}
+              y={laidOut.loes[laidOut.loes.length - 1].y + 36}
+              label="Add workstream"
+              onClick={() => {
+                const id = uid("loe");
+                dispatch({ type: "addLoe", id });
+                setSelection({ type: "loe", id });
+              }}
+            />
+          )}
+          <PlusMark
+            x={laidOut.dpBar.x + laidOut.dpBar.width + 22}
+            y={laidOut.dpBar.y + laidOut.dpBar.height / 2}
+            label="Add gate"
+            onClick={() => {
+              const afterPhaseId =
+                design.phases[design.phases.length - 1]?.id;
+              if (!afterPhaseId) return;
+              const id = uid("dp");
+              dispatch({ type: "addDp", id, afterPhaseId });
+              setSelection({ type: "dp", id });
+            }}
+          />
+        </>
+      )}
+
       <Legend x={36} y={laidOut.height - 36} />
     </svg>
+  );
+}
+
+function PlusMark({
+  x,
+  y,
+  label,
+  onClick,
+}: {
+  x: number;
+  y: number;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <g
+      data-ui="true"
+      className="canvas-plus"
+      transform={`translate(${x}, ${y})`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      <title>{label}</title>
+      <circle r="11" fill="#1a1f2b" />
+      <path d="M-5.5,0 H5.5 M0,-5.5 V5.5" stroke="#f3f6f9" strokeWidth="1.7" />
+    </g>
   );
 }
 
@@ -748,7 +824,7 @@ function Legend({ x, y }: { x: number; y: number }) {
         strokeWidth="0.8"
       />
       <text x="202" y="4" className="svg-legend">
-        Gate / DP
+        Gate
       </text>
       <line
         x1="278"

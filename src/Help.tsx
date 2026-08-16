@@ -40,11 +40,9 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         <p className="help-how">
-          Hover a workstream in a phase to add. Drag along the line to move a
-          node earlier or later, including inside a phase. A node that depends
-          on another is drawn to the right of it — even on a different
-          workstream. Press <strong>Link</strong>, then click A then B to draw
-          a dependency.
+          Hover a workstream in a phase to add a milestone or condition. Drag to
+          move. Use the + marks to add a phase, workstream, or gate.{" "}
+          <strong>Link</strong>, then click A then B — B sits to the right of A.
         </p>
         <button type="button" className="modal-close" onClick={onClose}>
           Close

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Diagram } from "./Diagram";
 import { HelpModal } from "./Help";
 import { Inspector } from "./Inspector";
-import { Sidebar } from "./Sidebar";
 import { DesignProvider, useDesign } from "./state";
 import { saveDesign } from "./storage";
 import { Toolbar } from "./Toolbar";
@@ -12,7 +11,7 @@ import type { OperationalDesign } from "./types";
 function Editor({ onNew }: { onNew: () => void }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [help, setHelp] = useState(false);
-  const { present, undo, redo, linkMode, setLinkMode } = useDesign();
+  const { present, undo, redo, linkMode, setLinkMode, selection } = useDesign();
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -38,8 +37,7 @@ function Editor({ onNew }: { onNew: () => void }) {
     <div className={present ? "app present" : "app"}>
       <Toolbar svgRef={svgRef} onNew={onNew} onHelp={() => setHelp(true)} />
       <div className="workspace">
-        <Sidebar />
-        <main className="canvas">
+        <main className={selection && !present ? "canvas with-panel" : "canvas"}>
           {linkMode && (
             <div className="link-banner">
               Click what must happen first, then what depends on it.
@@ -51,12 +49,8 @@ function Editor({ onNew }: { onNew: () => void }) {
           <div className="canvas-scroll">
             <Diagram svgRef={svgRef} />
           </div>
-          <p className="canvas-hint hide-present">
-            Hover a workstream in a phase to add · Drag along the line to move · Click anything
-            to edit
-          </p>
         </main>
-        <Inspector />
+        {selection && !present && <Inspector />}
       </div>
       {help && <HelpModal onClose={() => setHelp(false)} />}
     </div>
