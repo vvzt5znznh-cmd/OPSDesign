@@ -6,10 +6,14 @@ export function LayoutPicker({
   onCancel,
 }: {
   onChoose: (design: OperationalDesign) => void;
-  onCancel: () => void;
+  onCancel?: () => void;
 }) {
   return (
-    <div className="modal-backdrop" onClick={onCancel} role="presentation">
+    <div
+      className={onCancel ? "modal-backdrop" : "modal-backdrop first-open"}
+      onClick={onCancel}
+      role="presentation"
+    >
       <div
         className="modal wide"
         role="dialog"
@@ -18,8 +22,9 @@ export function LayoutPicker({
       >
         <h2 id="layout-title">Start from a sample</h2>
         <p>
-          An empty picture, or a filled-in example. Your current picture is kept
-          — Undo, or File → Restore previous.
+          {onCancel
+            ? "An empty picture, or a filled-in example. Your current picture is kept — Undo, or File → Restore previous."
+            : "An empty picture, or a filled-in example."}
         </p>
         <div className="template-grid">
           {TEMPLATES.map((t) => (
@@ -35,9 +40,11 @@ export function LayoutPicker({
             </button>
           ))}
         </div>
-        <button type="button" className="modal-close" onClick={onCancel}>
-          Cancel
-        </button>
+        {onCancel && (
+          <button type="button" className="modal-close" onClick={onCancel}>
+            Cancel
+          </button>
+        )}
       </div>
     </div>
   );

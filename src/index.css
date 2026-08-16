@@ -560,6 +560,10 @@ textarea:focus-visible {
   z-index: 20;
 }
 
+.modal-backdrop.first-open {
+  background: var(--bg);
+}
+
 .modal {
   background: var(--panel);
   max-width: 560px;

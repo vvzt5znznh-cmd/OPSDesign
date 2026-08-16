@@ -50,7 +50,7 @@ npm run preview
 
 ## How to use it
 
-1. You land on a picture. First visit is blank; coming back restores the last one from this browser. File → New… starts from a sample (empty, service go-live, or campaign).
+1. First visit: **Start from a sample** (empty, service go-live, or campaign). Coming back restores the last picture from this browser. File → New… is the same prompt.
 2. Click anything on the diagram to edit it. Labels are the text on the picture. The end-state panel takes a name, what will be true (shown under the name), and a colour wash.
 3. Hover a workstream in a phase: **+** then Milestone or Condition. Hover the gate bar and click **+** to add a decision. Use the **+** marks to add a phase or workstream.
 4. Drag a node along its arrow to move it earlier or later — within a phase or into another. A node that depends on another sits to the right of it, including across workstreams. Drag a gate along the bar to sit in a phase or after it.

@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Diagram } from "./Diagram";
 import { HelpModal } from "./Help";
 import { Inspector } from "./Inspector";
+import { LayoutPicker } from "./LayoutPicker";
 import { DesignProvider, useDesign } from "./state";
 import { saveDesign } from "./storage";
 import { Toolbar } from "./Toolbar";
-import { blankDesign } from "./templates";
 import type { OperationalDesign } from "./types";
 
 function Editor() {
@@ -62,14 +62,19 @@ export default function App({
 }: {
   initial: OperationalDesign | null;
 }) {
-  const [start] = useState(() => initial ?? blankDesign());
+  const [design, setDesign] = useState<OperationalDesign | null>(initial);
 
-  useEffect(() => {
-    if (!initial) saveDesign(start);
-  }, [initial, start]);
+  function choose(next: OperationalDesign) {
+    saveDesign(next);
+    setDesign(next);
+  }
+
+  if (!design) {
+    return <LayoutPicker onChoose={choose} />;
+  }
 
   return (
-    <DesignProvider initial={start}>
+    <DesignProvider key={design.id} initial={design}>
       <Editor />
     </DesignProvider>
   );

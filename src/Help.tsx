@@ -59,7 +59,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           links. Title, purpose, and labels wrap — the picture grows instead of
           clipping.{" "}
           <strong>Link</strong>, then click A then B — B sits to the right of A.
-          File → New… starts from a sample. File → Ask an LLM… copies a prompt
+          The first time, pick a sample. File → New… is that prompt again. File → Ask an LLM… copies a prompt
           and sample JSON; File → Open JSON loads the file it returns. File →
           Export PowerPoint makes an editable briefing slide that matches the
           picture. Dependency links are PowerPoint connectors glued to the
