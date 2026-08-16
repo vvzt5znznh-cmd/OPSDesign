@@ -62,8 +62,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           The first time, pick a sample. File → New… is that prompt again. File → Ask an LLM… copies a prompt
           and sample JSON; File → Open JSON loads the file it returns. File →
           Export PowerPoint makes an editable briefing slide that matches the
-          picture. Dependency links are PowerPoint connectors glued to the
-          figures. Labels are the text on the picture. End-state name and the
+          picture. Dependency links are curved PowerPoint connectors glued to
+          the sides of the figures. Labels are the text on the picture. End-state name and the
           conditions that must hold sit on the panel.
         </p>
         <p className="help-how">

@@ -51,21 +51,14 @@ function fillOf(css: string): { color: string; transparency?: number } {
 const NODE_NAME = (id: string) => `OPS-node-${id}`;
 const DEP_NAME = (id: string) => `OPS-dep-${id}`;
 
-/** OOXML preset connection sites: 0 top, 1 left, 2 bottom, 3 right. */
-function connectionSites(
+/** OOXML preset connection sites: 0 top, 1 left, 2 bottom, 3 right. Always the sides. */
+export function connectionSites(
   from: { x: number; y: number },
   to: { x: number; y: number },
 ): { startIdx: number; endIdx: number } {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  if (Math.abs(dx) >= Math.abs(dy)) {
-    return dx >= 0
-      ? { startIdx: 3, endIdx: 1 }
-      : { startIdx: 1, endIdx: 3 };
-  }
-  return dy >= 0
-    ? { startIdx: 2, endIdx: 0 }
-    : { startIdx: 0, endIdx: 2 };
+  return to.x >= from.x
+    ? { startIdx: 3, endIdx: 1 }
+    : { startIdx: 1, endIdx: 3 };
 }
 
 function nodeHalf(
@@ -98,7 +91,7 @@ function escapeRe(value: string): string {
 }
 
 /** Turn pptxgenjs line shapes into PowerPoint connectors glued to the figures. */
-function glueConnectors(
+export function glueConnectors(
   xml: string,
   deps: Array<{ id: string; fromId: string; toId: string }>,
   nodes: Array<{ id: string; x: number; y: number }>,
@@ -125,6 +118,12 @@ function glueConnectors(
     xml = xml.replace(blockRe, (full, id: string) => {
       const spPr = full.match(/<p:spPr>[\s\S]*?<\/p:spPr>/)?.[0];
       if (!spPr) return full;
+      const geom = spPr
+        .replace(/prst="[^"]+"/, 'prst="curvedConnector3"')
+        .replace(/<a:headEnd\b[^/]*\/>/g, "")
+        .replace(/<a:tailEnd\b[^/]*\/>/g, "")
+        .replace(/<a:headEnd\b[^>]*>[\s\S]*?<\/a:headEnd>/g, "")
+        .replace(/<a:tailEnd\b[^>]*>[\s\S]*?<\/a:tailEnd>/g, "");
       return (
         `<p:cxnSp>` +
         `<p:nvCxnSpPr>` +
@@ -135,7 +134,7 @@ function glueConnectors(
         `</p:cNvCxnSpPr>` +
         `<p:nvPr/>` +
         `</p:nvCxnSpPr>` +
-        spPr +
+        geom +
         `<p:style>` +
         `<a:lnRef idx="1"><a:schemeClr val="accent1"/></a:lnRef>` +
         `<a:fillRef idx="0"><a:schemeClr val="accent1"/></a:fillRef>` +
@@ -406,11 +405,7 @@ export async function downloadPptx(
     const { startIdx, endIdx } = connectionSites(from, to);
     const a = sitePoint(from, startIdx, X, Y, S);
     const b = sitePoint(to, endIdx, X, Y, S);
-    const sameRow = Math.abs(from.y - to.y) < 6;
-    const connector = (
-      sameRow ? "straightConnector1" : "bentConnector3"
-    ) as typeof pptx.ShapeType.line;
-    slide.addShape(connector, {
+    slide.addShape("curvedConnector3" as typeof pptx.ShapeType.line, {
       x: Math.min(a.x, b.x),
       y: Math.min(a.y, b.y),
       w: Math.max(Math.abs(b.x - a.x), 0.02),
@@ -421,7 +416,6 @@ export async function downloadPptx(
         color: hex(palette.dep),
         width: 1.25,
         dashType: "dash",
-        endArrowType: "triangle",
       },
       objectName: DEP_NAME(dep.id),
     });
@@ -575,7 +569,6 @@ export async function downloadPptx(
       color: hex(palette.dep),
       width: 1.4,
       dashType: "dash",
-      endArrowType: "triangle",
     },
   });
   text("Dependency", legendX + S(288), legendY - S(2), S(80), S(16), {
