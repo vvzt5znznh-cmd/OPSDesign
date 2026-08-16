@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { reduceDesign, selectionAfter, type DesignAction } from "./reducer";
-import { saveDesign } from "./storage";
+import { loadSession, saveDesign, saveSession } from "./storage";
 import type { OperationalDesign, Selection } from "./types";
 
 interface DesignContextValue {
@@ -40,12 +40,25 @@ export function DesignProvider({
   const [design, setDesign] = useState(initial);
   const [selection, setSelection] = useState<Selection>(null);
   const [present, setPresent] = useState(false);
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
+  const [canUndo, setCanUndo] = useState(() => loadSession().undo.length > 0);
+  const [canRedo, setCanRedo] = useState(() => loadSession().redo.length > 0);
   const [linkMode, setLinkModeState] = useState(false);
   const [linkFrom, setLinkFrom] = useState<string | null>(null);
   const undoStack = useRef<OperationalDesign[]>([]);
   const redoStack = useRef<OperationalDesign[]>([]);
+  const hydrated = useRef(false);
+  if (!hydrated.current) {
+    const session = loadSession();
+    undoStack.current = session.undo;
+    redoStack.current = session.redo;
+    hydrated.current = true;
+  }
+
+  const persistStacks = useCallback(() => {
+    saveSession(undoStack.current, redoStack.current);
+    setCanUndo(undoStack.current.length > 0);
+    setCanRedo(redoStack.current.length > 0);
+  }, []);
 
   const setLinkMode = useCallback((v: boolean) => {
     setLinkModeState(v);
@@ -59,39 +72,36 @@ export function DesignProvider({
       undoStack.current.push(current);
       if (undoStack.current.length > 80) undoStack.current.shift();
       redoStack.current = [];
-      setCanUndo(true);
-      setCanRedo(false);
+      persistStacks();
       saveDesign(next);
       setSelection((sel) => selectionAfter(next, sel));
       return next;
     });
-  }, []);
+  }, [persistStacks]);
 
   const undo = useCallback(() => {
     const prev = undoStack.current.pop();
     if (!prev) return;
     setDesign((current) => {
       redoStack.current.push(current);
-      setCanUndo(undoStack.current.length > 0);
-      setCanRedo(true);
+      persistStacks();
       saveDesign(prev);
       setSelection((sel) => selectionAfter(prev, sel));
       return prev;
     });
-  }, []);
+  }, [persistStacks]);
 
   const redo = useCallback(() => {
     const next = redoStack.current.pop();
     if (!next) return;
     setDesign((current) => {
       undoStack.current.push(current);
-      setCanUndo(true);
-      setCanRedo(redoStack.current.length > 0);
+      persistStacks();
       saveDesign(next);
       setSelection((sel) => selectionAfter(next, sel));
       return next;
     });
-  }, []);
+  }, [persistStacks]);
 
   const value = useMemo(
     () => ({

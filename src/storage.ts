@@ -1,7 +1,8 @@
 import { LOE_COLORS, endStateColor, type DecisionPoint, type DesignNode, type Dependency, type LineOfEffort, type OperationalDesign } from "./types";
-import { blankDesign } from "./templates";
 
 const KEY = "opsdesign:current";
+const PREVIOUS_KEY = "opsdesign:previous";
+const SESSION_KEY = "opsdesign:session";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object";
@@ -148,6 +149,61 @@ export function saveDesign(design: OperationalDesign): void {
   localStorage.setItem(KEY, JSON.stringify(design));
 }
 
+/** Last picture displaced by File → New or Open JSON. Survives leaving the tab. */
+export function stashPrevious(design: OperationalDesign): void {
+  try {
+    localStorage.setItem(PREVIOUS_KEY, JSON.stringify(design));
+  } catch {
+    /* quota */
+  }
+}
+
+export function loadPrevious(): OperationalDesign | null {
+  try {
+    const raw = localStorage.getItem(PREVIOUS_KEY);
+    if (!raw) return null;
+    return normalizeDesign(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
+export type SessionStacks = {
+  undo: OperationalDesign[];
+  redo: OperationalDesign[];
+};
+
+function designsFromUnknown(value: unknown): OperationalDesign[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    const design = normalizeDesign(item);
+    return design ? [design] : [];
+  });
+}
+
+/** Undo/redo for this tab. Survives refresh; clears when the tab is closed. */
+export function loadSession(): SessionStacks {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return { undo: [], redo: [] };
+    const value = JSON.parse(raw) as { undo?: unknown; redo?: unknown };
+    return {
+      undo: designsFromUnknown(value.undo),
+      redo: designsFromUnknown(value.redo),
+    };
+  } catch {
+    return { undo: [], redo: [] };
+  }
+}
+
+export function saveSession(undo: OperationalDesign[], redo: OperationalDesign[]): void {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ undo, redo }));
+  } catch {
+    /* quota */
+  }
+}
+
 export function parseImportedDesign(text: string): OperationalDesign {
   const parsed = normalizeDesign(JSON.parse(extractJson(text)));
   if (!parsed) {
@@ -189,8 +245,4 @@ export function slug(title: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
   return s || "opsdesign";
-}
-
-export function ensureDesign(): OperationalDesign {
-  return loadDesign() ?? blankDesign();
 }
