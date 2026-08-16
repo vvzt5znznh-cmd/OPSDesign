@@ -511,14 +511,14 @@ export async function downloadPptx(
     if (end.descriptionLines.length) {
       text(
         end.descriptionLines.join("\n"),
-        X(box.descX),
+        X(end.x + T.padX),
         Y(box.top + box.nameH + box.gap),
         S(box.descW),
         S(Math.max(box.descH, T.descLh)),
         {
           size: fs(11, 9),
           color: palette.purpose,
-          align: "left",
+          align: "center",
           valign: "top",
         },
       );

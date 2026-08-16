@@ -433,7 +433,7 @@ describe("wrapLabel", () => {
 });
 
 describe("endStateTextBox", () => {
-  it("keeps the name centred and left-aligns what will be true", () => {
+  it("centres the name and what-will-be-true with a tight inner margin", () => {
     const laid = layoutDiagram(
       design({
         endState: {
@@ -447,7 +447,10 @@ describe("endStateTextBox", () => {
     const box = endStateTextBox(laid.endState);
     expect(laid.endState.descriptionLines.length).toBeGreaterThan(1);
     expect(box.nameX).toBe(laid.endState.x + laid.endState.width / 2);
-    expect(box.descX).toBeLessThan(box.nameX);
-    expect(box.descX).toBe(laid.endState.x + 16);
+    expect(box.descX).toBe(box.nameX);
+    expect(box.descW).toBeGreaterThan(laid.endState.width * 0.85);
+    expect(laid.endState.descriptionLines.some((line) => line.length > 26)).toBe(
+      true,
+    );
   });
 });

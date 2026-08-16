@@ -869,7 +869,7 @@ export function Diagram({
               i * END_STATE_TEXT.descLh +
               END_STATE_TEXT.descLh / 2
             }
-            textAnchor="start"
+            textAnchor="middle"
             dominantBaseline="middle"
             className="svg-end-desc"
             fill={palette.purpose}

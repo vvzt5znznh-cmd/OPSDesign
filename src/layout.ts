@@ -39,19 +39,19 @@ export function wrapToWidth(
 }
 
 export const END_STATE_TEXT = {
-  nameChars: 22,
   nameMax: 6,
-  descChars: 26,
   descMax: 14,
   nameLh: 18,
   descLh: 14,
-  padY: 18,
-  padX: 16,
-  gap: 10,
-  inset: 10,
+  namePx: 7.2,
+  descPx: 6.2,
+  padY: 12,
+  padX: 8,
+  gap: 8,
+  inset: 4,
 };
 
-/** Name stays centred; “what will be true” is left-aligned body copy. */
+/** Name and “what will be true” share the panel centre, with a tight inner margin. */
 export function endStateTextBox(end: {
   x: number;
   y: number;
@@ -66,13 +66,14 @@ export function endStateTextBox(end: {
   const gap =
     end.nameLines.length && end.descriptionLines.length ? T.gap : 0;
   const top = end.y + (end.height - (nameH + gap + descH)) / 2;
+  const cx = end.x + end.width / 2;
   return {
     top,
     nameH,
     gap,
     descH,
-    nameX: end.x + end.width / 2,
-    descX: end.x + T.padX,
+    nameX: cx,
+    descX: cx,
     descW: end.width - T.padX * 2,
   };
 }
@@ -361,13 +362,15 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const outcomeX = plotX + phasesWidth + L.addGap;
   const loeTop = plotY + dpBarH;
   const T = END_STATE_TEXT;
+  const panelW = L.outcomeW - T.inset * 2;
+  const textW = panelW - T.padX * 2;
   const nameText = design.endState.name.trim();
   const descText = design.endState.description.trim();
   const nameLines = nameText
-    ? wrapLabel(nameText, T.nameChars, T.nameMax)
+    ? wrapToWidth(nameText, textW, T.namePx, T.nameMax)
     : [];
   const descriptionLines = descText
-    ? wrapLabel(descText, T.descChars, T.descMax)
+    ? wrapToWidth(descText, textW, T.descPx, T.descMax)
     : [];
   const textH =
     T.padY +
@@ -384,7 +387,6 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const arrowPad = 28;
   const spanH = lastY - firstY + arrowPad * 2;
   const panelH = Math.max(spanH, textH, 88);
-  const panelW = L.outcomeW - T.inset * 2;
   const panelX = outcomeX + T.inset;
   const mid = (firstY + lastY) / 2;
   const minY = loeTop - 12;
