@@ -17,8 +17,9 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           <div>
             <h3>End state</h3>
             <p>
-              The End state column on the right. What must be true when you are
-              done — not a date.
+              The panel on the right. Every workstream reads into it. Name is
+              the heading; description is the conditions that must hold — not a
+              date.
             </p>
           </div>
           <div>
@@ -55,8 +56,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           a gate. Use the + marks to add a phase, workstream, or gate.{" "}
           <strong>Link</strong>, then click A then B — B sits to the right of A.
           File → Export PowerPoint makes an editable briefing slide that matches
-          the picture; inspector detail goes to speaker notes so it stays off
-          the shared slide.
+          the picture. Dependency links are PowerPoint connectors glued to the
+          figures — copy one, or draw a new Elbow / Straight connector, and snap
+          it to a milestone or condition. End-state name and description sit on
+          the panel; other inspector detail goes to speaker notes.
         </p>
         <button type="button" className="modal-close" onClick={onClose}>
           Close
