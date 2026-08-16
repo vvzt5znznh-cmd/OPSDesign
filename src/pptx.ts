@@ -1,4 +1,4 @@
-import { layoutDiagram, LAYOUT } from "./layout";
+import { layoutDiagram, LAYOUT, END_STATE_TEXT } from "./layout";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
 import {
@@ -6,36 +6,13 @@ import {
   MILESTONE_FILL,
   type OperationalDesign,
 } from "./types";
+import { wrapLabel } from "./wrap";
 
 const FONT = "Arial";
 const GATE = "#2E7D32";
 const GATE_LINE = "#1B5E20";
 const END_FILL = "#1A365D";
 const END_LINE = "#2C5282";
-
-function wrapLabel(text: string, maxChars = 16, maxLines = 3): string[] {
-  const words = text.split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let cur = "";
-  for (const word of words) {
-    const next = cur ? `${cur} ${word}` : word;
-    if (next.length > maxChars && cur) {
-      lines.push(cur);
-      cur = word;
-    } else {
-      cur = next;
-    }
-  }
-  if (cur) lines.push(cur);
-  if (lines.length > maxLines) {
-    const kept = lines.slice(0, maxLines);
-    const last = kept[maxLines - 1];
-    kept[maxLines - 1] =
-      last.length >= maxChars ? `${last.slice(0, maxChars - 1)}…` : `${last}…`;
-    return kept;
-  }
-  return lines.length ? lines : [""];
-}
 
 function hex(css: string): string {
   const rgba = css.match(
@@ -285,19 +262,6 @@ export async function downloadPptx(
     }
   }
 
-  if (laid.loes.length > 1) {
-    const spineX = X(laid.endState.x - 8);
-    const y1 = Y(laid.loes[0].y);
-    const y2 = Y(laid.loes[laid.loes.length - 1].y);
-    slide.addShape(pptx.ShapeType.line, {
-      x: spineX,
-      y: y1,
-      w: 0,
-      h: Math.max(y2 - y1, 0.05),
-      line: { color: hex(palette.dep), width: 1.1 },
-    });
-  }
-
   const byId = new Map(laid.nodes.map((n) => [n.id, n]));
   for (const dep of laid.dependencies) {
     const from = byId.get(dep.fromId);
@@ -466,19 +430,46 @@ export async function downloadPptx(
     line: { color: hex(END_LINE), width: 1.15 },
     rectRadius: 0.12,
   });
-  text(
-    wrapLabel(laid.endState.name, 16, 2).join("\n"),
-    X(laid.endState.x),
-    Y(laid.endState.y),
-    S(laid.endState.width),
-    S(laid.endState.height),
-    {
-      size: fs(12, 10),
-      color: "#FFFFFF",
-      align: "center",
-      bold: true,
-    },
-  );
+  {
+    const end = laid.endState;
+    const T = END_STATE_TEXT;
+    const nameH = end.nameLines.length * T.nameLh;
+    const descH = end.descriptionLines.length * T.descLh;
+    const gap =
+      end.nameLines.length && end.descriptionLines.length ? T.gap : 0;
+    const top = end.y + (end.height - (nameH + gap + descH)) / 2;
+    if (end.nameLines.length) {
+      text(
+        end.nameLines.join("\n"),
+        X(end.x + 8),
+        Y(top),
+        S(end.width - 16),
+        S(Math.max(nameH, T.nameLh)),
+        {
+          size: fs(13, 11),
+          color: "#FFFFFF",
+          align: "center",
+          bold: true,
+          valign: "middle",
+        },
+      );
+    }
+    if (end.descriptionLines.length) {
+      text(
+        end.descriptionLines.join("\n"),
+        X(end.x + 8),
+        Y(top + nameH + gap),
+        S(end.width - 16),
+        S(Math.max(descH, T.descLh)),
+        {
+          size: fs(11, 9),
+          color: "D6E4F0",
+          align: "center",
+          valign: "top",
+        },
+      );
+    }
+  }
 
   const legendY = Y(laid.height - 44);
   const legendX = X(36);

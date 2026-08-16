@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { uid } from "./id";
-import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, type DiagramLayout } from "./layout";
+import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, END_STATE_TEXT, type DiagramLayout } from "./layout";
 import { useDesign } from "./state";
 import { useTheme, type DiagramPalette } from "./theme";
 import {
@@ -16,30 +16,7 @@ import {
   type NodeKind,
   type Selection,
 } from "./types";
-
-function wrapLabel(text: string, maxChars = 16, maxLines = 3): string[] {
-  const words = text.split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let cur = "";
-  for (const word of words) {
-    const next = cur ? `${cur} ${word}` : word;
-    if (next.length > maxChars && cur) {
-      lines.push(cur);
-      cur = word;
-    } else {
-      cur = next;
-    }
-  }
-  if (cur) lines.push(cur);
-  if (lines.length > maxLines) {
-    const kept = lines.slice(0, maxLines);
-    const last = kept[maxLines - 1];
-    kept[maxLines - 1] =
-      last.length >= maxChars ? `${last.slice(0, maxChars - 1)}…` : `${last}…`;
-    return kept;
-  }
-  return lines.length ? lines : [""];
-}
+import { wrapLabel } from "./wrap";
 
 function starPath(r: number): string {
   const pts: string[] = [];
@@ -80,7 +57,8 @@ function diagramCss(p: DiagramPalette): string {
   .svg-loe-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 9px; font-weight: 500; fill: ${p.purpose}; }
   .svg-end-col { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; fill: ${p.purpose}; letter-spacing: 0.12em; }
   .svg-condition, .svg-dp-label, .svg-legend { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: ${p.label}; }
-  .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 700; fill: #fff; }
+  .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; fill: #fff; }
+  .svg-end-desc { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 400; fill: rgba(255,255,255,0.86); }
   .dep-line { fill: none; stroke: ${p.dep}; stroke-width: 1.4; stroke-dasharray: 5 4; }
   .add-pill-text { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: #fff; }
   .canvas-plus { cursor: pointer; }
@@ -106,6 +84,16 @@ export function Diagram({
   } = useDesign();
   const { diagram: palette } = useTheme();
   const laidOut = useMemo(() => layoutDiagram(design), [design]);
+  const endText = useMemo(() => {
+    const end = laidOut.endState;
+    const T = END_STATE_TEXT;
+    const nameH = end.nameLines.length * T.nameLh;
+    const descH = end.descriptionLines.length * T.descLh;
+    const gap =
+      end.nameLines.length && end.descriptionLines.length ? T.gap : 0;
+    const top = end.y + (end.height - (nameH + gap + descH)) / 2;
+    return { top, nameH, gap };
+  }, [laidOut.endState]);
   const [hoverCell, setHoverCell] = useState<{
     loeId: string;
     phaseId: string;
@@ -509,7 +497,7 @@ export function Diagram({
           <line
             x1={loe.x1}
             y1={loe.y}
-            x2={laidOut.endState.x - 8}
+            x2={loe.x2}
             y2={loe.y}
             stroke={loe.color}
             strokeWidth={12}
@@ -549,18 +537,6 @@ export function Diagram({
             : null}
         </g>
       ))}
-
-      {laidOut.loes.length > 1 && (
-        <line
-          x1={laidOut.endState.x - 8}
-          y1={laidOut.loes[0].y}
-          x2={laidOut.endState.x - 8}
-          y2={laidOut.loes[laidOut.loes.length - 1].y}
-          stroke={palette.dep}
-          strokeWidth="1.25"
-          strokeOpacity="0.55"
-        />
-      )}
 
       {laidOut.dependencies.map((dep) => (
         <g key={dep.id}>
@@ -813,23 +789,41 @@ export function Diagram({
           y={laidOut.endState.y}
           width={laidOut.endState.width}
           height={laidOut.endState.height}
-          rx="8"
+          rx="12"
           fill="#1A365D"
           stroke={isSelected(selection, "endState") ? "#c4a35a" : "#2c5282"}
           strokeWidth={isSelected(selection, "endState") ? 2.4 : 1.2}
         />
-        {wrapLabel(laidOut.endState.name, 16, 2).map((line, i, arr) => (
+        {laidOut.endState.nameLines.map((line, i) => (
           <text
-            key={i}
+            key={`n-${i}`}
             x={laidOut.endState.x + laidOut.endState.width / 2}
             y={
-              laidOut.endState.y +
-              laidOut.endState.height / 2 +
-              5 +
-              (i - (arr.length - 1) / 2) * 16
+              endText.top +
+              i * END_STATE_TEXT.nameLh +
+              END_STATE_TEXT.nameLh / 2
             }
             textAnchor="middle"
+            dominantBaseline="middle"
             className="svg-end"
+          >
+            {line}
+          </text>
+        ))}
+        {laidOut.endState.descriptionLines.map((line, i) => (
+          <text
+            key={`d-${i}`}
+            x={laidOut.endState.x + laidOut.endState.width / 2}
+            y={
+              endText.top +
+              endText.nameH +
+              endText.gap +
+              i * END_STATE_TEXT.descLh +
+              END_STATE_TEXT.descLh / 2
+            }
+            textAnchor="middle"
+            dominantBaseline="middle"
+            className="svg-end-desc"
           >
             {line}
           </text>

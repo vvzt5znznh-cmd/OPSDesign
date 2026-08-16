@@ -87,8 +87,9 @@ export function Inspector() {
       <aside className="inspector">
         <Head>End state</Head>
         <p className="muted">
-          The outcome that must hold when the work is done — a set of
-          conditions, not a date.
+          The panel on the right. Every workstream reads into it. Name is the
+          heading; description sits under it — the conditions that must hold,
+          not a date.
         </p>
         <Field label="Name">
           <input
@@ -114,7 +115,7 @@ export function Inspector() {
                 }),
               )
             }
-            placeholder="What will be true for users, the organisation, and residual risk?"
+            placeholder="What will be true — shown under the name on the panel."
           />
         </Field>
       </aside>

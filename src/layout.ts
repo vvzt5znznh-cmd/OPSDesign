@@ -1,4 +1,5 @@
 import type { GatePlacement, NodeKind, OperationalDesign } from "./types";
+import { wrapLabel } from "./wrap";
 
 export const LAYOUT = {
   padX: 40,
@@ -7,11 +8,24 @@ export const LAYOUT = {
   dpBarH: 76,
   leftGutter: 204,
   addGap: 44,
-  outcomeW: 176,
+  outcomeW: 232,
   loeH: 112,
   legendH: 58,
   slot: 84,
   phaseMin: 220,
+};
+
+/** How the end-state panel wraps name and description. */
+export const END_STATE_TEXT = {
+  nameChars: 22,
+  nameMax: 6,
+  descChars: 26,
+  descMax: 14,
+  nameLh: 18,
+  descLh: 14,
+  padY: 18,
+  gap: 10,
+  inset: 10,
 };
 
 export interface PhaseLayout {
@@ -75,6 +89,9 @@ export interface DiagramLayout {
     width: number;
     height: number;
     name: string;
+    description: string;
+    nameLines: string[];
+    descriptionLines: string[];
   };
   plot: { x: number; y: number; width: number; height: number };
 }
@@ -183,7 +200,6 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     L.padX * 2 + L.leftGutter + phasesWidth + L.addGap + L.outcomeW;
   const plotY = L.padY + titleH + L.phaseHeaderH;
   const plotH = L.dpBarH + design.linesOfEffort.length * L.loeH;
-  const height = plotY + plotH + L.legendH + L.padY;
 
   let x = L.padX + L.leftGutter;
   const phaseLayouts: PhaseLayout[] = phases.map((phase, i) => {
@@ -201,19 +217,46 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const plotX = L.padX + L.leftGutter;
   const outcomeX = plotX + phasesWidth + L.addGap;
   const loeTop = plotY + L.dpBarH;
-  const loeAreaH = Math.max(L.loeH, design.linesOfEffort.length * L.loeH);
-  const cardW = 148;
-  const cardH = 56;
-  const endX = outcomeX + (L.outcomeW - cardW) / 2;
-  const endY = loeTop + loeAreaH / 2 - cardH / 2;
+  const T = END_STATE_TEXT;
+  const nameText = design.endState.name.trim();
+  const descText = design.endState.description.trim();
+  const nameLines = nameText
+    ? wrapLabel(nameText, T.nameChars, T.nameMax)
+    : [];
+  const descriptionLines = descText
+    ? wrapLabel(descText, T.descChars, T.descMax)
+    : [];
+  const textH =
+    T.padY +
+    nameLines.length * T.nameLh +
+    (nameLines.length && descriptionLines.length ? T.gap : 0) +
+    descriptionLines.length * T.descLh +
+    T.padY;
+  const loeYs = design.linesOfEffort.map(
+    (_, i) => loeTop + i * L.loeH + L.loeH / 2,
+  );
+  const firstY = loeYs[0] ?? loeTop + L.loeH / 2;
+  const lastY = loeYs[loeYs.length - 1] ?? firstY;
+  const arrowPad = 28;
+  const spanH = lastY - firstY + arrowPad * 2;
+  const panelH = Math.max(spanH, textH, 88);
+  const panelW = L.outcomeW - T.inset * 2;
+  const panelX = outcomeX + T.inset;
+  const mid = (firstY + lastY) / 2;
+  const minY = loeTop - 12;
+  let panelY = mid - panelH / 2;
+  if (panelY < minY) panelY = minY;
+  const panelBottom = panelY + panelH;
+  const plotBottom = plotY + plotH;
+  const extraH = Math.max(0, panelBottom - (plotBottom - 8));
   const loes: LoeLayout[] = design.linesOfEffort.map((loe, i) => ({
     id: loe.id,
     name: loe.name,
     color: loe.color,
     purpose: loe.purpose ?? "",
-    y: loeTop + i * L.loeH + L.loeH / 2,
+    y: loeYs[i],
     x1: plotX - 8,
-    x2: endX - 8,
+    x2: panelX,
   }));
   const loeY = new Map(loes.map((l) => [l.id, l.y]));
   const phaseById = new Map(phaseLayouts.map((p) => [p.id, p]));
@@ -285,7 +328,8 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   }
 
   const bandY = plotY - 42;
-  const bandH = plotH + 42;
+  const bandH = plotH + extraH + 42;
+  const height = plotY + plotH + extraH + L.legendH + L.padY;
 
   return {
     width,
@@ -310,13 +354,16 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
       height: bandH,
     },
     endState: {
-      x: endX,
-      y: endY,
-      width: cardW,
-      height: cardH,
+      x: panelX,
+      y: panelY,
+      width: panelW,
+      height: panelH,
       name: design.endState.name,
+      description: design.endState.description,
+      nameLines,
+      descriptionLines,
     },
-    plot: { x: plotX, y: plotY, width: phasesWidth, height: plotH },
+    plot: { x: plotX, y: plotY, width: phasesWidth, height: plotH + extraH },
   };
 }
 
