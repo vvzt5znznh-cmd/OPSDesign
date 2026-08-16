@@ -77,9 +77,10 @@ function diagramCss(p: DiagramPalette): string {
   .svg-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 11px; fill: ${p.purpose}; }
   .svg-phase { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; fill: ${p.phase}; }
   .svg-loe { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; }
+  .svg-loe-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 9px; font-weight: 500; fill: ${p.purpose}; }
+  .svg-outcome { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; fill: ${p.purpose}; letter-spacing: 0.14em; }
   .svg-condition, .svg-dp-label, .svg-legend { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: ${p.label}; }
   .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 700; fill: #fff; }
-  .svg-end-kicker { font-family: Arial, Helvetica, sans-serif; font-size: 8px; font-weight: 600; fill: rgba(255,255,255,0.7); letter-spacing: 0.12em; }
   .dep-line { fill: none; stroke: ${p.dep}; stroke-width: 1.4; stroke-dasharray: 5 4; }
   .add-pill-text { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: #fff; }
   .canvas-plus { cursor: pointer; }
@@ -106,6 +107,10 @@ export function Diagram({
   const { diagram: palette } = useTheme();
   const laidOut = useMemo(() => layoutDiagram(design), [design]);
   const [hoverCell, setHoverCell] = useState<{
+    loeId: string;
+    phaseId: string;
+  } | null>(null);
+  const [addMenu, setAddMenu] = useState<{
     loeId: string;
     phaseId: string;
   } | null>(null);
@@ -136,6 +141,10 @@ export function Diagram({
           setRenameId(null);
           return;
         }
+        if (addMenu) {
+          setAddMenu(null);
+          return;
+        }
         if (linkMode) {
           setLinkMode(false);
           return;
@@ -161,7 +170,7 @@ export function Diagram({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selection, dispatch, setSelection, linkMode, setLinkMode, renameId]);
+  }, [selection, dispatch, setSelection, linkMode, setLinkMode, renameId, addMenu]);
 
   function dropAt(laid: DiagramLayout, id: string, x: number) {
     const node = design.nodes.find((n) => n.id === id);
@@ -250,22 +259,37 @@ export function Diagram({
     setDrag(null);
   }
 
-  function addAtHover(kind: NodeKind) {
-    if (!hoverCell) return;
+  function addInCell(
+    kind: NodeKind,
+    cell: { loeId: string; phaseId: string } | null,
+  ) {
+    if (!cell) return;
     const id = uid("n");
     dispatch({
       type: "addNode",
       id,
       kind,
-      loeId: hoverCell.loeId,
-      phaseId: hoverCell.phaseId,
+      loeId: cell.loeId,
+      phaseId: cell.phaseId,
     });
     setSelection({ type: "node", id });
+    setAddMenu(null);
+    setHoverCell(null);
   }
 
   const draggingNode = drag
     ? design.nodes.find((n) => n.id === drag.id)
     : undefined;
+  const menuCell = addMenu ?? (present ? null : hoverCell);
+
+  function cellOccupied(loeId: string, phaseId: string) {
+    return design.nodes.some((n) => n.loeId === loeId && n.phaseId === phaseId);
+  }
+
+  function openAddMenu(loeId: string, phaseId: string) {
+    setAddMenu({ loeId, phaseId });
+    setHoverCell({ loeId, phaseId });
+  }
 
   return (
     <svg
@@ -286,6 +310,7 @@ export function Diagram({
           skipDeselect.current = false;
           return;
         }
+        setAddMenu(null);
         if (linkMode) {
           setLinkFrom(null);
           return;
@@ -386,6 +411,30 @@ export function Diagram({
         </g>
       ))}
 
+      <g
+        className="outcome-col"
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelection({ type: "endState" });
+        }}
+      >
+        <rect
+          x={laidOut.outcomeCol.x}
+          y={laidOut.outcomeCol.y}
+          width={laidOut.outcomeCol.width}
+          height={laidOut.outcomeCol.height}
+          fill={palette.phaseA}
+        />
+        <text
+          x={laidOut.outcomeCol.x + laidOut.outcomeCol.width / 2}
+          y={laidOut.plot.y - 16}
+          textAnchor="middle"
+          className="svg-outcome"
+        >
+          OUTCOME
+        </text>
+      </g>
+
       <rect
         x={laidOut.dpBar.x}
         y={laidOut.dpBar.y}
@@ -421,6 +470,22 @@ export function Diagram({
           >
             {loe.name}
           </text>
+          {loe.purpose.trim()
+            ? wrapLabel(loe.purpose.trim(), 24, 2).map((line, i) => (
+                <text
+                  key={i}
+                  x={28}
+                  y={loe.y + 16 + i * 11}
+                  className="svg-loe-purpose"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelection({ type: "loe", id: loe.id });
+                  }}
+                >
+                  {line}
+                </text>
+              ))
+            : null}
         </g>
       ))}
 
@@ -466,22 +531,51 @@ export function Diagram({
             }
             onClick={(e) => {
               e.stopPropagation();
+              if (
+                !present &&
+                !linkMode &&
+                !cellOccupied(loe.id, phase.id)
+              ) {
+                openAddMenu(loe.id, phase.id);
+                return;
+              }
               setSelection({ type: "loe", id: loe.id });
             }}
           />
         )),
       )}
 
-      {hoverCell && !drag?.active && !linkMode && (
+      {!present &&
+        laidOut.phases.flatMap((phase) =>
+          laidOut.loes.map((loe) => {
+            if (cellOccupied(loe.id, phase.id)) return null;
+            if (
+              menuCell?.loeId === loe.id &&
+              menuCell.phaseId === phase.id
+            ) {
+              return null;
+            }
+            return (
+              <CellPlus
+                key={`plus-${loe.id}-${phase.id}`}
+                x={phase.x + phase.width / 2}
+                y={loe.y}
+                onClick={() => openAddMenu(loe.id, phase.id)}
+              />
+            );
+          }),
+        )}
+
+      {menuCell && !drag?.active && !linkMode && !present && (
         <AddPills
           x={
-            (laidOut.phases.find((p) => p.id === hoverCell.phaseId)?.x ?? 0) +
-            (laidOut.phases.find((p) => p.id === hoverCell.phaseId)?.width ?? 0) -
+            (laidOut.phases.find((p) => p.id === menuCell.phaseId)?.x ?? 0) +
+            (laidOut.phases.find((p) => p.id === menuCell.phaseId)?.width ?? 0) -
             104
           }
-          y={(laidOut.loes.find((l) => l.id === hoverCell.loeId)?.y ?? 0) - 26}
-          onMilestone={() => addAtHover("milestone")}
-          onCondition={() => addAtHover("condition")}
+          y={(laidOut.loes.find((l) => l.id === menuCell.loeId)?.y ?? 0) - 26}
+          onMilestone={() => addInCell("milestone", menuCell)}
+          onCondition={() => addInCell("condition", menuCell)}
         />
       )}
 
@@ -569,9 +663,16 @@ export function Diagram({
             strokeWidth={isSelected(selection, "dp", dp.id) ? 2.5 : 1}
             filter="url(#soft)"
           />
-          <text y={28} textAnchor="middle" className="svg-dp-label">
-            {dp.label}
-          </text>
+          {wrapLabel(dp.label, 14, 2).map((line, i) => (
+            <text
+              key={i}
+              y={24 + i * 12}
+              textAnchor="middle"
+              className="svg-dp-label"
+            >
+              {line}
+            </text>
+          ))}
         </g>
       ))}
 
@@ -603,16 +704,6 @@ export function Diagram({
             {line}
           </text>
         ))}
-        {!/end state/i.test(laidOut.endState.name) && (
-          <text
-            x={laidOut.endState.cx}
-            y={laidOut.endState.cy - laidOut.endState.ry + 18}
-            textAnchor="middle"
-            className="svg-end-kicker"
-          >
-            END STATE
-          </text>
-        )}
       </g>
 
       {!present && (
@@ -620,9 +711,10 @@ export function Diagram({
           {laidOut.phases.length > 0 && (
             <PlusMark
               x={
-                laidOut.phases[laidOut.phases.length - 1].x +
-                laidOut.phases[laidOut.phases.length - 1].width +
-                16
+                (laidOut.phases[laidOut.phases.length - 1].x +
+                  laidOut.phases[laidOut.phases.length - 1].width +
+                  laidOut.outcomeCol.x) /
+                2
               }
               y={laidOut.plot.y - 22}
               label="Add phase"
@@ -664,6 +756,38 @@ export function Diagram({
 
       <Legend x={36} y={laidOut.height - 36} />
     </svg>
+  );
+}
+
+function CellPlus({
+  x,
+  y,
+  onClick,
+}: {
+  x: number;
+  y: number;
+  onClick: () => void;
+}) {
+  const { diagram: palette } = useTheme();
+  return (
+    <g
+      data-ui="true"
+      className="canvas-plus"
+      transform={`translate(${x}, ${y})`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      <title>Add milestone or condition</title>
+      <circle r="9" fill={palette.plus} fillOpacity="0.18" />
+      <path
+        d="M-4.5,0 H4.5 M0,-4.5 V4.5"
+        stroke={palette.plus}
+        strokeWidth="1.4"
+        strokeOpacity="0.7"
+      />
+    </g>
   );
 }
 

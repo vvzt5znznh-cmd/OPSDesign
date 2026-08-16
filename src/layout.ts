@@ -4,9 +4,10 @@ export const LAYOUT = {
   padX: 40,
   padY: 32,
   phaseHeaderH: 46,
-  dpBarH: 56,
-  leftGutter: 188,
-  endW: 200,
+  dpBarH: 76,
+  leftGutter: 204,
+  addGap: 44,
+  outcomeW: 176,
   loeH: 112,
   legendH: 58,
   slot: 84,
@@ -43,6 +44,7 @@ export interface LoeLayout {
   id: string;
   name: string;
   color: string;
+  purpose: string;
   y: number;
   x1: number;
   x2: number;
@@ -66,6 +68,7 @@ export interface DiagramLayout {
   dps: DpLayout[];
   dependencies: DepLayout[];
   dpBar: { x: number; y: number; width: number; height: number };
+  outcomeCol: { x: number; y: number; width: number; height: number };
   endState: { cx: number; cy: number; rx: number; ry: number; name: string };
   plot: { x: number; y: number; width: number; height: number };
 }
@@ -170,7 +173,8 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   });
 
   const phasesWidth = phaseMeta.reduce((a, p) => a + p.width, 0);
-  const width = L.padX * 2 + L.leftGutter + phasesWidth + L.endW;
+  const width =
+    L.padX * 2 + L.leftGutter + phasesWidth + L.addGap + L.outcomeW;
   const plotY = L.padY + titleH + L.phaseHeaderH;
   const plotH = L.dpBarH + design.linesOfEffort.length * L.loeH;
   const height = plotY + plotH + L.legendH + L.padY;
@@ -189,14 +193,16 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   });
 
   const plotX = L.padX + L.leftGutter;
+  const outcomeX = plotX + phasesWidth + L.addGap;
   const loeTop = plotY + L.dpBarH;
   const loes: LoeLayout[] = design.linesOfEffort.map((loe, i) => ({
     id: loe.id,
     name: loe.name,
     color: loe.color,
+    purpose: loe.purpose ?? "",
     y: loeTop + i * L.loeH + L.loeH / 2,
     x1: plotX - 8,
-    x2: plotX + phasesWidth + 18,
+    x2: outcomeX + 10,
   }));
   const loeY = new Map(loes.map((l) => [l.id, l.y]));
   const phaseById = new Map(phaseLayouts.map((p) => [p.id, p]));
@@ -242,10 +248,12 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   });
 
   const loeAreaH = Math.max(L.loeH, design.linesOfEffort.length * L.loeH);
-  const endCx = plotX + phasesWidth + L.endW / 2 + 4;
+  const endCx = outcomeX + L.outcomeW / 2;
   const endCy = loeTop + loeAreaH / 2;
   const endRy = Math.max(72, loeAreaH * 0.42);
   const endRx = 78;
+  const bandY = plotY - 42;
+  const bandH = plotH + 42;
 
   return {
     width,
@@ -262,6 +270,12 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
       y: plotY,
       width: phasesWidth,
       height: L.dpBarH,
+    },
+    outcomeCol: {
+      x: outcomeX,
+      y: bandY,
+      width: L.outcomeW,
+      height: bandH,
     },
     endState: {
       cx: endCx,

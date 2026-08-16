@@ -18,7 +18,7 @@ export type DesignAction =
   | { type: "removePhase"; id: string }
   | { type: "movePhase"; id: string; direction: -1 | 1 }
   | { type: "addLoe"; id?: string }
-  | { type: "updateLoe"; id: string; name?: string; color?: string }
+  | { type: "updateLoe"; id: string; name?: string; color?: string; purpose?: string }
   | { type: "removeLoe"; id: string }
   | { type: "moveLoe"; id: string; direction: -1 | 1 }
   | {
@@ -111,7 +111,7 @@ export function reduceDesign(
               ...design.decisionPoints,
               {
                 id: uid("dp"),
-                label: `Gate ${design.decisionPoints.length + 1}`,
+                label: `Decision ${design.decisionPoints.length + 1}`,
                 afterPhaseId: dpAfterId,
                 description: "",
               },
@@ -161,8 +161,9 @@ export function reduceDesign(
           ...design.linesOfEffort,
           {
             id: action.id ?? uid("loe"),
-            name: `LoE ${design.linesOfEffort.length + 1}`,
+            name: `Workstream ${design.linesOfEffort.length + 1}`,
             color,
+            purpose: "",
           },
         ],
       };
@@ -172,11 +173,14 @@ export function reduceDesign(
       if (!loe) return design;
       const name = action.name ?? loe.name;
       const color = action.color ?? loe.color;
-      if (name === loe.name && color === loe.color) return design;
+      const purpose = action.purpose ?? loe.purpose;
+      if (name === loe.name && color === loe.color && purpose === loe.purpose) {
+        return design;
+      }
       return {
         ...design,
         linesOfEffort: design.linesOfEffort.map((l) =>
-          l.id === action.id ? { ...l, name, color } : l,
+          l.id === action.id ? { ...l, name, color, purpose } : l,
         ),
       };
     }
@@ -345,7 +349,7 @@ export function reduceDesign(
           ...design.decisionPoints,
           {
             id: action.id ?? uid("dp"),
-            label: `Gate ${design.decisionPoints.length + 1}`,
+            label: `Decision ${design.decisionPoints.length + 1}`,
             afterPhaseId: action.afterPhaseId,
             description: "",
           },

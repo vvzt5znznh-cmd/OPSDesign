@@ -204,6 +204,22 @@ export function Inspector() {
             }
           />
         </Field>
+        <Field label="Purpose">
+          <input
+            key={`${loe.id}-purpose`}
+            defaultValue={loe.purpose}
+            placeholder="What this stream is for"
+            onBlur={(e) =>
+              commit(loe.purpose, e.target.value, () =>
+                dispatch({
+                  type: "updateLoe",
+                  id: loe.id,
+                  purpose: e.target.value,
+                }),
+              )
+            }
+          />
+        </Field>
         <Field label="Colour">
           <div className="palette">
             {LOE_COLORS.map((color) => (

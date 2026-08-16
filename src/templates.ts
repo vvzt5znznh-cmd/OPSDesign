@@ -20,14 +20,14 @@ function blank(
       { id: p3, name: "Phase 3" },
     ],
     linesOfEffort: [
-      { id: l1, name: "LoE 1", color: "#E87722" },
-      { id: l2, name: "LoE 2", color: "#5B8C2A" },
+      { id: l1, name: "Workstream 1", color: "#E87722", purpose: "" },
+      { id: l2, name: "Workstream 2", color: "#5B8C2A", purpose: "" },
     ],
     nodes: [],
     dependencies: [],
     decisionPoints: [
-      { id: uid("dp"), label: "Gate 1", afterPhaseId: p1, description: "" },
-      { id: uid("dp"), label: "Gate 2", afterPhaseId: p2, description: "" },
+      { id: uid("dp"), label: "Decision 1", afterPhaseId: p1, description: "" },
+      { id: uid("dp"), label: "Decision 2", afterPhaseId: p2, description: "" },
     ],
     ...partial,
   };
@@ -113,26 +113,41 @@ export function projectTemplate(): OperationalDesign {
       { id: p4, name: "Launch" },
     ],
     linesOfEffort: [
-      { id: service, name: "Service", color: "#E87722" },
-      { id: assurance, name: "Assurance", color: "#5B8C2A" },
-      { id: adoption, name: "Adoption", color: "#3D9AD1" },
+      {
+        id: service,
+        name: "Service",
+        color: "#E87722",
+        purpose: "Build the right service",
+      },
+      {
+        id: assurance,
+        name: "Assurance",
+        color: "#5B8C2A",
+        purpose: "Make it safe and reliable",
+      },
+      {
+        id: adoption,
+        name: "Adoption",
+        color: "#3D9AD1",
+        purpose: "Get people ready and engaged",
+      },
     ],
     decisionPoints: [
       {
         id: uid("dp"),
-        label: "Gate 1",
+        label: "Opportunity confirmed",
         afterPhaseId: p1,
         description: "Is the problem worth a definition stage?",
       },
       {
         id: uid("dp"),
-        label: "Gate 2",
+        label: "Solution agreed",
         afterPhaseId: p2,
         description: "Commit funding and start build?",
       },
       {
         id: uid("dp"),
-        label: "Gate 3",
+        label: "Go-live approved",
         afterPhaseId: p3,
         description: "Authorise go-live?",
       },
@@ -204,26 +219,41 @@ export function militaryTemplate(): OperationalDesign {
       { id: p4, name: "Dominate" },
     ],
     linesOfEffort: [
-      { id: l1, name: "Intelligence", color: "#E87722" },
-      { id: l2, name: "Manoeuvre", color: "#5B8C2A" },
-      { id: l3, name: "Influence", color: "#3D9AD1" },
+      {
+        id: l1,
+        name: "Intelligence",
+        color: "#E87722",
+        purpose: "See and understand",
+      },
+      {
+        id: l2,
+        name: "Manoeuvre",
+        color: "#5B8C2A",
+        purpose: "Posture, access, and seize",
+      },
+      {
+        id: l3,
+        name: "Influence",
+        color: "#3D9AD1",
+        purpose: "Shape the narrative",
+      },
     ],
     decisionPoints: [
       {
         id: uid("dp"),
-        label: "DP1",
+        label: "Commit to deter?",
         afterPhaseId: p1,
         description: "Commit to a deterrence posture?",
       },
       {
         id: uid("dp"),
-        label: "DP2",
+        label: "Authorise action?",
         afterPhaseId: p2,
         description: "Authorise the next stage of action?",
       },
       {
         id: uid("dp"),
-        label: "DP3",
+        label: "Exploit or transition?",
         afterPhaseId: p3,
         description: "Exploit success, or transition?",
       },
@@ -256,7 +286,7 @@ export const TEMPLATES = [
   {
     id: "blank",
     name: "Blank project",
-    blurb: "Three phases, two lines of effort, gates ready to fill.",
+    blurb: "Three phases, two workstreams, decisions ready to name.",
     tag: "Start empty",
     create: blankDesign,
   },

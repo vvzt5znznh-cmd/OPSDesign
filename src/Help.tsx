@@ -16,7 +16,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         <div className="help-grid">
           <div>
             <h3>End state</h3>
-            <p>What must be true when you are done — not a date.</p>
+            <p>
+              The outcome column on the right. What must be true when you are
+              done — not a date.
+            </p>
           </div>
           <div>
             <h3>Phases</h3>
@@ -24,7 +27,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <h3>Workstreams</h3>
-            <p>Lines of effort: concurrent work organised by purpose.</p>
+            <p>
+              Concurrent work organised by purpose. Name the stream, then the
+              one-line job it does.
+            </p>
           </div>
           <div>
             <h3>Milestone △</h3>
@@ -36,13 +42,17 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <h3>Gate ★</h3>
-            <p>A decision between stages: proceed, recycle, or stop.</p>
+            <p>
+              A decision between stages: proceed, recycle, or stop. Name it as
+              the decision, not "Gate 1".
+            </p>
           </div>
         </div>
         <p className="help-how">
-          Hover a workstream in a phase to add a milestone or condition. Drag to
-          move. Use the + marks to add a phase, workstream, or gate.{" "}
-          <strong>Link</strong>, then click A then B — B sits to the right of A.
+          Hover a workstream in a phase, or click the + in an empty cell, to add
+          a milestone or condition. Drag to move. Use the + marks to add a
+          phase, workstream, or gate. <strong>Link</strong>, then click A then B
+          — B sits to the right of A.
         </p>
         <button type="button" className="modal-close" onClick={onClose}>
           Close

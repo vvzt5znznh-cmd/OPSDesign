@@ -67,6 +67,9 @@ function MiniConops() {
       <text x="248" y="14" className="mini-phase">
         Build
       </text>
+      <text x="372" y="14" className="mini-phase" letterSpacing="0.12em">
+        OUTCOME
+      </text>
       <line x1="20" y1="40" x2="340" y2="40" stroke="#E87722" strokeWidth="7" strokeLinecap="round" />
       <line x1="20" y1="58" x2="340" y2="58" stroke="#5B8C2A" strokeWidth="7" strokeLinecap="round" />
       <line x1="20" y1="76" x2="340" y2="76" stroke="#3D9AD1" strokeWidth="7" strokeLinecap="round" />

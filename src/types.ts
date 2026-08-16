@@ -9,6 +9,8 @@ export interface LineOfEffort {
   id: string;
   name: string;
   color: string;
+  /** One-line purpose, shown under the name. */
+  purpose: string;
 }
 
 export interface DesignNode {
