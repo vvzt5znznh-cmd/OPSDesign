@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { wrapLabel, wrapNodeLabel } from "./wrap";
+import { wrapLabel, wrapNodeLabel, nodeLabelSize, NODE_LABEL } from "./wrap";
 import { wouldCreateCycle, nextOrder, hasDependency } from "./design";
 import {
   LAYOUT,
@@ -154,6 +154,56 @@ describe("layoutDiagram", () => {
     const a = laid.nodes.find((n) => n.id === "a")!;
     const b = laid.nodes.find((n) => n.id === "b")!;
     expect(Math.abs(b.x - a.x)).toBeGreaterThanOrEqual(LAYOUT.slot - 1);
+  });
+
+  it("widens a phase so long labels do not sit on each other", () => {
+    const label =
+      "Need is understood by the clinics who must change how they book";
+    const laid = layoutDiagram(
+      design({
+        nodes: [
+          {
+            id: "a",
+            kind: "condition",
+            loeId: "l1",
+            phaseId: "p1",
+            label,
+            description: "",
+            order: 0,
+          },
+          {
+            id: "b",
+            kind: "condition",
+            loeId: "l1",
+            phaseId: "p1",
+            label,
+            description: "",
+            order: 1,
+          },
+        ],
+      }),
+    );
+    const a = laid.nodes.find((n) => n.id === "a")!;
+    const b = laid.nodes.find((n) => n.id === "b")!;
+    const box = nodeLabelSize(label);
+    const gap = Math.abs(b.x - a.x) - box.width;
+    expect(gap).toBeGreaterThanOrEqual(NODE_LABEL.gap - 1);
+    expect(laid.phases[0].width).toBeGreaterThan(LAYOUT.phaseMin);
+  });
+
+  it("wraps title and purpose instead of clipping them", () => {
+    const purpose =
+      "Replace phone booking with a journey patients can complete without calling, including those who need a human path when the digital one fails.";
+    const laid = layoutDiagram(
+      design({
+        title: "Clinic booking go-live for every partner site this year",
+        purpose,
+      }),
+    );
+    expect(laid.purposeLines.join(" ")).toContain("human path");
+    expect(laid.purposeLines.join("")).not.toContain("…");
+    expect(laid.titleLines.length).toBeGreaterThanOrEqual(1);
+    expect(laid.height).toBeGreaterThan(layoutDiagram(design()).height);
   });
 });
 
@@ -366,9 +416,17 @@ describe("wrapLabel", () => {
     expect(lines.join("").startsWith("ABCDEFGH")).toBe(true);
   });
 
-  it("keeps node labels to two short lines", () => {
+  it("keeps the words of a node label instead of clipping them", () => {
     const lines = wrapNodeLabel("M2: Requirements signed");
-    expect(lines.length).toBeLessThanOrEqual(2);
-    expect(Math.max(...lines.map((l) => l.length))).toBeLessThanOrEqual(13);
+    expect(lines.join(" ")).toContain("Requirements");
+    expect(lines.join(" ")).toContain("signed");
+    expect(lines.join("")).not.toContain("…");
+  });
+
+  it("grows a node label box with longer text", () => {
+    const short = nodeLabelSize("Go");
+    const long = nodeLabelSize("Need is understood by the clinics who must change");
+    expect(long.height).toBeGreaterThan(short.height);
+    expect(long.lines.join("")).not.toContain("…");
   });
 });

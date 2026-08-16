@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { uid } from "./id";
-import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, END_STATE_TEXT, type DiagramLayout } from "./layout";
+import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, END_STATE_TEXT, HEADING, LAYOUT, type DiagramLayout } from "./layout";
 import { useDesign } from "./state";
 import { useTheme, type DiagramPalette } from "./theme";
 import {
@@ -16,7 +16,7 @@ import {
   type NodeKind,
   type Selection,
 } from "./types";
-import { wrapLabel, wrapNodeLabel } from "./wrap";
+import { wrapLabel, nodeLabelSize } from "./wrap";
 
 function starPath(r: number): string {
   const pts: string[] = [];
@@ -405,36 +405,44 @@ export function Diagram({
 
       <rect width={laidOut.width} height={laidOut.height} fill={palette.bg} />
 
-      <text
-        x={laidOut.width / 2}
-        y={design.purpose.trim() ? 34 : 40}
-        textAnchor="middle"
-        className={isSelected(selection, "title") ? "svg-title selected" : "svg-title"}
+      <g
         onClick={(e) => {
           e.stopPropagation();
           setSelection({ type: "title" });
         }}
       >
-        {design.title}
-      </text>
-      {design.purpose.trim() && (
-        <text
-          x={laidOut.width / 2}
-          y={54}
-          textAnchor="middle"
-          className="svg-purpose"
-          onClick={(e) => {
-            e.stopPropagation();
-            setSelection({ type: "title" });
-          }}
-        >
-          {design.purpose.trim()
-            ? design.purpose.length > 120
-              ? `${design.purpose.slice(0, 117)}…`
-              : design.purpose
-            : ""}
-        </text>
-      )}
+        {laidOut.titleLines.map((line, i) => (
+          <text
+            key={`title-${i}`}
+            x={laidOut.width / 2}
+            y={LAYOUT.padY + HEADING.top + i * HEADING.titleLh + 18}
+            textAnchor="middle"
+            className={
+              isSelected(selection, "title") ? "svg-title selected" : "svg-title"
+            }
+          >
+            {line}
+          </text>
+        ))}
+        {laidOut.purposeLines.map((line, i) => (
+          <text
+            key={`purpose-${i}`}
+            x={laidOut.width / 2}
+            y={
+              LAYOUT.padY +
+              HEADING.top +
+              laidOut.titleLines.length * HEADING.titleLh +
+              HEADING.gap +
+              i * HEADING.purposeLh +
+              11
+            }
+            textAnchor="middle"
+            className="svg-purpose"
+          >
+            {line}
+          </text>
+        ))}
+      </g>
 
       {laidOut.phases.map((phase, i) => (
         <g key={phase.id}>
@@ -562,22 +570,20 @@ export function Diagram({
           >
             {loe.name}
           </text>
-          {loe.purpose.trim()
-            ? wrapLabel(loe.purpose.trim(), 24, 2).map((line, i) => (
-                <text
-                  key={i}
-                  x={28}
-                  y={loe.y + 16 + i * 11}
-                  className="svg-loe-purpose"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelection({ type: "loe", id: loe.id });
-                  }}
-                >
-                  {line}
-                </text>
-              ))
-            : null}
+          {loe.purposeLines.map((line, i) => (
+            <text
+              key={i}
+              x={28}
+              y={loe.y + 16 + i * 11}
+              className="svg-loe-purpose"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelection({ type: "loe", id: loe.id });
+              }}
+            >
+              {line}
+            </text>
+          ))}
         </g>
       ))}
 
@@ -613,9 +619,9 @@ export function Diagram({
             key={`${loe.id}-${phase.id}`}
             data-ui="true"
             x={phase.x}
-            y={loe.y - 36}
+            y={loe.y - loe.height / 2 + 8}
             width={phase.width}
-            height={72}
+            height={loe.height - 16}
             fill="transparent"
             className="cell-hit"
             onPointerEnter={() =>
@@ -711,10 +717,10 @@ export function Diagram({
             <foreignObject
               key={`rename-${n.id}`}
               data-ui="true"
-              x={n.x - 70}
+              x={n.x - nodeLabelSize(n.label).width / 2}
               y={n.y + 14}
-              width="140"
-              height="28"
+              width={nodeLabelSize(n.label).width}
+              height={Math.max(28, nodeLabelSize(n.label).height)}
             >
               <input
                 className="rename-input"
@@ -778,7 +784,7 @@ export function Diagram({
             strokeWidth={isSelected(selection, "dp", dp.id) ? 2.5 : 1}
             filter="url(#soft)"
           />
-          {wrapLabel(dp.label, 14, 2).map((line, i) => (
+          {wrapLabel(dp.label, 16, 4).map((line, i) => (
             <text
               key={i}
               y={24 + i * 12}
@@ -808,7 +814,7 @@ export function Diagram({
                 strokeWidth="2.5"
                 filter="url(#soft)"
               />
-              {wrapLabel(label, 14, 2).map((line, i) => (
+              {wrapLabel(label, 16, 4).map((line, i) => (
                 <text
                   key={i}
                   y={24 + i * 12}
@@ -1047,11 +1053,9 @@ function NodeMark({
   onDoubleClick?: () => void;
 }) {
   const { diagram: palette } = useTheme();
-  const lines = wrapNodeLabel(label);
+  const { lines, width: boxW, height: boxH } = nodeLabelSize(label);
   const fill = kind === "milestone" ? MILESTONE_FILL : CONDITION_FILL;
   const stroke = selected ? "#c4a35a" : kind === "milestone" ? "#3b0d0d" : "#06243f";
-  const maxLen = Math.max(...lines.map((l) => l.length), 4);
-  const boxW = Math.min(108, Math.max(48, maxLen * 6.2 + 10));
   return (
     <g
       transform={`translate(${x}, ${y})`}
@@ -1085,7 +1089,7 @@ function NodeMark({
         x={-boxW / 2}
         y={14}
         width={boxW}
-        height={lines.length * 12 + 6}
+        height={boxH}
         rx="3"
         fill={palette.labelBg}
       />

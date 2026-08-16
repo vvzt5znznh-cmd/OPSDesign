@@ -56,7 +56,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           the + to add a decision. Drag nodes along a workstream. Drag a gate
           along the bar to place it in a phase or after it. Use the + marks to
           add a phase or workstream. Click a milestone or condition to see its
-          links.{" "}
+          links. Title, purpose, and labels wrap — the picture grows instead of
+          clipping.{" "}
           <strong>Link</strong>, then click A then B — B sits to the right of A.
           File → Ask an LLM… copies a prompt and sample JSON so a language model
           can draft a picture from a plain-language brief; File → Open JSON loads
