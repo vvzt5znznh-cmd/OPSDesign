@@ -56,9 +56,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           a gate. Use the + marks to add a phase, workstream, or gate.{" "}
           <strong>Link</strong>, then click A then B — B sits to the right of A.
           File → Export PowerPoint makes an editable briefing slide that matches
-          the picture. End-state name and description sit on the panel; other
-          inspector detail goes to speaker notes so it stays off the shared
-          slide.
+          the picture. Dependency links are PowerPoint connectors glued to the
+          figures — copy one, or draw a new Elbow / Straight connector, and snap
+          it to a milestone or condition. End-state name and description sit on
+          the panel; other inspector detail goes to speaker notes.
         </p>
         <button type="button" className="modal-close" onClick={onClose}>
           Close

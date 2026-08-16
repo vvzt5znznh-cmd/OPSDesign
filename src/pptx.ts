@@ -1,9 +1,11 @@
+import JSZip from "jszip";
 import { layoutDiagram, LAYOUT, END_STATE_TEXT } from "./layout";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
 import {
   CONDITION_FILL,
   MILESTONE_FILL,
+  type NodeKind,
   type OperationalDesign,
 } from "./types";
 import { wrapLabel } from "./wrap";
@@ -45,6 +47,116 @@ function fillOf(css: string): { color: string; transparency?: number } {
     };
   }
   return { color: hex(css) };
+}
+
+const NODE_NAME = (id: string) => `OPS-node-${id}`;
+const DEP_NAME = (id: string) => `OPS-dep-${id}`;
+
+/** OOXML preset connection sites: 0 top, 1 left, 2 bottom, 3 right. */
+function connectionSites(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+): { startIdx: number; endIdx: number } {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return dx >= 0
+      ? { startIdx: 3, endIdx: 1 }
+      : { startIdx: 1, endIdx: 3 };
+  }
+  return dy >= 0
+    ? { startIdx: 2, endIdx: 0 }
+    : { startIdx: 0, endIdx: 2 };
+}
+
+function nodeHalf(
+  kind: NodeKind,
+  S: (px: number) => number,
+): { hw: number; hh: number } {
+  return kind === "milestone"
+    ? { hw: S(11), hh: S(13) }
+    : { hw: S(13), hh: S(13) };
+}
+
+function sitePoint(
+  n: { x: number; y: number; kind: NodeKind },
+  idx: number,
+  X: (px: number) => number,
+  Y: (px: number) => number,
+  S: (px: number) => number,
+): { x: number; y: number } {
+  const { hw, hh } = nodeHalf(n.kind, S);
+  const cx = X(n.x);
+  const cy = Y(n.y);
+  if (idx === 0) return { x: cx, y: cy - hh };
+  if (idx === 1) return { x: cx - hw, y: cy };
+  if (idx === 2) return { x: cx, y: cy + hh };
+  return { x: cx + hw, y: cy };
+}
+
+function escapeRe(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Turn pptxgenjs line shapes into PowerPoint connectors glued to the figures. */
+function glueConnectors(
+  xml: string,
+  deps: Array<{ id: string; fromId: string; toId: string }>,
+  nodes: Array<{ id: string; x: number; y: number }>,
+): string {
+  const shapeId = new Map<string, string>();
+  const nodeRe = /<p:cNvPr id="(\d+)" name="OPS-node-([^"]+)"/g;
+  let match: RegExpExecArray | null;
+  while ((match = nodeRe.exec(xml))) {
+    shapeId.set(match[2], match[1]);
+  }
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+
+  for (const dep of deps) {
+    const fromNv = shapeId.get(dep.fromId);
+    const toNv = shapeId.get(dep.toId);
+    const from = byId.get(dep.fromId);
+    const to = byId.get(dep.toId);
+    if (!fromNv || !toNv || !from || !to) continue;
+    const { startIdx, endIdx } = connectionSites(from, to);
+    const name = DEP_NAME(dep.id);
+    const blockRe = new RegExp(
+      `<p:sp><p:nvSpPr><p:cNvPr id="(\\d+)" name="${escapeRe(name)}"[\\s\\S]*?</p:sp>`,
+    );
+    xml = xml.replace(blockRe, (full, id: string) => {
+      const spPr = full.match(/<p:spPr>[\s\S]*?<\/p:spPr>/)?.[0];
+      if (!spPr) return full;
+      return (
+        `<p:cxnSp>` +
+        `<p:nvCxnSpPr>` +
+        `<p:cNvPr id="${id}" name="${name}"/>` +
+        `<p:cNvCxnSpPr>` +
+        `<a:stCxn id="${fromNv}" idx="${startIdx}"/>` +
+        `<a:endCxn id="${toNv}" idx="${endIdx}"/>` +
+        `</p:cNvCxnSpPr>` +
+        `<p:nvPr/>` +
+        `</p:nvCxnSpPr>` +
+        spPr +
+        `<p:style>` +
+        `<a:lnRef idx="1"><a:schemeClr val="accent1"/></a:lnRef>` +
+        `<a:fillRef idx="0"><a:schemeClr val="accent1"/></a:fillRef>` +
+        `<a:effectRef idx="0"><a:schemeClr val="accent1"/></a:effectRef>` +
+        `<a:fontRef idx="minor"><a:schemeClr val="tx1"/></a:fontRef>` +
+        `</p:style>` +
+        `</p:cxnSp>`
+      );
+    });
+  }
+  return xml;
+}
+
+function downloadBlob(blob: Blob, fileName: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function speakerNotes(design: OperationalDesign): string {
@@ -263,91 +375,6 @@ export async function downloadPptx(
   }
 
   const byId = new Map(laid.nodes.map((n) => [n.id, n]));
-  for (const dep of laid.dependencies) {
-    const from = byId.get(dep.fromId);
-    const to = byId.get(dep.toId);
-    if (!from || !to) continue;
-    const a = { x: X(from.x), y: Y(from.y) };
-    const b = { x: X(to.x), y: Y(to.y) };
-    const dx = b.x - a.x;
-    const pad = 0.1;
-    let pts: Array<Record<string, unknown>>;
-    let extras: { x: number; y: number }[] = [a, b];
-    if (Math.abs(from.y - to.y) < 6) {
-      const bulge = (dx >= 0 ? -1 : 1) * S(30);
-      const mx = (a.x + b.x) / 2;
-      const cy = a.y + bulge;
-      extras = [a, b, { x: mx, y: cy }];
-      pts = [
-        { x: a.x, y: a.y, moveTo: true },
-        {
-          x: b.x,
-          y: b.y,
-          curve: { type: "quadratic", x1: mx, y1: cy },
-        },
-      ];
-    } else {
-      const mx = (a.x + b.x) / 2;
-      extras = [a, b, { x: mx, y: a.y }, { x: mx, y: b.y }];
-      pts = [
-        { x: a.x, y: a.y, moveTo: true },
-        {
-          x: b.x,
-          y: b.y,
-          curve: {
-            type: "cubic",
-            x1: mx,
-            y1: a.y,
-            x2: mx,
-            y2: b.y,
-          },
-        },
-      ];
-    }
-    const xs = extras.map((p) => p.x);
-    const ys = extras.map((p) => p.y);
-    const bx = Math.min(...xs) - pad;
-    const by = Math.min(...ys) - pad;
-    const bw = Math.max(Math.max(...xs) - Math.min(...xs) + pad * 2, 0.08);
-    const bh = Math.max(Math.max(...ys) - Math.min(...ys) + pad * 2, 0.08);
-    const rel = pts.map((p) => {
-      const next: Record<string, unknown> = {
-        ...p,
-        x: (p.x as number) - bx,
-        y: (p.y as number) - by,
-      };
-      if (p.curve && typeof p.curve === "object") {
-        const c = p.curve as {
-          type: string;
-          x1: number;
-          y1: number;
-          x2?: number;
-          y2?: number;
-        };
-        next.curve = {
-          type: c.type,
-          x1: c.x1 - bx,
-          y1: c.y1 - by,
-          ...(c.x2 != null ? { x2: c.x2 - bx, y2: c.y2! - by } : {}),
-        };
-      }
-      return next;
-    });
-    slide.addShape("custGeom" as typeof pptx.ShapeType.rect, {
-      x: bx,
-      y: by,
-      w: bw,
-      h: bh,
-      fill: { color: hex(palette.bg), transparency: 100 },
-      line: {
-        color: hex(palette.dep),
-        width: 1.25,
-        dashType: "dash",
-        endArrowType: "triangle",
-      },
-      points: rel as never,
-    });
-  }
 
   for (const n of laid.nodes) {
     const isMs = n.kind === "milestone";
@@ -365,8 +392,40 @@ export async function downloadPptx(
           color: hex(isMs ? "#3B0D0D" : "#06243F"),
           width: 1,
         },
+        objectName: NODE_NAME(n.id),
       },
     );
+  }
+
+  for (const dep of laid.dependencies) {
+    const from = byId.get(dep.fromId);
+    const to = byId.get(dep.toId);
+    if (!from || !to) continue;
+    const { startIdx, endIdx } = connectionSites(from, to);
+    const a = sitePoint(from, startIdx, X, Y, S);
+    const b = sitePoint(to, endIdx, X, Y, S);
+    const sameRow = Math.abs(from.y - to.y) < 6;
+    const connector = (
+      sameRow ? "straightConnector1" : "bentConnector3"
+    ) as typeof pptx.ShapeType.line;
+    slide.addShape(connector, {
+      x: Math.min(a.x, b.x),
+      y: Math.min(a.y, b.y),
+      w: Math.max(Math.abs(b.x - a.x), 0.02),
+      h: Math.max(Math.abs(b.y - a.y), 0.02),
+      flipH: b.x < a.x,
+      flipV: b.y < a.y,
+      line: {
+        color: hex(palette.dep),
+        width: 1.25,
+        dashType: "dash",
+        endArrowType: "triangle",
+      },
+      objectName: DEP_NAME(dep.id),
+    });
+  }
+
+  for (const n of laid.nodes) {
     const lines = wrapLabel(n.label);
     const maxLen = Math.max(...lines.map((l) => l.length), 4);
     const boxW = Math.min(140, Math.max(48, maxLen * 6.2 + 10));
@@ -521,6 +580,7 @@ export async function downloadPptx(
       color: hex(palette.dep),
       width: 1.4,
       dashType: "dash",
+      endArrowType: "triangle",
     },
   });
   text("Dependency", legendX + S(288), legendY - S(2), S(80), S(16), {
@@ -529,5 +589,29 @@ export async function downloadPptx(
     bold: true,
   });
 
-  await pptx.writeFile({ fileName: `${slug(design.title)}.pptx` });
+  const fileName = `${slug(design.title)}.pptx`;
+  const blob = new Blob([await patchPptxConnectors(pptx, design, laid.nodes)], {
+    type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  });
+  downloadBlob(blob, fileName);
+}
+
+async function patchPptxConnectors(
+  pptx: { write: (props: { outputType: "arraybuffer" }) => Promise<unknown> },
+  design: OperationalDesign,
+  nodes: Array<{ id: string; x: number; y: number }>,
+): Promise<ArrayBuffer> {
+  const raw = await pptx.write({ outputType: "arraybuffer" });
+  const zip = await JSZip.loadAsync(raw as ArrayBuffer);
+  const slidePath = Object.keys(zip.files).find((p) =>
+    /^ppt\/slides\/slide\d+\.xml$/.test(p),
+  );
+  if (slidePath) {
+    const xml = await zip.file(slidePath)!.async("string");
+    zip.file(
+      slidePath,
+      glueConnectors(xml, design.dependencies, nodes),
+    );
+  }
+  return zip.generateAsync({ type: "arraybuffer" });
 }
