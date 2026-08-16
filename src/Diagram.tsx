@@ -16,7 +16,7 @@ import {
   type NodeKind,
   type Selection,
 } from "./types";
-import { wrapLabel } from "./wrap";
+import { wrapLabel, wrapNodeLabel } from "./wrap";
 
 function starPath(r: number): string {
   const pts: string[] = [];
@@ -321,15 +321,27 @@ export function Diagram({
   const draggingNode = drag
     ? design.nodes.find((n) => n.id === drag.id)
     : undefined;
-  const menuCell = addMenu ?? (present ? null : hoverCell);
 
   function cellOccupied(loeId: string, phaseId: string) {
     return design.nodes.some((n) => n.loeId === loeId && n.phaseId === phaseId);
   }
 
   function openAddMenu(loeId: string, phaseId: string) {
+    skipDeselect.current = true;
     setAddMenu({ loeId, phaseId });
     setHoverCell({ loeId, phaseId });
+  }
+
+  function depOpacity(dep: { id: string; fromId: string; toId: string }) {
+    const focused =
+      selection?.type === "node" || selection?.type === "dependency";
+    const active =
+      (selection?.type === "dependency" && selection.id === dep.id) ||
+      (selection?.type === "node" &&
+        (dep.fromId === selection.id || dep.toId === selection.id));
+    if (active) return 1;
+    if (focused) return 0.1;
+    return 0.3;
   }
 
   return (
@@ -570,7 +582,7 @@ export function Diagram({
       ))}
 
       {laidOut.dependencies.map((dep) => (
-        <g key={dep.id}>
+        <g key={dep.id} opacity={depOpacity(dep)}>
           <path
             d={dep.d}
             className="dep-line"
@@ -628,34 +640,33 @@ export function Diagram({
       {!present &&
         laidOut.phases.flatMap((phase) =>
           laidOut.loes.map((loe) => {
-            if (cellOccupied(loe.id, phase.id)) return null;
-            if (
-              menuCell?.loeId === loe.id &&
-              menuCell.phaseId === phase.id
-            ) {
-              return null;
-            }
+            const adding =
+              addMenu?.loeId === loe.id && addMenu.phaseId === phase.id;
+            const hovering =
+              hoverCell?.loeId === loe.id && hoverCell.phaseId === phase.id;
+            if (adding || !hovering) return null;
+            const occupied = cellOccupied(loe.id, phase.id);
             return (
               <CellPlus
                 key={`plus-${loe.id}-${phase.id}`}
-                x={phase.x + phase.width / 2}
-                y={loe.y}
+                x={occupied ? phase.x + phase.width - 16 : phase.x + phase.width / 2}
+                y={occupied ? loe.y - 28 : loe.y}
                 onClick={() => openAddMenu(loe.id, phase.id)}
               />
             );
           }),
         )}
 
-      {menuCell && !drag?.active && !dpDrag?.active && !linkMode && !present && (
+      {addMenu && !drag?.active && !dpDrag?.active && !linkMode && !present && (
         <AddPills
           x={
-            (laidOut.phases.find((p) => p.id === menuCell.phaseId)?.x ?? 0) +
-            (laidOut.phases.find((p) => p.id === menuCell.phaseId)?.width ?? 0) -
-            104
+            (laidOut.phases.find((p) => p.id === addMenu.phaseId)?.x ?? 0) +
+            (laidOut.phases.find((p) => p.id === addMenu.phaseId)?.width ?? 0) -
+            100
           }
-          y={(laidOut.loes.find((l) => l.id === menuCell.loeId)?.y ?? 0) - 26}
-          onMilestone={() => addInCell("milestone", menuCell)}
-          onCondition={() => addInCell("condition", menuCell)}
+          y={(laidOut.loes.find((l) => l.id === addMenu.loeId)?.y ?? 0) + 18}
+          onMilestone={() => addInCell("milestone", addMenu)}
+          onCondition={() => addInCell("condition", addMenu)}
         />
       )}
 
@@ -1036,11 +1047,11 @@ function NodeMark({
   onDoubleClick?: () => void;
 }) {
   const { diagram: palette } = useTheme();
-  const lines = wrapLabel(label);
+  const lines = wrapNodeLabel(label);
   const fill = kind === "milestone" ? MILESTONE_FILL : CONDITION_FILL;
   const stroke = selected ? "#c4a35a" : kind === "milestone" ? "#3b0d0d" : "#06243f";
   const maxLen = Math.max(...lines.map((l) => l.length), 4);
-  const boxW = Math.min(140, Math.max(48, maxLen * 6.2 + 10));
+  const boxW = Math.min(108, Math.max(48, maxLen * 6.2 + 10));
   return (
     <g
       transform={`translate(${x}, ${y})`}

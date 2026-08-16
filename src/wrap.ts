@@ -37,3 +37,8 @@ export function wrapLabel(
   }
   return lines.length ? lines : [""];
 }
+
+/** Short labels that fit a layout slot without sitting on their neighbour. */
+export function wrapNodeLabel(text: string): string[] {
+  return wrapLabel(text, 13, 2);
+}

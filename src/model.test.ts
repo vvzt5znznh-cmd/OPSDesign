@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { wrapLabel } from "./wrap";
+import { wrapLabel, wrapNodeLabel } from "./wrap";
 import { wouldCreateCycle, nextOrder, hasDependency } from "./design";
 import {
   LAYOUT,
@@ -67,7 +67,7 @@ function node(
 describe("phaseMetrics", () => {
   it("keeps the default width while nodes sit in the last min-width column", () => {
     const minSlots = minPhaseSlots();
-    expect(minSlots).toBe(3);
+    expect(minSlots).toBe(2);
     expect(phaseMetrics(1).width).toBe(LAYOUT.phaseMin);
     expect(phaseMetrics(minSlots).width).toBe(LAYOUT.phaseMin);
     expect(phaseMetrics(minSlots).slots).toBe(minSlots);
@@ -143,6 +143,17 @@ describe("layoutDiagram", () => {
     const col = columnAtX(phase, phase.x + phase.width - 2);
     expect(col).toBe(phase.slots - 1);
     expect(col).toBe(minPhaseSlots() - 1);
+  });
+
+  it("keeps two nodes in a phase far enough apart that labels need not sit on each other", () => {
+    const laid = layoutDiagram(
+      design({
+        nodes: [node("a", "l1", "p1", 0), node("b", "l1", "p1", 1)],
+      }),
+    );
+    const a = laid.nodes.find((n) => n.id === "a")!;
+    const b = laid.nodes.find((n) => n.id === "b")!;
+    expect(Math.abs(b.x - a.x)).toBeGreaterThanOrEqual(LAYOUT.slot - 1);
   });
 });
 
@@ -292,13 +303,14 @@ describe("reduceDesign", () => {
 
   it("places a node later in the same phase", () => {
     const start = design({ nodes: [node("n1", "l1", "p1", 0)] });
+    const later = minPhaseSlots() - 1;
     const next = reduceDesign(start, {
       type: "placeNode",
       id: "n1",
       phaseId: "p1",
-      order: 2,
+      order: later,
     });
-    expect(next.nodes[0].order).toBe(2);
+    expect(next.nodes[0].order).toBe(later);
     expect(layoutDiagram(next).phases[0].width).toBe(LAYOUT.phaseMin);
   });
 
@@ -352,5 +364,11 @@ describe("wrapLabel", () => {
     const lines = wrapLabel("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 8, 4);
     expect(lines[0]?.length).toBeLessThanOrEqual(8);
     expect(lines.join("").startsWith("ABCDEFGH")).toBe(true);
+  });
+
+  it("keeps node labels to two short lines", () => {
+    const lines = wrapNodeLabel("M2: Requirements signed");
+    expect(lines.length).toBeLessThanOrEqual(2);
+    expect(Math.max(...lines.map((l) => l.length))).toBeLessThanOrEqual(13);
   });
 });

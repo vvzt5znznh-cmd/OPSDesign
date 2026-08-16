@@ -9,7 +9,7 @@ import {
   type NodeKind,
   type OperationalDesign,
 } from "./types";
-import { wrapLabel } from "./wrap";
+import { wrapLabel, wrapNodeLabel } from "./wrap";
 
 const FONT = "Arial";
 const GATE = "#2E7D32";
@@ -416,9 +416,9 @@ export async function downloadPptx(
   }
 
   for (const n of laid.nodes) {
-    const lines = wrapLabel(n.label);
+    const lines = wrapNodeLabel(n.label);
     const maxLen = Math.max(...lines.map((l) => l.length), 4);
-    const boxW = Math.min(140, Math.max(48, maxLen * 6.2 + 10));
+    const boxW = Math.min(108, Math.max(48, maxLen * 6.2 + 10));
     const boxH = lines.length * 12 + 6;
     slide.addShape(pptx.ShapeType.roundRect, {
       x: X(n.x - boxW / 2),

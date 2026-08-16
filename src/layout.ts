@@ -9,10 +9,10 @@ export const LAYOUT = {
   leftGutter: 204,
   addGap: 44,
   outcomeW: 232,
-  loeH: 112,
+  loeH: 128,
   legendH: 58,
-  slot: 84,
-  phaseMin: 220,
+  slot: 124,
+  phaseMin: 256,
 };
 
 /** How the end-state panel wraps name and description. */
