@@ -19,6 +19,7 @@ export interface DesignNode {
   loeId: string;
   phaseId: string;
   label: string;
+  /** Kept for older files. Not drawn; the label is the picture text. */
   description: string;
   /** Preferred column in the phase (0 = earliest). Layout may shift it right. */
   order: number;
@@ -41,6 +42,7 @@ export interface DecisionPoint {
   placement: GatePlacement;
   /** Preferred slot when placement is "in". */
   order: number;
+  /** Kept for older files. Not drawn; the label is the picture text. */
   description: string;
 }
 

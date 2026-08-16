@@ -18,8 +18,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <h3>End state</h3>
             <p>
               The panel on the right. Every workstream reads into it. Name is
-              the heading; description is the conditions that must hold — not a
-              date. Colour is a wash you can change in the inspector.
+              the heading; what will be true sits under it — not a date. Colour
+              is a wash you can change in the inspector.
             </p>
           </div>
           <div>
@@ -61,8 +61,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           the file it returns. File → Export PowerPoint makes an editable
           briefing slide that matches the picture. Dependency links are PowerPoint connectors glued to the
           figures — copy one, or draw a new Elbow / Straight connector, and snap
-          it to a milestone or condition. End-state name and description sit on
-          the panel; other inspector detail goes to speaker notes.
+          it to a milestone or condition. Labels are the text on the picture.
+          End-state name and the conditions that must hold sit on the panel.
         </p>
         <button type="button" className="modal-close" onClick={onClose}>
           Close

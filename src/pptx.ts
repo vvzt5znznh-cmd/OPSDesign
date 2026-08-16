@@ -181,15 +181,6 @@ function speakerNotes(design: OperationalDesign): string {
       lines.push(
         `- ${dp.label}${phase ? ` (${where} ${phase})` : ""}`,
       );
-      if (dp.description.trim()) lines.push(`  ${dp.description.trim()}`);
-    }
-    lines.push("");
-  }
-  const described = design.nodes.filter((n) => n.description.trim());
-  if (described.length) {
-    lines.push("Detail (from the inspector — not on the picture)");
-    for (const n of described) {
-      lines.push(`- ${n.label}: ${n.description.trim()}`);
     }
   }
   return lines.join("\n");
