@@ -1,4 +1,5 @@
 import { TEMPLATES } from "./templates";
+import { useTheme } from "./theme";
 import type { OperationalDesign } from "./types";
 
 export function Welcome({
@@ -8,8 +9,18 @@ export function Welcome({
   onChoose: (design: OperationalDesign) => void;
   onCancel?: () => void;
 }) {
+  const { theme, toggleTheme } = useTheme();
   return (
     <div className={onCancel ? "welcome overlay" : "welcome"}>
+      <button
+        type="button"
+        className={theme === "dark" ? "theme-welcome on" : "theme-welcome"}
+        onClick={toggleTheme}
+        title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        aria-pressed={theme === "dark"}
+      >
+        Dark
+      </button>
       <div className="welcome-inner">
         <div className="welcome-hero">
           <p className="eyebrow">Operational design</p>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import { downloadPng, downloadSvg } from "./export";
 import { Menu } from "./Menu";
 import { downloadJson, parseImportedDesign } from "./storage";
+import { useTheme } from "./theme";
 import { useDesign } from "./state";
 
 export function Toolbar({
@@ -25,6 +26,7 @@ export function Toolbar({
     linkMode,
     setLinkMode,
   } = useDesign();
+  const { theme, toggleTheme, diagram } = useTheme();
   const fileRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(design.title);
 
@@ -34,7 +36,7 @@ export function Toolbar({
 
   async function exportPng() {
     if (!svgRef.current) return;
-    await downloadPng(svgRef.current, design.title);
+    await downloadPng(svgRef.current, design.title, 2, diagram.bg);
   }
 
   function exportSvg() {
@@ -130,6 +132,15 @@ export function Toolbar({
           </button>
         </div>
         <div className="tool-group">
+          <button
+            type="button"
+            className={theme === "dark" ? "tool keep-present on" : "tool keep-present"}
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-pressed={theme === "dark"}
+          >
+            Dark
+          </button>
           <button
             type="button"
             className="tool keep-present"

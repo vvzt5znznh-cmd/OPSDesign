@@ -20,6 +20,7 @@ export async function downloadPng(
   svg: SVGSVGElement,
   title: string,
   scale = 2,
+  backdrop = "#ffffff",
 ): Promise<void> {
   const clone = inlineClone(svg);
   const width = Number(clone.getAttribute("width")) || 1200;
@@ -36,7 +37,7 @@ export async function downloadPng(
     canvas.height = Math.round(height * scale);
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Could not create canvas.");
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = backdrop;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     const png = await canvasToBlob(canvas);

@@ -9,6 +9,7 @@ import {
 import { uid } from "./id";
 import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, type DiagramLayout } from "./layout";
 import { useDesign } from "./state";
+import { useTheme, type DiagramPalette } from "./theme";
 import {
   CONDITION_FILL,
   MILESTONE_FILL,
@@ -70,19 +71,21 @@ function isSelected(
   return "id" in selection && selection.id === id;
 }
 
-const DIAGRAM_CSS = `
-  .svg-title { font-family: Arial, Helvetica, sans-serif; font-size: 22px; font-weight: 700; fill: #1a1f2b; }
-  .svg-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 11px; fill: #6b7380; }
-  .svg-phase { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; fill: #2c3544; }
+function diagramCss(p: DiagramPalette): string {
+  return `
+  .svg-title { font-family: Arial, Helvetica, sans-serif; font-size: 22px; font-weight: 700; fill: ${p.title}; }
+  .svg-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 11px; fill: ${p.purpose}; }
+  .svg-phase { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; fill: ${p.phase}; }
   .svg-loe { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; }
-  .svg-condition, .svg-dp-label, .svg-legend { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: #2c3544; }
+  .svg-condition, .svg-dp-label, .svg-legend { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: ${p.label}; }
   .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 700; fill: #fff; }
   .svg-end-kicker { font-family: Arial, Helvetica, sans-serif; font-size: 8px; font-weight: 600; fill: rgba(255,255,255,0.7); letter-spacing: 0.12em; }
-  .dep-line { fill: none; stroke: #7a8494; stroke-width: 1.4; stroke-dasharray: 5 4; }
+  .dep-line { fill: none; stroke: ${p.dep}; stroke-width: 1.4; stroke-dasharray: 5 4; }
   .add-pill-text { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: #fff; }
   .canvas-plus { cursor: pointer; }
-  .canvas-plus:hover circle { fill: #2a3348; }
+  .canvas-plus:hover circle { fill: ${p.plusHover}; }
 `;
+}
 
 export function Diagram({
   svgRef,
@@ -100,6 +103,7 @@ export function Diagram({
     setLinkFrom,
     present,
   } = useDesign();
+  const { diagram: palette } = useTheme();
   const laidOut = useMemo(() => layoutDiagram(design), [design]);
   const [hoverCell, setHoverCell] = useState<{
     loeId: string;
@@ -290,7 +294,7 @@ export function Diagram({
       }}
     >
       <defs>
-        <style>{DIAGRAM_CSS}</style>
+        <style>{diagramCss(palette)}</style>
         {design.linesOfEffort.map((loe) => (
           <marker
             key={loe.id}
@@ -314,14 +318,14 @@ export function Diagram({
           orient="auto"
           markerUnits="userSpaceOnUse"
         >
-          <path d="M0,0 L8,4 L0,8 Z" fill="#4a5568" />
+          <path d="M0,0 L8,4 L0,8 Z" fill={palette.dep} />
         </marker>
         <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="1" stdDeviation="1.2" floodOpacity="0.18" />
         </filter>
       </defs>
 
-      <rect width={laidOut.width} height={laidOut.height} fill="#ffffff" />
+      <rect width={laidOut.width} height={laidOut.height} fill={palette.bg} />
 
       <text
         x={laidOut.width / 2}
@@ -361,7 +365,7 @@ export function Diagram({
             y={laidOut.plot.y - 42}
             width={phase.width}
             height={laidOut.plot.height + 42}
-            fill={i % 2 === 0 ? "#f6f3ee" : "#efeae3"}
+            fill={i % 2 === 0 ? palette.phaseA : palette.phaseB}
           />
           <text
             x={phase.x + phase.width / 2}
@@ -387,7 +391,7 @@ export function Diagram({
         y={laidOut.dpBar.y}
         width={laidOut.dpBar.width}
         height={laidOut.dpBar.height}
-        fill="#e6e1d8"
+        fill={palette.dpBar}
       />
 
       {laidOut.loes.map((loe) => (
@@ -674,6 +678,7 @@ function PlusMark({
   label: string;
   onClick: () => void;
 }) {
+  const { diagram: palette } = useTheme();
   return (
     <g
       data-ui="true"
@@ -685,8 +690,8 @@ function PlusMark({
       }}
     >
       <title>{label}</title>
-      <circle r="11" fill="#1a1f2b" />
-      <path d="M-5.5,0 H5.5 M0,-5.5 V5.5" stroke="#f3f6f9" strokeWidth="1.7" />
+      <circle r="11" fill={palette.plus} />
+      <path d="M-5.5,0 H5.5 M0,-5.5 V5.5" stroke={palette.plusInk} strokeWidth="1.7" />
     </g>
   );
 }
@@ -702,6 +707,7 @@ function AddPills({
   onMilestone: () => void;
   onCondition: () => void;
 }) {
+  const { diagram: palette } = useTheme();
   return (
     <g data-ui="true" className="add-on-canvas" transform={`translate(${x}, ${y})`}>
       <g
@@ -710,7 +716,7 @@ function AddPills({
           onMilestone();
         }}
       >
-        <rect width="92" height="22" rx="11" fill="#1a1f2b" />
+        <rect width="92" height="22" rx="11" fill={palette.pill} />
         <path d="M12,6 L17,17 L7,17 Z" fill={MILESTONE_FILL} />
         <text x="24" y="15" className="add-pill-text">
           Milestone
@@ -723,7 +729,7 @@ function AddPills({
           onCondition();
         }}
       >
-        <rect width="92" height="22" rx="11" fill="#1a1f2b" />
+        <rect width="92" height="22" rx="11" fill={palette.pill} />
         <path d="M12,5 L19,11 L12,17 L5,11 Z" fill={CONDITION_FILL} />
         <text x="26" y="15" className="add-pill-text">
           Condition
@@ -754,6 +760,7 @@ function NodeMark({
   onPointerDown: (e: PointerEvent<SVGGElement>) => void;
   onDoubleClick?: () => void;
 }) {
+  const { diagram: palette } = useTheme();
   const lines = wrapLabel(label);
   const fill = kind === "milestone" ? MILESTONE_FILL : CONDITION_FILL;
   const stroke = selected ? "#c4a35a" : kind === "milestone" ? "#3b0d0d" : "#06243f";
@@ -794,7 +801,7 @@ function NodeMark({
         width={boxW}
         height={lines.length * 12 + 6}
         rx="3"
-        fill="rgba(255,255,255,0.92)"
+        fill={palette.labelBg}
       />
       {lines.map((line, i) => (
         <text key={i} y={26 + i * 12} textAnchor="middle" className="svg-condition">
