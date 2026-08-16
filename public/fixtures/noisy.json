@@ -1,0 +1,1795 @@
+{
+  "id": "op-packed",
+  "title": "Clinic booking go-live across every partner site, including the ones that still run a paper diary",
+  "purpose": "Replace phone booking with a journey patients can complete without calling, including those who need a human path when the digital one fails, and keep clinics able to run a full day of appointments while the change is happening.",
+  "endState": {
+    "name": "LIVE AND USED",
+    "description": "Patients book unassisted. Clinics run the new process. Support is in place. Residual risk is accepted. A human path still exists. Benefits are being tracked month by month.",
+    "color": "#5A6A78"
+  },
+  "phases": [
+    {
+      "id": "ph-a",
+      "name": "Discover"
+    },
+    {
+      "id": "ph-b",
+      "name": "Define"
+    },
+    {
+      "id": "ph-c",
+      "name": "Build and test"
+    },
+    {
+      "id": "ph-d",
+      "name": "Launch"
+    },
+    {
+      "id": "ph-e",
+      "name": "Sustain"
+    }
+  ],
+  "linesOfEffort": [
+    {
+      "id": "loe-0",
+      "name": "Service",
+      "color": "#E87722",
+      "purpose": "Longer purpose for Service: keep the stream readable when the job takes more than one short line on the left."
+    },
+    {
+      "id": "loe-1",
+      "name": "Assurance",
+      "color": "#5B8C2A",
+      "purpose": "The Assurance job"
+    },
+    {
+      "id": "loe-2",
+      "name": "Adoption",
+      "color": "#3D9AD1",
+      "purpose": "Longer purpose for Adoption: keep the stream readable when the job takes more than one short line on the left."
+    },
+    {
+      "id": "loe-3",
+      "name": "Data",
+      "color": "#8E4585",
+      "purpose": "The Data job"
+    },
+    {
+      "id": "loe-4",
+      "name": "Comms",
+      "color": "#C0392B",
+      "purpose": "Longer purpose for Comms: keep the stream readable when the job takes more than one short line on the left."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n-loe-0-ph-a-0",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-a",
+      "label": "M1: Service Discover 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-0-ph-a-1",
+      "kind": "condition",
+      "loeId": "loe-0",
+      "phaseId": "ph-a",
+      "label": "C2: Service Discover 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-0-ph-a-2",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-a",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-0-ph-a-3",
+      "kind": "condition",
+      "loeId": "loe-0",
+      "phaseId": "ph-a",
+      "label": "C4: Service Discover 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-0-ph-a-4",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-a",
+      "label": "M5: Service Discover 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-0-ph-b-0",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-b",
+      "label": "M1: Service Define 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-0-ph-b-1",
+      "kind": "condition",
+      "loeId": "loe-0",
+      "phaseId": "ph-b",
+      "label": "C2: Service Define 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-0-ph-b-2",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-b",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-0-ph-b-3",
+      "kind": "condition",
+      "loeId": "loe-0",
+      "phaseId": "ph-b",
+      "label": "C4: Service Define 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-0-ph-b-4",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-b",
+      "label": "M5: Service Define 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-0-ph-c-0",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-c",
+      "label": "M1: Service Build and test 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-0-ph-c-1",
+      "kind": "condition",
+      "loeId": "loe-0",
+      "phaseId": "ph-c",
+      "label": "C2: Service Build and test 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-0-ph-c-2",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-c",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-0-ph-c-3",
+      "kind": "condition",
+      "loeId": "loe-0",
+      "phaseId": "ph-c",
+      "label": "C4: Service Build and test 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-0-ph-c-4",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-c",
+      "label": "M5: Service Build and test 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-0-ph-d-0",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-d",
+      "label": "M1: Service Launch 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-0-ph-d-1",
+      "kind": "condition",
+      "loeId": "loe-0",
+      "phaseId": "ph-d",
+      "label": "C2: Service Launch 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-0-ph-d-2",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-d",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-0-ph-d-3",
+      "kind": "condition",
+      "loeId": "loe-0",
+      "phaseId": "ph-d",
+      "label": "C4: Service Launch 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-0-ph-d-4",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-d",
+      "label": "M5: Service Launch 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-0-ph-e-0",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-e",
+      "label": "M1: Service Sustain 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-0-ph-e-1",
+      "kind": "condition",
+      "loeId": "loe-0",
+      "phaseId": "ph-e",
+      "label": "C2: Service Sustain 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-0-ph-e-2",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-e",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-0-ph-e-3",
+      "kind": "condition",
+      "loeId": "loe-0",
+      "phaseId": "ph-e",
+      "label": "C4: Service Sustain 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-0-ph-e-4",
+      "kind": "milestone",
+      "loeId": "loe-0",
+      "phaseId": "ph-e",
+      "label": "M5: Service Sustain 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-1-ph-a-0",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-a",
+      "label": "M1: Assurance Discover 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-1-ph-a-1",
+      "kind": "condition",
+      "loeId": "loe-1",
+      "phaseId": "ph-a",
+      "label": "C2: Assurance Discover 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-1-ph-a-2",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-a",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-1-ph-a-3",
+      "kind": "condition",
+      "loeId": "loe-1",
+      "phaseId": "ph-a",
+      "label": "C4: Assurance Discover 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-1-ph-a-4",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-a",
+      "label": "M5: Assurance Discover 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-1-ph-b-0",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-b",
+      "label": "M1: Assurance Define 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-1-ph-b-1",
+      "kind": "condition",
+      "loeId": "loe-1",
+      "phaseId": "ph-b",
+      "label": "C2: Assurance Define 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-1-ph-b-2",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-b",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-1-ph-b-3",
+      "kind": "condition",
+      "loeId": "loe-1",
+      "phaseId": "ph-b",
+      "label": "C4: Assurance Define 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-1-ph-b-4",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-b",
+      "label": "M5: Assurance Define 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-1-ph-c-0",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-c",
+      "label": "M1: Assurance Build and test 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-1-ph-c-1",
+      "kind": "condition",
+      "loeId": "loe-1",
+      "phaseId": "ph-c",
+      "label": "C2: Assurance Build and test 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-1-ph-c-2",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-c",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-1-ph-c-3",
+      "kind": "condition",
+      "loeId": "loe-1",
+      "phaseId": "ph-c",
+      "label": "C4: Assurance Build and test 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-1-ph-c-4",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-c",
+      "label": "M5: Assurance Build and test 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-1-ph-d-0",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-d",
+      "label": "M1: Assurance Launch 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-1-ph-d-1",
+      "kind": "condition",
+      "loeId": "loe-1",
+      "phaseId": "ph-d",
+      "label": "C2: Assurance Launch 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-1-ph-d-2",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-d",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-1-ph-d-3",
+      "kind": "condition",
+      "loeId": "loe-1",
+      "phaseId": "ph-d",
+      "label": "C4: Assurance Launch 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-1-ph-d-4",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-d",
+      "label": "M5: Assurance Launch 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-1-ph-e-0",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-e",
+      "label": "M1: Assurance Sustain 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-1-ph-e-1",
+      "kind": "condition",
+      "loeId": "loe-1",
+      "phaseId": "ph-e",
+      "label": "C2: Assurance Sustain 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-1-ph-e-2",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-e",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-1-ph-e-3",
+      "kind": "condition",
+      "loeId": "loe-1",
+      "phaseId": "ph-e",
+      "label": "C4: Assurance Sustain 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-1-ph-e-4",
+      "kind": "milestone",
+      "loeId": "loe-1",
+      "phaseId": "ph-e",
+      "label": "M5: Assurance Sustain 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-2-ph-a-0",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-a",
+      "label": "M1: Adoption Discover 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-2-ph-a-1",
+      "kind": "condition",
+      "loeId": "loe-2",
+      "phaseId": "ph-a",
+      "label": "C2: Adoption Discover 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-2-ph-a-2",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-a",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-2-ph-a-3",
+      "kind": "condition",
+      "loeId": "loe-2",
+      "phaseId": "ph-a",
+      "label": "C4: Adoption Discover 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-2-ph-a-4",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-a",
+      "label": "M5: Adoption Discover 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-2-ph-b-0",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-b",
+      "label": "M1: Adoption Define 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-2-ph-b-1",
+      "kind": "condition",
+      "loeId": "loe-2",
+      "phaseId": "ph-b",
+      "label": "C2: Adoption Define 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-2-ph-b-2",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-b",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-2-ph-b-3",
+      "kind": "condition",
+      "loeId": "loe-2",
+      "phaseId": "ph-b",
+      "label": "C4: Adoption Define 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-2-ph-b-4",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-b",
+      "label": "M5: Adoption Define 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-2-ph-c-0",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-c",
+      "label": "M1: Adoption Build and test 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-2-ph-c-1",
+      "kind": "condition",
+      "loeId": "loe-2",
+      "phaseId": "ph-c",
+      "label": "C2: Adoption Build and test 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-2-ph-c-2",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-c",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-2-ph-c-3",
+      "kind": "condition",
+      "loeId": "loe-2",
+      "phaseId": "ph-c",
+      "label": "C4: Adoption Build and test 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-2-ph-c-4",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-c",
+      "label": "M5: Adoption Build and test 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-2-ph-d-0",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-d",
+      "label": "M1: Adoption Launch 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-2-ph-d-1",
+      "kind": "condition",
+      "loeId": "loe-2",
+      "phaseId": "ph-d",
+      "label": "C2: Adoption Launch 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-2-ph-d-2",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-d",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-2-ph-d-3",
+      "kind": "condition",
+      "loeId": "loe-2",
+      "phaseId": "ph-d",
+      "label": "C4: Adoption Launch 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-2-ph-d-4",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-d",
+      "label": "M5: Adoption Launch 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-2-ph-e-0",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-e",
+      "label": "M1: Adoption Sustain 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-2-ph-e-1",
+      "kind": "condition",
+      "loeId": "loe-2",
+      "phaseId": "ph-e",
+      "label": "C2: Adoption Sustain 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-2-ph-e-2",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-e",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-2-ph-e-3",
+      "kind": "condition",
+      "loeId": "loe-2",
+      "phaseId": "ph-e",
+      "label": "C4: Adoption Sustain 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-2-ph-e-4",
+      "kind": "milestone",
+      "loeId": "loe-2",
+      "phaseId": "ph-e",
+      "label": "M5: Adoption Sustain 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-3-ph-a-0",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-a",
+      "label": "M1: Data Discover 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-3-ph-a-1",
+      "kind": "condition",
+      "loeId": "loe-3",
+      "phaseId": "ph-a",
+      "label": "C2: Data Discover 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-3-ph-a-2",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-a",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-3-ph-a-3",
+      "kind": "condition",
+      "loeId": "loe-3",
+      "phaseId": "ph-a",
+      "label": "C4: Data Discover 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-3-ph-a-4",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-a",
+      "label": "M5: Data Discover 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-3-ph-b-0",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-b",
+      "label": "M1: Data Define 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-3-ph-b-1",
+      "kind": "condition",
+      "loeId": "loe-3",
+      "phaseId": "ph-b",
+      "label": "C2: Data Define 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-3-ph-b-2",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-b",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-3-ph-b-3",
+      "kind": "condition",
+      "loeId": "loe-3",
+      "phaseId": "ph-b",
+      "label": "C4: Data Define 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-3-ph-b-4",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-b",
+      "label": "M5: Data Define 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-3-ph-c-0",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-c",
+      "label": "M1: Data Build and test 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-3-ph-c-1",
+      "kind": "condition",
+      "loeId": "loe-3",
+      "phaseId": "ph-c",
+      "label": "C2: Data Build and test 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-3-ph-c-2",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-c",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-3-ph-c-3",
+      "kind": "condition",
+      "loeId": "loe-3",
+      "phaseId": "ph-c",
+      "label": "C4: Data Build and test 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-3-ph-c-4",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-c",
+      "label": "M5: Data Build and test 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-3-ph-d-0",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-d",
+      "label": "M1: Data Launch 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-3-ph-d-1",
+      "kind": "condition",
+      "loeId": "loe-3",
+      "phaseId": "ph-d",
+      "label": "C2: Data Launch 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-3-ph-d-2",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-d",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-3-ph-d-3",
+      "kind": "condition",
+      "loeId": "loe-3",
+      "phaseId": "ph-d",
+      "label": "C4: Data Launch 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-3-ph-d-4",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-d",
+      "label": "M5: Data Launch 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-3-ph-e-0",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-e",
+      "label": "M1: Data Sustain 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-3-ph-e-1",
+      "kind": "condition",
+      "loeId": "loe-3",
+      "phaseId": "ph-e",
+      "label": "C2: Data Sustain 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-3-ph-e-2",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-e",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-3-ph-e-3",
+      "kind": "condition",
+      "loeId": "loe-3",
+      "phaseId": "ph-e",
+      "label": "C4: Data Sustain 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-3-ph-e-4",
+      "kind": "milestone",
+      "loeId": "loe-3",
+      "phaseId": "ph-e",
+      "label": "M5: Data Sustain 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-4-ph-a-0",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-a",
+      "label": "M1: Comms Discover 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-4-ph-a-1",
+      "kind": "condition",
+      "loeId": "loe-4",
+      "phaseId": "ph-a",
+      "label": "C2: Comms Discover 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-4-ph-a-2",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-a",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-4-ph-a-3",
+      "kind": "condition",
+      "loeId": "loe-4",
+      "phaseId": "ph-a",
+      "label": "C4: Comms Discover 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-4-ph-a-4",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-a",
+      "label": "M5: Comms Discover 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-4-ph-b-0",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-b",
+      "label": "M1: Comms Define 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-4-ph-b-1",
+      "kind": "condition",
+      "loeId": "loe-4",
+      "phaseId": "ph-b",
+      "label": "C2: Comms Define 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-4-ph-b-2",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-b",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-4-ph-b-3",
+      "kind": "condition",
+      "loeId": "loe-4",
+      "phaseId": "ph-b",
+      "label": "C4: Comms Define 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-4-ph-b-4",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-b",
+      "label": "M5: Comms Define 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-4-ph-c-0",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-c",
+      "label": "M1: Comms Build and test 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-4-ph-c-1",
+      "kind": "condition",
+      "loeId": "loe-4",
+      "phaseId": "ph-c",
+      "label": "C2: Comms Build and test 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-4-ph-c-2",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-c",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-4-ph-c-3",
+      "kind": "condition",
+      "loeId": "loe-4",
+      "phaseId": "ph-c",
+      "label": "C4: Comms Build and test 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-4-ph-c-4",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-c",
+      "label": "M5: Comms Build and test 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-4-ph-d-0",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-d",
+      "label": "M1: Comms Launch 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-4-ph-d-1",
+      "kind": "condition",
+      "loeId": "loe-4",
+      "phaseId": "ph-d",
+      "label": "C2: Comms Launch 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-4-ph-d-2",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-d",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-4-ph-d-3",
+      "kind": "condition",
+      "loeId": "loe-4",
+      "phaseId": "ph-d",
+      "label": "C4: Comms Launch 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-4-ph-d-4",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-d",
+      "label": "M5: Comms Launch 5",
+      "description": "",
+      "order": 4
+    },
+    {
+      "id": "n-loe-4-ph-e-0",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-e",
+      "label": "M1: Comms Sustain 1",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-loe-4-ph-e-1",
+      "kind": "condition",
+      "loeId": "loe-4",
+      "phaseId": "ph-e",
+      "label": "C2: Comms Sustain 2",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-loe-4-ph-e-2",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-e",
+      "label": "Need is understood by the clinics who must change how they book and by the people who still call",
+      "description": "",
+      "order": 2
+    },
+    {
+      "id": "n-loe-4-ph-e-3",
+      "kind": "condition",
+      "loeId": "loe-4",
+      "phaseId": "ph-e",
+      "label": "C4: Comms Sustain 4",
+      "description": "",
+      "order": 3
+    },
+    {
+      "id": "n-loe-4-ph-e-4",
+      "kind": "milestone",
+      "loeId": "loe-4",
+      "phaseId": "ph-e",
+      "label": "M5: Comms Sustain 5",
+      "description": "",
+      "order": 4
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "dep-n-loe-0-ph-a-1",
+      "fromId": "n-loe-0-ph-a-0",
+      "toId": "n-loe-0-ph-a-1"
+    },
+    {
+      "id": "dep-n-loe-0-ph-a-2",
+      "fromId": "n-loe-0-ph-a-1",
+      "toId": "n-loe-0-ph-a-2"
+    },
+    {
+      "id": "dep-n-loe-0-ph-a-3",
+      "fromId": "n-loe-0-ph-a-2",
+      "toId": "n-loe-0-ph-a-3"
+    },
+    {
+      "id": "dep-n-loe-0-ph-a-4",
+      "fromId": "n-loe-0-ph-a-3",
+      "toId": "n-loe-0-ph-a-4"
+    },
+    {
+      "id": "dep-n-loe-0-ph-b-1",
+      "fromId": "n-loe-0-ph-b-0",
+      "toId": "n-loe-0-ph-b-1"
+    },
+    {
+      "id": "dep-n-loe-0-ph-b-2",
+      "fromId": "n-loe-0-ph-b-1",
+      "toId": "n-loe-0-ph-b-2"
+    },
+    {
+      "id": "dep-n-loe-0-ph-b-3",
+      "fromId": "n-loe-0-ph-b-2",
+      "toId": "n-loe-0-ph-b-3"
+    },
+    {
+      "id": "dep-n-loe-0-ph-b-4",
+      "fromId": "n-loe-0-ph-b-3",
+      "toId": "n-loe-0-ph-b-4"
+    },
+    {
+      "id": "dep-n-loe-0-ph-c-1",
+      "fromId": "n-loe-0-ph-c-0",
+      "toId": "n-loe-0-ph-c-1"
+    },
+    {
+      "id": "dep-n-loe-0-ph-c-2",
+      "fromId": "n-loe-0-ph-c-1",
+      "toId": "n-loe-0-ph-c-2"
+    },
+    {
+      "id": "dep-n-loe-0-ph-c-3",
+      "fromId": "n-loe-0-ph-c-2",
+      "toId": "n-loe-0-ph-c-3"
+    },
+    {
+      "id": "dep-n-loe-0-ph-c-4",
+      "fromId": "n-loe-0-ph-c-3",
+      "toId": "n-loe-0-ph-c-4"
+    },
+    {
+      "id": "dep-n-loe-0-ph-d-1",
+      "fromId": "n-loe-0-ph-d-0",
+      "toId": "n-loe-0-ph-d-1"
+    },
+    {
+      "id": "dep-n-loe-0-ph-d-2",
+      "fromId": "n-loe-0-ph-d-1",
+      "toId": "n-loe-0-ph-d-2"
+    },
+    {
+      "id": "dep-n-loe-0-ph-d-3",
+      "fromId": "n-loe-0-ph-d-2",
+      "toId": "n-loe-0-ph-d-3"
+    },
+    {
+      "id": "dep-n-loe-0-ph-d-4",
+      "fromId": "n-loe-0-ph-d-3",
+      "toId": "n-loe-0-ph-d-4"
+    },
+    {
+      "id": "dep-n-loe-0-ph-e-1",
+      "fromId": "n-loe-0-ph-e-0",
+      "toId": "n-loe-0-ph-e-1"
+    },
+    {
+      "id": "dep-n-loe-0-ph-e-2",
+      "fromId": "n-loe-0-ph-e-1",
+      "toId": "n-loe-0-ph-e-2"
+    },
+    {
+      "id": "dep-n-loe-0-ph-e-3",
+      "fromId": "n-loe-0-ph-e-2",
+      "toId": "n-loe-0-ph-e-3"
+    },
+    {
+      "id": "dep-n-loe-0-ph-e-4",
+      "fromId": "n-loe-0-ph-e-3",
+      "toId": "n-loe-0-ph-e-4"
+    },
+    {
+      "id": "dep-n-loe-1-ph-a-1",
+      "fromId": "n-loe-1-ph-a-0",
+      "toId": "n-loe-1-ph-a-1"
+    },
+    {
+      "id": "dep-n-loe-1-ph-a-2",
+      "fromId": "n-loe-1-ph-a-1",
+      "toId": "n-loe-1-ph-a-2"
+    },
+    {
+      "id": "dep-n-loe-1-ph-a-3",
+      "fromId": "n-loe-1-ph-a-2",
+      "toId": "n-loe-1-ph-a-3"
+    },
+    {
+      "id": "dep-n-loe-1-ph-a-4",
+      "fromId": "n-loe-1-ph-a-3",
+      "toId": "n-loe-1-ph-a-4"
+    },
+    {
+      "id": "dep-n-loe-1-ph-b-1",
+      "fromId": "n-loe-1-ph-b-0",
+      "toId": "n-loe-1-ph-b-1"
+    },
+    {
+      "id": "dep-n-loe-1-ph-b-2",
+      "fromId": "n-loe-1-ph-b-1",
+      "toId": "n-loe-1-ph-b-2"
+    },
+    {
+      "id": "dep-n-loe-1-ph-b-3",
+      "fromId": "n-loe-1-ph-b-2",
+      "toId": "n-loe-1-ph-b-3"
+    },
+    {
+      "id": "dep-n-loe-1-ph-b-4",
+      "fromId": "n-loe-1-ph-b-3",
+      "toId": "n-loe-1-ph-b-4"
+    },
+    {
+      "id": "dep-n-loe-1-ph-c-1",
+      "fromId": "n-loe-1-ph-c-0",
+      "toId": "n-loe-1-ph-c-1"
+    },
+    {
+      "id": "dep-n-loe-1-ph-c-2",
+      "fromId": "n-loe-1-ph-c-1",
+      "toId": "n-loe-1-ph-c-2"
+    },
+    {
+      "id": "dep-n-loe-1-ph-c-3",
+      "fromId": "n-loe-1-ph-c-2",
+      "toId": "n-loe-1-ph-c-3"
+    },
+    {
+      "id": "dep-n-loe-1-ph-c-4",
+      "fromId": "n-loe-1-ph-c-3",
+      "toId": "n-loe-1-ph-c-4"
+    },
+    {
+      "id": "dep-n-loe-1-ph-d-1",
+      "fromId": "n-loe-1-ph-d-0",
+      "toId": "n-loe-1-ph-d-1"
+    },
+    {
+      "id": "dep-n-loe-1-ph-d-2",
+      "fromId": "n-loe-1-ph-d-1",
+      "toId": "n-loe-1-ph-d-2"
+    },
+    {
+      "id": "dep-n-loe-1-ph-d-3",
+      "fromId": "n-loe-1-ph-d-2",
+      "toId": "n-loe-1-ph-d-3"
+    },
+    {
+      "id": "dep-n-loe-1-ph-d-4",
+      "fromId": "n-loe-1-ph-d-3",
+      "toId": "n-loe-1-ph-d-4"
+    },
+    {
+      "id": "dep-n-loe-1-ph-e-1",
+      "fromId": "n-loe-1-ph-e-0",
+      "toId": "n-loe-1-ph-e-1"
+    },
+    {
+      "id": "dep-n-loe-1-ph-e-2",
+      "fromId": "n-loe-1-ph-e-1",
+      "toId": "n-loe-1-ph-e-2"
+    },
+    {
+      "id": "dep-n-loe-1-ph-e-3",
+      "fromId": "n-loe-1-ph-e-2",
+      "toId": "n-loe-1-ph-e-3"
+    },
+    {
+      "id": "dep-n-loe-1-ph-e-4",
+      "fromId": "n-loe-1-ph-e-3",
+      "toId": "n-loe-1-ph-e-4"
+    },
+    {
+      "id": "dep-n-loe-2-ph-a-1",
+      "fromId": "n-loe-2-ph-a-0",
+      "toId": "n-loe-2-ph-a-1"
+    },
+    {
+      "id": "dep-n-loe-2-ph-a-2",
+      "fromId": "n-loe-2-ph-a-1",
+      "toId": "n-loe-2-ph-a-2"
+    },
+    {
+      "id": "dep-n-loe-2-ph-a-3",
+      "fromId": "n-loe-2-ph-a-2",
+      "toId": "n-loe-2-ph-a-3"
+    },
+    {
+      "id": "dep-n-loe-2-ph-a-4",
+      "fromId": "n-loe-2-ph-a-3",
+      "toId": "n-loe-2-ph-a-4"
+    },
+    {
+      "id": "dep-n-loe-2-ph-b-1",
+      "fromId": "n-loe-2-ph-b-0",
+      "toId": "n-loe-2-ph-b-1"
+    },
+    {
+      "id": "dep-n-loe-2-ph-b-2",
+      "fromId": "n-loe-2-ph-b-1",
+      "toId": "n-loe-2-ph-b-2"
+    },
+    {
+      "id": "dep-n-loe-2-ph-b-3",
+      "fromId": "n-loe-2-ph-b-2",
+      "toId": "n-loe-2-ph-b-3"
+    },
+    {
+      "id": "dep-n-loe-2-ph-b-4",
+      "fromId": "n-loe-2-ph-b-3",
+      "toId": "n-loe-2-ph-b-4"
+    },
+    {
+      "id": "dep-n-loe-2-ph-c-1",
+      "fromId": "n-loe-2-ph-c-0",
+      "toId": "n-loe-2-ph-c-1"
+    },
+    {
+      "id": "dep-n-loe-2-ph-c-2",
+      "fromId": "n-loe-2-ph-c-1",
+      "toId": "n-loe-2-ph-c-2"
+    },
+    {
+      "id": "dep-n-loe-2-ph-c-3",
+      "fromId": "n-loe-2-ph-c-2",
+      "toId": "n-loe-2-ph-c-3"
+    },
+    {
+      "id": "dep-n-loe-2-ph-c-4",
+      "fromId": "n-loe-2-ph-c-3",
+      "toId": "n-loe-2-ph-c-4"
+    },
+    {
+      "id": "dep-n-loe-2-ph-d-1",
+      "fromId": "n-loe-2-ph-d-0",
+      "toId": "n-loe-2-ph-d-1"
+    },
+    {
+      "id": "dep-n-loe-2-ph-d-2",
+      "fromId": "n-loe-2-ph-d-1",
+      "toId": "n-loe-2-ph-d-2"
+    },
+    {
+      "id": "dep-n-loe-2-ph-d-3",
+      "fromId": "n-loe-2-ph-d-2",
+      "toId": "n-loe-2-ph-d-3"
+    },
+    {
+      "id": "dep-n-loe-2-ph-d-4",
+      "fromId": "n-loe-2-ph-d-3",
+      "toId": "n-loe-2-ph-d-4"
+    },
+    {
+      "id": "dep-n-loe-2-ph-e-1",
+      "fromId": "n-loe-2-ph-e-0",
+      "toId": "n-loe-2-ph-e-1"
+    },
+    {
+      "id": "dep-n-loe-2-ph-e-2",
+      "fromId": "n-loe-2-ph-e-1",
+      "toId": "n-loe-2-ph-e-2"
+    },
+    {
+      "id": "dep-n-loe-2-ph-e-3",
+      "fromId": "n-loe-2-ph-e-2",
+      "toId": "n-loe-2-ph-e-3"
+    },
+    {
+      "id": "dep-n-loe-2-ph-e-4",
+      "fromId": "n-loe-2-ph-e-3",
+      "toId": "n-loe-2-ph-e-4"
+    },
+    {
+      "id": "dep-n-loe-3-ph-a-1",
+      "fromId": "n-loe-3-ph-a-0",
+      "toId": "n-loe-3-ph-a-1"
+    },
+    {
+      "id": "dep-n-loe-3-ph-a-2",
+      "fromId": "n-loe-3-ph-a-1",
+      "toId": "n-loe-3-ph-a-2"
+    },
+    {
+      "id": "dep-n-loe-3-ph-a-3",
+      "fromId": "n-loe-3-ph-a-2",
+      "toId": "n-loe-3-ph-a-3"
+    },
+    {
+      "id": "dep-n-loe-3-ph-a-4",
+      "fromId": "n-loe-3-ph-a-3",
+      "toId": "n-loe-3-ph-a-4"
+    },
+    {
+      "id": "dep-n-loe-3-ph-b-1",
+      "fromId": "n-loe-3-ph-b-0",
+      "toId": "n-loe-3-ph-b-1"
+    },
+    {
+      "id": "dep-n-loe-3-ph-b-2",
+      "fromId": "n-loe-3-ph-b-1",
+      "toId": "n-loe-3-ph-b-2"
+    },
+    {
+      "id": "dep-n-loe-3-ph-b-3",
+      "fromId": "n-loe-3-ph-b-2",
+      "toId": "n-loe-3-ph-b-3"
+    },
+    {
+      "id": "dep-n-loe-3-ph-b-4",
+      "fromId": "n-loe-3-ph-b-3",
+      "toId": "n-loe-3-ph-b-4"
+    },
+    {
+      "id": "dep-n-loe-3-ph-c-1",
+      "fromId": "n-loe-3-ph-c-0",
+      "toId": "n-loe-3-ph-c-1"
+    },
+    {
+      "id": "dep-n-loe-3-ph-c-2",
+      "fromId": "n-loe-3-ph-c-1",
+      "toId": "n-loe-3-ph-c-2"
+    },
+    {
+      "id": "dep-n-loe-3-ph-c-3",
+      "fromId": "n-loe-3-ph-c-2",
+      "toId": "n-loe-3-ph-c-3"
+    },
+    {
+      "id": "dep-n-loe-3-ph-c-4",
+      "fromId": "n-loe-3-ph-c-3",
+      "toId": "n-loe-3-ph-c-4"
+    },
+    {
+      "id": "dep-n-loe-3-ph-d-1",
+      "fromId": "n-loe-3-ph-d-0",
+      "toId": "n-loe-3-ph-d-1"
+    },
+    {
+      "id": "dep-n-loe-3-ph-d-2",
+      "fromId": "n-loe-3-ph-d-1",
+      "toId": "n-loe-3-ph-d-2"
+    },
+    {
+      "id": "dep-n-loe-3-ph-d-3",
+      "fromId": "n-loe-3-ph-d-2",
+      "toId": "n-loe-3-ph-d-3"
+    },
+    {
+      "id": "dep-n-loe-3-ph-d-4",
+      "fromId": "n-loe-3-ph-d-3",
+      "toId": "n-loe-3-ph-d-4"
+    },
+    {
+      "id": "dep-n-loe-3-ph-e-1",
+      "fromId": "n-loe-3-ph-e-0",
+      "toId": "n-loe-3-ph-e-1"
+    },
+    {
+      "id": "dep-n-loe-3-ph-e-2",
+      "fromId": "n-loe-3-ph-e-1",
+      "toId": "n-loe-3-ph-e-2"
+    },
+    {
+      "id": "dep-n-loe-3-ph-e-3",
+      "fromId": "n-loe-3-ph-e-2",
+      "toId": "n-loe-3-ph-e-3"
+    },
+    {
+      "id": "dep-n-loe-3-ph-e-4",
+      "fromId": "n-loe-3-ph-e-3",
+      "toId": "n-loe-3-ph-e-4"
+    },
+    {
+      "id": "dep-n-loe-4-ph-a-1",
+      "fromId": "n-loe-4-ph-a-0",
+      "toId": "n-loe-4-ph-a-1"
+    },
+    {
+      "id": "dep-n-loe-4-ph-a-2",
+      "fromId": "n-loe-4-ph-a-1",
+      "toId": "n-loe-4-ph-a-2"
+    },
+    {
+      "id": "dep-n-loe-4-ph-a-3",
+      "fromId": "n-loe-4-ph-a-2",
+      "toId": "n-loe-4-ph-a-3"
+    },
+    {
+      "id": "dep-n-loe-4-ph-a-4",
+      "fromId": "n-loe-4-ph-a-3",
+      "toId": "n-loe-4-ph-a-4"
+    },
+    {
+      "id": "dep-n-loe-4-ph-b-1",
+      "fromId": "n-loe-4-ph-b-0",
+      "toId": "n-loe-4-ph-b-1"
+    },
+    {
+      "id": "dep-n-loe-4-ph-b-2",
+      "fromId": "n-loe-4-ph-b-1",
+      "toId": "n-loe-4-ph-b-2"
+    },
+    {
+      "id": "dep-n-loe-4-ph-b-3",
+      "fromId": "n-loe-4-ph-b-2",
+      "toId": "n-loe-4-ph-b-3"
+    },
+    {
+      "id": "dep-n-loe-4-ph-b-4",
+      "fromId": "n-loe-4-ph-b-3",
+      "toId": "n-loe-4-ph-b-4"
+    },
+    {
+      "id": "dep-n-loe-4-ph-c-1",
+      "fromId": "n-loe-4-ph-c-0",
+      "toId": "n-loe-4-ph-c-1"
+    },
+    {
+      "id": "dep-n-loe-4-ph-c-2",
+      "fromId": "n-loe-4-ph-c-1",
+      "toId": "n-loe-4-ph-c-2"
+    },
+    {
+      "id": "dep-n-loe-4-ph-c-3",
+      "fromId": "n-loe-4-ph-c-2",
+      "toId": "n-loe-4-ph-c-3"
+    },
+    {
+      "id": "dep-n-loe-4-ph-c-4",
+      "fromId": "n-loe-4-ph-c-3",
+      "toId": "n-loe-4-ph-c-4"
+    },
+    {
+      "id": "dep-n-loe-4-ph-d-1",
+      "fromId": "n-loe-4-ph-d-0",
+      "toId": "n-loe-4-ph-d-1"
+    },
+    {
+      "id": "dep-n-loe-4-ph-d-2",
+      "fromId": "n-loe-4-ph-d-1",
+      "toId": "n-loe-4-ph-d-2"
+    },
+    {
+      "id": "dep-n-loe-4-ph-d-3",
+      "fromId": "n-loe-4-ph-d-2",
+      "toId": "n-loe-4-ph-d-3"
+    },
+    {
+      "id": "dep-n-loe-4-ph-d-4",
+      "fromId": "n-loe-4-ph-d-3",
+      "toId": "n-loe-4-ph-d-4"
+    },
+    {
+      "id": "dep-n-loe-4-ph-e-1",
+      "fromId": "n-loe-4-ph-e-0",
+      "toId": "n-loe-4-ph-e-1"
+    },
+    {
+      "id": "dep-n-loe-4-ph-e-2",
+      "fromId": "n-loe-4-ph-e-1",
+      "toId": "n-loe-4-ph-e-2"
+    },
+    {
+      "id": "dep-n-loe-4-ph-e-3",
+      "fromId": "n-loe-4-ph-e-2",
+      "toId": "n-loe-4-ph-e-3"
+    },
+    {
+      "id": "dep-n-loe-4-ph-e-4",
+      "fromId": "n-loe-4-ph-e-3",
+      "toId": "n-loe-4-ph-e-4"
+    },
+    {
+      "id": "dep-cross-1",
+      "fromId": "n-loe-0-ph-c-2",
+      "toId": "n-loe-1-ph-c-3"
+    },
+    {
+      "id": "dep-cross-2",
+      "fromId": "n-loe-0-ph-c-2",
+      "toId": "n-loe-2-ph-c-3"
+    },
+    {
+      "id": "dep-cross-3",
+      "fromId": "n-loe-0-ph-c-2",
+      "toId": "n-loe-3-ph-c-3"
+    },
+    {
+      "id": "dep-cross-4",
+      "fromId": "n-loe-0-ph-c-2",
+      "toId": "n-loe-4-ph-c-3"
+    }
+  ],
+  "decisionPoints": [
+    {
+      "id": "dp-in-ph-a",
+      "label": "Gate in Discover",
+      "afterPhaseId": "ph-a",
+      "placement": "in",
+      "order": 1,
+      "description": ""
+    },
+    {
+      "id": "dp-after-ph-a",
+      "label": "Leave Discover?",
+      "afterPhaseId": "ph-a",
+      "placement": "after",
+      "order": 0,
+      "description": ""
+    },
+    {
+      "id": "dp-in-ph-b",
+      "label": "Gate in Define",
+      "afterPhaseId": "ph-b",
+      "placement": "in",
+      "order": 1,
+      "description": ""
+    },
+    {
+      "id": "dp-after-ph-b",
+      "label": "Leave Define?",
+      "afterPhaseId": "ph-b",
+      "placement": "after",
+      "order": 0,
+      "description": ""
+    },
+    {
+      "id": "dp-in-ph-c",
+      "label": "Are tests, support, and clinics ready to authorise go-live?",
+      "afterPhaseId": "ph-c",
+      "placement": "in",
+      "order": 1,
+      "description": ""
+    },
+    {
+      "id": "dp-after-ph-c",
+      "label": "Leave Build and test?",
+      "afterPhaseId": "ph-c",
+      "placement": "after",
+      "order": 0,
+      "description": ""
+    },
+    {
+      "id": "dp-in-ph-d",
+      "label": "Gate in Launch",
+      "afterPhaseId": "ph-d",
+      "placement": "in",
+      "order": 1,
+      "description": ""
+    },
+    {
+      "id": "dp-after-ph-d",
+      "label": "Leave Launch?",
+      "afterPhaseId": "ph-d",
+      "placement": "after",
+      "order": 0,
+      "description": ""
+    },
+    {
+      "id": "dp-in-ph-e",
+      "label": "Gate in Sustain",
+      "afterPhaseId": "ph-e",
+      "placement": "in",
+      "order": 1,
+      "description": ""
+    },
+    {
+      "id": "dp-after-ph-e",
+      "label": "Leave Sustain?",
+      "afterPhaseId": "ph-e",
+      "placement": "after",
+      "order": 0,
+      "description": ""
+    }
+  ]
+}

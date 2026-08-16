@@ -1,0 +1,225 @@
+{
+  "id": "op-clinic-booking",
+  "title": "Clinic booking go-live",
+  "purpose": "Replace phone booking with a journey patients can complete without calling.",
+  "endState": {
+    "name": "LIVE AND USED",
+    "description": "Patients book unassisted. Clinics run the new process. Support is in place. Residual risk is accepted.",
+    "color": "#5A6A78"
+  },
+  "phases": [
+    {
+      "id": "ph-discover",
+      "name": "Discover"
+    },
+    {
+      "id": "ph-define",
+      "name": "Define"
+    },
+    {
+      "id": "ph-build",
+      "name": "Build and test"
+    },
+    {
+      "id": "ph-launch",
+      "name": "Launch"
+    }
+  ],
+  "linesOfEffort": [
+    {
+      "id": "loe-service",
+      "name": "Service",
+      "color": "#E87722",
+      "purpose": "Build the right booking journey"
+    },
+    {
+      "id": "loe-assurance",
+      "name": "Assurance",
+      "color": "#5B8C2A",
+      "purpose": "Make it safe and reliable"
+    },
+    {
+      "id": "loe-adoption",
+      "name": "Adoption",
+      "color": "#3D9AD1",
+      "purpose": "Get clinics and patients ready"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n-problem-framed",
+      "kind": "milestone",
+      "loeId": "loe-service",
+      "phaseId": "ph-discover",
+      "label": "M1: Problem framed",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-need-understood",
+      "kind": "condition",
+      "loeId": "loe-service",
+      "phaseId": "ph-discover",
+      "label": "C1: Need is understood",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-options-chosen",
+      "kind": "milestone",
+      "loeId": "loe-service",
+      "phaseId": "ph-define",
+      "label": "M2: Options chosen",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-solution-agreed",
+      "kind": "condition",
+      "loeId": "loe-service",
+      "phaseId": "ph-define",
+      "label": "C2: Solution is agreed",
+      "description": "",
+      "order": 1
+    },
+    {
+      "id": "n-beta-released",
+      "kind": "milestone",
+      "loeId": "loe-service",
+      "phaseId": "ph-build",
+      "label": "M3: Beta released",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-go-live",
+      "kind": "milestone",
+      "loeId": "loe-service",
+      "phaseId": "ph-launch",
+      "label": "M4: Go-live",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-risks-visible",
+      "kind": "condition",
+      "loeId": "loe-assurance",
+      "phaseId": "ph-discover",
+      "label": "C1: Risks are visible",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-funding",
+      "kind": "condition",
+      "loeId": "loe-assurance",
+      "phaseId": "ph-define",
+      "label": "C2: Funding is committed",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-tests-passed",
+      "kind": "milestone",
+      "loeId": "loe-assurance",
+      "phaseId": "ph-build",
+      "label": "M3: Tests passed",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-support-in-place",
+      "kind": "condition",
+      "loeId": "loe-assurance",
+      "phaseId": "ph-launch",
+      "label": "C3: Support is in place",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-partners-engaged",
+      "kind": "condition",
+      "loeId": "loe-adoption",
+      "phaseId": "ph-discover",
+      "label": "C1: Clinics are engaged",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-training",
+      "kind": "milestone",
+      "loeId": "loe-adoption",
+      "phaseId": "ph-build",
+      "label": "M3: Training delivered",
+      "description": "",
+      "order": 0
+    },
+    {
+      "id": "n-users-ready",
+      "kind": "condition",
+      "loeId": "loe-adoption",
+      "phaseId": "ph-launch",
+      "label": "C2: Users are ready",
+      "description": "",
+      "order": 0
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "dep-problem-need",
+      "fromId": "n-problem-framed",
+      "toId": "n-need-understood"
+    },
+    {
+      "id": "dep-funding-agreed",
+      "fromId": "n-funding",
+      "toId": "n-solution-agreed"
+    },
+    {
+      "id": "dep-agreed-beta",
+      "fromId": "n-solution-agreed",
+      "toId": "n-beta-released"
+    },
+    {
+      "id": "dep-tests-go-live",
+      "fromId": "n-tests-passed",
+      "toId": "n-go-live"
+    },
+    {
+      "id": "dep-ready-go-live",
+      "fromId": "n-users-ready",
+      "toId": "n-go-live"
+    },
+    {
+      "id": "dep-training-ready",
+      "fromId": "n-training",
+      "toId": "n-users-ready"
+    }
+  ],
+  "decisionPoints": [
+    {
+      "id": "dp-opportunity",
+      "label": "Is this worth defining?",
+      "afterPhaseId": "ph-discover",
+      "placement": "after",
+      "order": 0,
+      "description": ""
+    },
+    {
+      "id": "dp-build",
+      "label": "Commit to build?",
+      "afterPhaseId": "ph-define",
+      "placement": "after",
+      "order": 0,
+      "description": ""
+    },
+    {
+      "id": "dp-go-live",
+      "label": "Authorise go-live?",
+      "afterPhaseId": "ph-build",
+      "placement": "in",
+      "order": 1,
+      "description": ""
+    }
+  ]
+}

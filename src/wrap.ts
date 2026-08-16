@@ -37,3 +37,35 @@ export function wrapLabel(
   }
   return lines.length ? lines : [""];
 }
+
+/** How a milestone/condition label is measured on the picture. */
+export const NODE_LABEL = {
+  chars: 18,
+  maxLines: 8,
+  charW: 6.2,
+  padX: 10,
+  minW: 48,
+  lh: 12,
+  padY: 6,
+  /** Clearance between neighbouring label boxes. */
+  gap: 16,
+  markToLabel: 14,
+};
+
+export function wrapNodeLabel(text: string): string[] {
+  return wrapLabel(text, NODE_LABEL.chars, NODE_LABEL.maxLines);
+}
+
+export function nodeLabelSize(text: string): {
+  lines: string[];
+  width: number;
+  height: number;
+} {
+  const lines = wrapNodeLabel(text);
+  const maxLen = Math.max(...lines.map((line) => line.length), 4);
+  return {
+    lines,
+    width: Math.max(NODE_LABEL.minW, maxLen * NODE_LABEL.charW + NODE_LABEL.padX),
+    height: lines.length * NODE_LABEL.lh + NODE_LABEL.padY,
+  };
+}

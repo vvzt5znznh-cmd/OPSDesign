@@ -1,5 +1,5 @@
 import { endStateColor, type GatePlacement, type NodeKind, type OperationalDesign } from "./types";
-import { wrapLabel } from "./wrap";
+import { NODE_LABEL, nodeLabelSize, wrapLabel } from "./wrap";
 
 export const LAYOUT = {
   padX: 40,
@@ -9,13 +9,35 @@ export const LAYOUT = {
   leftGutter: 204,
   addGap: 44,
   outcomeW: 232,
-  loeH: 112,
+  loeH: 128,
   legendH: 58,
-  slot: 84,
-  phaseMin: 220,
+  slot: 124,
+  phaseMin: 256,
 };
 
-/** How the end-state panel wraps name and description. */
+/** Heading band: title and purpose wrap to the picture width. */
+export const HEADING = {
+  titleLh: 26,
+  purposeLh: 15,
+  titlePx: 12,
+  purposePx: 6.6,
+  titleMax: 5,
+  purposeMax: 8,
+  top: 10,
+  gap: 8,
+  bottom: 12,
+};
+
+export function wrapToWidth(
+  text: string,
+  widthPx: number,
+  pxPerChar: number,
+  maxLines: number,
+): string[] {
+  const chars = Math.max(8, Math.floor(widthPx / pxPerChar));
+  return wrapLabel(text.trim(), chars, maxLines);
+}
+
 export const END_STATE_TEXT = {
   nameChars: 22,
   nameMax: 6,
@@ -34,6 +56,7 @@ export interface PhaseLayout {
   x: number;
   width: number;
   slots: number;
+  slotWidths: number[];
 }
 
 export interface NodeLayout {
@@ -59,7 +82,9 @@ export interface LoeLayout {
   name: string;
   color: string;
   purpose: string;
+  purposeLines: string[];
   y: number;
+  height: number;
   x1: number;
   x2: number;
 }
@@ -76,6 +101,8 @@ export interface DiagramLayout {
   height: number;
   title: string;
   purpose: string;
+  titleLines: string[];
+  purposeLines: string[];
   phases: PhaseLayout[];
   loes: LoeLayout[];
   nodes: NodeLayout[];
@@ -170,10 +197,15 @@ export function minColumnInPhase(
 }
 
 export function columnAtX(phase: PhaseLayout, x: number): number {
-  if (phase.slots <= 0 || phase.width <= 0) return 0;
-  const slotW = phase.width / phase.slots;
-  const col = Math.floor((x - phase.x) / slotW);
-  return Math.max(0, Math.min(phase.slots - 1, col));
+  const widths = phase.slotWidths;
+  if (!widths.length) return 0;
+  let rel = x - phase.x;
+  let acc = 0;
+  for (let i = 0; i < widths.length; i++) {
+    acc += widths[i];
+    if (rel < acc) return i;
+  }
+  return widths.length - 1;
 }
 
 /** Columns that fit in the default phase width, without a spare that expands on drop. */
@@ -191,26 +223,98 @@ export function phaseMetrics(usedColumns: number): { slots: number; width: numbe
   return { slots: used, width: LAYOUT.slot * used };
 }
 
+/** Slot widths so each label fits, with empty columns keeping a drop target. */
+export function phaseBand(
+  design: OperationalDesign,
+  phaseId: string,
+  columns: Map<string, number>,
+): { slots: number; width: number; slotWidths: number[] } {
+  const inPhase = design.nodes.filter((n) => n.phaseId === phaseId);
+  const used = inPhase.reduce(
+    (max, n) => Math.max(max, (columns.get(n.id) ?? 0) + 1),
+    0,
+  );
+  const slots = Math.max(minPhaseSlots(), used, 1);
+  const widths = Array.from({ length: slots }, () => LAYOUT.slot);
+  for (const n of inPhase) {
+    const col = columns.get(n.id) ?? 0;
+    if (col < 0 || col >= slots) continue;
+    const { width } = nodeLabelSize(n.label);
+    widths[col] = Math.max(widths[col], width + NODE_LABEL.gap);
+  }
+  const sum = widths.reduce((a, b) => a + b, 0);
+  if (sum >= LAYOUT.phaseMin) {
+    return { slots, width: sum, slotWidths: widths };
+  }
+  const extra = (LAYOUT.phaseMin - sum) / slots;
+  return {
+    slots,
+    width: LAYOUT.phaseMin,
+    slotWidths: widths.map((w) => w + extra),
+  };
+}
+
+export function slotCenterX(phase: PhaseLayout, column: number): number {
+  const widths = phase.slotWidths;
+  if (widths.length === 0) return phase.x;
+  const col = Math.max(0, Math.min(column, widths.length - 1));
+  let x = phase.x;
+  for (let i = 0; i < col; i++) x += widths[i];
+  return x + widths[col] / 2;
+}
+
+export function loeRowHeight(design: OperationalDesign, loeId: string): number {
+  const loe = design.linesOfEffort.find((item) => item.id === loeId);
+  let labelH = 0;
+  for (const n of design.nodes) {
+    if (n.loeId !== loeId) continue;
+    labelH = Math.max(labelH, nodeLabelSize(n.label).height);
+  }
+  const purposeLines = loe?.purpose.trim()
+    ? wrapLabel(loe.purpose.trim(), 28, 6).length
+    : 0;
+  const fromNodes = 20 + NODE_LABEL.markToLabel + labelH + 16;
+  const fromPurpose = purposeLines ? 24 + purposeLines * 11 + 10 : 0;
+  return Math.max(LAYOUT.loeH, fromNodes, fromPurpose);
+}
+
 export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const L = LAYOUT;
+  const H = HEADING;
   const phases = design.phases;
-  const titleH = design.purpose.trim() ? 64 : 44;
   const columns = nodeColumns(design);
 
-  const phaseMeta = phases.map((phase) => {
-    const inPhase = design.nodes.filter((n) => n.phaseId === phase.id);
-    const used = inPhase.reduce(
-      (max, n) => Math.max(max, (columns.get(n.id) ?? 0) + 1),
-      0,
-    );
-    return phaseMetrics(used);
-  });
-
+  const phaseMeta = phases.map((phase) => phaseBand(design, phase.id, columns));
   const phasesWidth = phaseMeta.reduce((a, p) => a + p.width, 0);
   const width =
     L.padX * 2 + L.leftGutter + phasesWidth + L.addGap + L.outcomeW;
-  const plotY = L.padY + titleH + L.phaseHeaderH;
-  const plotH = L.dpBarH + design.linesOfEffort.length * L.loeH;
+  const textWidth = Math.max(240, width - L.padX * 2);
+  const titleLines = wrapToWidth(
+    design.title || "Untitled",
+    textWidth,
+    H.titlePx,
+    H.titleMax,
+  );
+  const purposeLines = design.purpose.trim()
+    ? wrapToWidth(design.purpose, textWidth - 40, H.purposePx, H.purposeMax)
+    : [];
+  const headingH =
+    H.top +
+    titleLines.length * H.titleLh +
+    (purposeLines.length ? H.gap + purposeLines.length * H.purposeLh : 0) +
+    H.bottom;
+
+  const maxGateLines = design.decisionPoints.reduce(
+    (max, dp) => Math.max(max, wrapLabel(dp.label, 16, 4).length),
+    1,
+  );
+  const dpBarH = Math.max(L.dpBarH, 32 + maxGateLines * 12 + 10);
+  const loeHeights = design.linesOfEffort.map((loe) =>
+    loeRowHeight(design, loe.id),
+  );
+  const loesH = loeHeights.reduce((a, h) => a + h, 0);
+  const plotY = L.padY + headingH + L.phaseHeaderH;
+  const plotH = dpBarH + loesH;
 
   let x = L.padX + L.leftGutter;
   const phaseLayouts: PhaseLayout[] = phases.map((phase, i) => {
@@ -220,6 +324,7 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
       x,
       width: phaseMeta[i].width,
       slots: phaseMeta[i].slots,
+      slotWidths: phaseMeta[i].slotWidths,
     };
     x += phaseMeta[i].width;
     return layout;
@@ -227,7 +332,7 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
 
   const plotX = L.padX + L.leftGutter;
   const outcomeX = plotX + phasesWidth + L.addGap;
-  const loeTop = plotY + L.dpBarH;
+  const loeTop = plotY + dpBarH;
   const T = END_STATE_TEXT;
   const nameText = design.endState.name.trim();
   const descText = design.endState.description.trim();
@@ -243,9 +348,10 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     (nameLines.length && descriptionLines.length ? T.gap : 0) +
     descriptionLines.length * T.descLh +
     T.padY;
-  const loeYs = design.linesOfEffort.map(
-    (_, i) => loeTop + i * L.loeH + L.loeH / 2,
-  );
+  const loeYs = design.linesOfEffort.map((_, i) => {
+    const top = loeTop + loeHeights.slice(0, i).reduce((a, h) => a + h, 0);
+    return top + loeHeights[i] / 2;
+  });
   const firstY = loeYs[0] ?? loeTop + L.loeH / 2;
   const lastY = loeYs[loeYs.length - 1] ?? firstY;
   const arrowPad = 28;
@@ -265,7 +371,11 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     name: loe.name,
     color: loe.color,
     purpose: loe.purpose ?? "",
+    purposeLines: loe.purpose.trim()
+      ? wrapLabel(loe.purpose.trim(), 28, 6)
+      : [],
     y: loeYs[i],
+    height: loeHeights[i],
     x1: plotX - 8,
     x2: panelX,
   }));
@@ -275,17 +385,13 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const nodes: NodeLayout[] = design.nodes.map((node) => {
     const phase = phaseById.get(node.phaseId);
     const column = columns.get(node.id) ?? 0;
-    const slots = phase?.slots ?? 1;
-    const xPos = phase
-      ? phase.x + ((column + 0.5) / slots) * phase.width
-      : 0;
     return {
       id: node.id,
       loeId: node.loeId,
       phaseId: node.phaseId,
       label: node.label,
       kind: node.kind,
-      x: xPos,
+      x: phase ? slotCenterX(phase, column) : 0,
       y: loeY.get(node.loeId) ?? 0,
       column,
     };
@@ -305,16 +411,16 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     });
   }
 
-  const dpY = plotY + L.dpBarH / 2;
+  const dpY = plotY + dpBarH / 2;
   const dps: DpLayout[] = [];
   for (const phase of phaseLayouts) {
     const inPhase = design.decisionPoints
       .filter((dp) => dp.afterPhaseId === phase.id && dp.placement === "in")
       .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
     inPhase.forEach((dp, i) => {
-      const x =
+      const xPos =
         phase.x + ((i + 1) / (inPhase.length + 1)) * phase.width;
-      dps.push({ id: dp.id, label: dp.label, x, y: dpY });
+      dps.push({ id: dp.id, label: dp.label, x: xPos, y: dpY });
     });
     const afterPhase = design.decisionPoints.filter(
       (dp) => dp.afterPhaseId === phase.id && dp.placement !== "in",
@@ -347,6 +453,8 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     height,
     title: design.title,
     purpose: design.purpose,
+    titleLines,
+    purposeLines,
     phases: phaseLayouts,
     loes,
     nodes,
@@ -356,7 +464,7 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
       x: plotX,
       y: plotY,
       width: phasesWidth,
-      height: L.dpBarH,
+      height: dpBarH,
     },
     endCol: {
       x: outcomeX,
@@ -418,10 +526,10 @@ export function snapGateAtX(
   };
   const snaps: Snap[] = [];
   for (const phase of phases) {
-    const slots = Math.max(2, phase.slots);
+    const slots = Math.max(2, phase.slotWidths?.length ?? phase.slots);
     for (let order = 0; order < slots; order++) {
       snaps.push({
-        x: phase.x + ((order + 0.5) / slots) * phase.width,
+        x: slotCenterX(phase, order),
         phaseId: phase.id,
         placement: "in",
         order,

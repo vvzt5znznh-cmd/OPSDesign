@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { layoutDiagram, LAYOUT, END_STATE_TEXT } from "./layout";
+import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING } from "./layout";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
 import {
@@ -9,7 +9,7 @@ import {
   type NodeKind,
   type OperationalDesign,
 } from "./types";
-import { wrapLabel } from "./wrap";
+import { wrapLabel, nodeLabelSize } from "./wrap";
 
 const FONT = "Arial";
 const GATE = "#2E7D32";
@@ -312,23 +312,35 @@ export async function downloadPptx(
     line: noLine,
   });
 
-  const titleY = design.purpose.trim() ? 18 : 24;
-  text(design.title, X(0), Y(titleY), S(laid.width), S(28), {
-    size: fs(22, 14),
-    color: palette.title,
-    align: "center",
-    bold: true,
-  });
-  if (design.purpose.trim()) {
-    const purpose =
-      design.purpose.length > 120
-        ? `${design.purpose.slice(0, 117)}…`
-        : design.purpose.trim();
-    text(purpose, X(40), Y(46), S(laid.width - 80), S(18), {
-      size: fs(11, 9),
-      color: palette.purpose,
+  const titleTop = LAYOUT.padY + HEADING.top;
+  text(
+    laid.titleLines.join("\n"),
+    X(0),
+    Y(titleTop),
+    S(laid.width),
+    S(laid.titleLines.length * HEADING.titleLh),
+    {
+      size: fs(22, 14),
+      color: palette.title,
       align: "center",
-    });
+      bold: true,
+    },
+  );
+  if (laid.purposeLines.length) {
+    const purposeTop =
+      titleTop + laid.titleLines.length * HEADING.titleLh + HEADING.gap;
+    text(
+      laid.purposeLines.join("\n"),
+      X(40),
+      Y(purposeTop),
+      S(laid.width - 80),
+      S(laid.purposeLines.length * HEADING.purposeLh),
+      {
+        size: fs(11, 9),
+        color: palette.purpose,
+        align: "center",
+      },
+    );
   }
 
   for (const loe of laid.loes) {
@@ -352,13 +364,13 @@ export async function downloadPptx(
       bold: true,
       valign: "middle",
     });
-    if (loe.purpose.trim()) {
+    if (loe.purposeLines.length) {
       text(
-        wrapLabel(loe.purpose.trim(), 24, 2).join("\n"),
+        loe.purposeLines.join("\n"),
         X(16),
         Y(loe.y + 8),
         S(LAYOUT.leftGutter - 24),
-        S(24),
+        S(loe.purposeLines.length * 11),
         { size: fs(9, 8), color: palette.purpose, valign: "top" },
       );
     }
@@ -416,10 +428,7 @@ export async function downloadPptx(
   }
 
   for (const n of laid.nodes) {
-    const lines = wrapLabel(n.label);
-    const maxLen = Math.max(...lines.map((l) => l.length), 4);
-    const boxW = Math.min(140, Math.max(48, maxLen * 6.2 + 10));
-    const boxH = lines.length * 12 + 6;
+    const { lines, width: boxW, height: boxH } = nodeLabelSize(n.label);
     slide.addShape(pptx.ShapeType.roundRect, {
       x: X(n.x - boxW / 2),
       y: Y(n.y + 14),
@@ -453,7 +462,7 @@ export async function downloadPptx(
       fill: { color: hex(GATE) },
       line: { color: hex(GATE_LINE), width: 0.9 },
     });
-    const glines = wrapLabel(dp.label, 14, 2);
+    const glines = wrapLabel(dp.label, 16, 4);
     text(
       glines.join("\n"),
       X(dp.x - 70),

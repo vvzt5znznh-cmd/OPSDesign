@@ -50,11 +50,14 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         <p className="help-how">
-          Hover a workstream in a phase, or click the + in an empty cell, to add
-          a milestone or condition. Hover the gate bar and click the + to add a
-          decision. Drag nodes along a workstream. Drag a gate along the bar to
-          place it in a phase or after it. Use the + marks to add a phase or
-          workstream.{" "}
+          Hover a workstream in a phase and click the +, or click an empty cell,
+          to add a milestone or condition. On a busy cell the + sits at the
+          right so it does not cover the figures. Hover the gate bar and click
+          the + to add a decision. Drag nodes along a workstream. Drag a gate
+          along the bar to place it in a phase or after it. Use the + marks to
+          add a phase or workstream. Click a milestone or condition to see its
+          links. Title, purpose, and labels wrap — the picture grows instead of
+          clipping.{" "}
           <strong>Link</strong>, then click A then B — B sits to the right of A.
           File → Ask an LLM… copies a prompt and sample JSON so a language model
           can draft a picture from a plain-language brief; File → Open JSON loads
