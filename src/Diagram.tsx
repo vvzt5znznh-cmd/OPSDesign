@@ -643,7 +643,7 @@ export function Diagram({
             />
           )}
           <PlusMark
-            x={laidOut.dpBar.x + laidOut.dpBar.width + 22}
+            x={laidOut.dpBar.x - 20}
             y={laidOut.dpBar.y + laidOut.dpBar.height / 2}
             label="Add gate"
             onClick={() => {
