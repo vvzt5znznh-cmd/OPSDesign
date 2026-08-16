@@ -37,6 +37,7 @@ export function wrapToWidth(
   const chars = Math.max(8, Math.floor(widthPx / pxPerChar));
   return wrapLabel(text.trim(), chars, maxLines);
 }
+
 export const END_STATE_TEXT = {
   nameChars: 22,
   nameMax: 6,
