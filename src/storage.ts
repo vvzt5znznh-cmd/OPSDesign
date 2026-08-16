@@ -1,4 +1,4 @@
-import { LOE_COLORS, type DecisionPoint, type DesignNode, type Dependency, type LineOfEffort, type OperationalDesign } from "./types";
+import { LOE_COLORS, endStateColor, type DecisionPoint, type DesignNode, type Dependency, type LineOfEffort, type OperationalDesign } from "./types";
 import { blankDesign } from "./templates";
 
 const KEY = "opsdesign:current";
@@ -118,6 +118,7 @@ export function normalizeDesign(value: unknown): OperationalDesign | null {
     endState: {
       name: asString(value.endState.name, "END STATE"),
       description: asString(value.endState.description),
+      color: endStateColor({ color: asString(value.endState.color) }),
     },
     phases,
     linesOfEffort,

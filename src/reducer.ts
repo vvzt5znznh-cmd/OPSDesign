@@ -12,7 +12,7 @@ export type DesignAction =
   | { type: "replace"; design: OperationalDesign }
   | { type: "setTitle"; title: string }
   | { type: "setPurpose"; purpose: string }
-  | { type: "setEndState"; name?: string; description?: string }
+  | { type: "setEndState"; name?: string; description?: string; color?: string }
   | { type: "addPhase"; afterId?: string; id?: string }
   | { type: "renamePhase"; id: string; name: string }
   | { type: "removePhase"; id: string }
@@ -79,13 +79,15 @@ export function reduceDesign(
     case "setEndState": {
       const name = action.name ?? design.endState.name;
       const description = action.description ?? design.endState.description;
+      const color = action.color ?? design.endState.color;
       if (
         name === design.endState.name &&
-        description === design.endState.description
+        description === design.endState.description &&
+        color === design.endState.color
       ) {
         return design;
       }
-      return { ...design, endState: { name, description } };
+      return { ...design, endState: { name, description, color } };
     }
     case "addPhase": {
       const phase = {

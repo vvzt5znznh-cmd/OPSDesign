@@ -1,4 +1,4 @@
-import { LOE_COLORS, type OperationalDesign } from "./types";
+import { LOE_COLORS, END_STATE_COLORS, END_STATE_DEFAULT_COLOR, type OperationalDesign } from "./types";
 
 /** Stable sample an LLM can copy. Readable IDs; valid to File → Open JSON. */
 export const SAMPLE_DESIGN: OperationalDesign = {
@@ -10,6 +10,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
     name: "LIVE AND USED",
     description:
       "Patients book unassisted. Clinics run the new process. Support is in place. Residual risk is accepted.",
+    color: END_STATE_DEFAULT_COLOR,
   },
   phases: [
     { id: "ph-discover", name: "Discover" },
@@ -240,7 +241,7 @@ Root object:
   "id": string,
   "title": string,
   "purpose": string,
-  "endState": { "name": string, "description": string },
+  "endState": { "name": string, "description": string, "color": string },
   "phases": [{ "id": string, "name": string }],
   "linesOfEffort": [{ "id": string, "name": string, "color": string, "purpose": string }],
   "nodes": [{
@@ -269,7 +270,7 @@ Root object:
 3. Every \`phaseId\`, \`loeId\`, \`afterPhaseId\`, \`fromId\`, and \`toId\` must match an id you defined.
 4. IDs must be unique strings. Prefer readable kebab-case: \`op-…\`, \`ph-…\`, \`loe-…\`, \`n-…\`, \`dp-…\`, \`dep-…\`.
 5. \`order\` is the left-to-right slot in that workstream+phase, starting at 0. Two things in the same cell: 0 then 1.
-6. Workstream colours, in order, pick from: ${LOE_COLORS.join(", ")}.
+6. Workstream colours, in order, pick from: ${LOE_COLORS.join(", ")}. End-state \`color\` is a wash on the panel; pick from: ${END_STATE_COLORS.join(", ")} (default ${END_STATE_DEFAULT_COLOR}). Do not fill it as a solid dark billboard.
 7. Typical size: 3–5 phases, 2–4 workstreams, 2–4 nodes per stream, 2–4 gates, a handful of dependencies. Prefer a readable picture over a complete WBS.
 8. End state is not a date, a deliverable, or "project complete". Gates are decisions, not milestones.
 9. Invent a new \`id\` for the root (not the sample's id). Title and purpose come from the user's description.

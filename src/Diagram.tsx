@@ -57,8 +57,8 @@ function diagramCss(p: DiagramPalette): string {
   .svg-loe-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 9px; font-weight: 500; fill: ${p.purpose}; }
   .svg-end-col { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; fill: ${p.purpose}; letter-spacing: 0.12em; }
   .svg-condition, .svg-dp-label, .svg-legend { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: ${p.label}; }
-  .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; fill: #fff; }
-  .svg-end-desc { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 400; fill: rgba(255,255,255,0.86); }
+  .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; }
+  .svg-end-desc { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 400; }
   .dep-line { fill: none; stroke: ${p.dep}; stroke-width: 1.4; stroke-dasharray: 5 4; }
   .add-pill-text { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: #fff; }
   .canvas-plus { cursor: pointer; }
@@ -824,8 +824,10 @@ export function Diagram({
           width={laidOut.endState.width}
           height={laidOut.endState.height}
           rx="12"
-          fill="#1A365D"
-          stroke={isSelected(selection, "endState") ? "#c4a35a" : "#2c5282"}
+          fill={laidOut.endState.color}
+          fillOpacity="0.16"
+          stroke={isSelected(selection, "endState") ? "#c4a35a" : laidOut.endState.color}
+          strokeOpacity={isSelected(selection, "endState") ? 1 : 0.55}
           strokeWidth={isSelected(selection, "endState") ? 2.4 : 1.2}
         />
         {laidOut.endState.nameLines.map((line, i) => (
@@ -840,6 +842,7 @@ export function Diagram({
             textAnchor="middle"
             dominantBaseline="middle"
             className="svg-end"
+            fill={palette.title}
           >
             {line}
           </text>
@@ -858,6 +861,7 @@ export function Diagram({
             textAnchor="middle"
             dominantBaseline="middle"
             className="svg-end-desc"
+            fill={palette.purpose}
           >
             {line}
           </text>

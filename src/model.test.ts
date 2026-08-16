@@ -20,7 +20,7 @@ function design(
     id: "t",
     title: "Test",
     purpose: "",
-    endState: { name: "END", description: "Done." },
+    endState: { name: "END", description: "Done.", color: "#5A6A78" },
     phases: [
       { id: "p1", name: "One" },
       { id: "p2", name: "Two" },
@@ -174,6 +174,15 @@ describe("reduceDesign", () => {
       "p3",
     ]);
     expect(next.decisionPoints).toHaveLength(1);
+  });
+
+  it("changes end-state colour without dropping the name", () => {
+    const next = reduceDesign(design(), {
+      type: "setEndState",
+      color: "#1A365D",
+    });
+    expect(next.endState.color).toBe("#1A365D");
+    expect(next.endState.name).toBe("END");
   });
 
   it("adds a gate at the requested snap without moving the others", () => {

@@ -7,6 +7,7 @@ import {
 } from "./llm";
 import { layoutDiagram } from "./layout";
 import { extractJson, normalizeDesign, parseImportedDesign } from "./storage";
+import { END_STATE_DEFAULT_COLOR } from "./types";
 
 describe("LLM sample design", () => {
   it("is a valid OPSDesign document", () => {
@@ -14,6 +15,14 @@ describe("LLM sample design", () => {
     expect(parsed?.title).toBe(SAMPLE_DESIGN.title);
     expect(parsed?.phases.length).toBeGreaterThan(0);
     expect(parsed?.linesOfEffort.length).toBeGreaterThan(0);
+    expect(parsed?.endState.color).toBe(SAMPLE_DESIGN.endState.color);
+  });
+
+  it("fills the quiet default colour when a file omits it", () => {
+    const raw = JSON.parse(sampleDesignJson()) as Record<string, unknown>;
+    raw.endState = { ...(raw.endState as object), color: undefined };
+    const parsed = normalizeDesign(raw);
+    expect(parsed?.endState.color).toBe(END_STATE_DEFAULT_COLOR);
   });
 
   it("uses ids that all resolve", () => {

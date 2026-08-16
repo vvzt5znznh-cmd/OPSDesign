@@ -5,6 +5,7 @@ import type { DiagramPalette } from "./theme";
 import {
   CONDITION_FILL,
   MILESTONE_FILL,
+  endStateColor,
   type NodeKind,
   type OperationalDesign,
 } from "./types";
@@ -13,8 +14,6 @@ import { wrapLabel } from "./wrap";
 const FONT = "Arial";
 const GATE = "#2E7D32";
 const GATE_LINE = "#1B5E20";
-const END_FILL = "#1A365D";
-const END_LINE = "#2C5282";
 
 function hex(css: string): string {
   const rgba = css.match(
@@ -485,8 +484,8 @@ export async function downloadPptx(
     y: Y(laid.endState.y),
     w: S(laid.endState.width),
     h: S(laid.endState.height),
-    fill: { color: hex(END_FILL) },
-    line: { color: hex(END_LINE), width: 1.15 },
+    fill: { color: hex(endStateColor(laid.endState)), transparency: 84 },
+    line: { color: hex(endStateColor(laid.endState)), width: 1.05 },
     rectRadius: 0.12,
   });
   {
@@ -506,7 +505,7 @@ export async function downloadPptx(
         S(Math.max(nameH, T.nameLh)),
         {
           size: fs(13, 11),
-          color: "#FFFFFF",
+          color: palette.title,
           align: "center",
           bold: true,
           valign: "middle",
@@ -522,7 +521,7 @@ export async function downloadPptx(
         S(Math.max(descH, T.descLh)),
         {
           size: fs(11, 9),
-          color: "D6E4F0",
+          color: palette.purpose,
           align: "center",
           valign: "top",
         },

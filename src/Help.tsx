@@ -19,7 +19,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <p>
               The panel on the right. Every workstream reads into it. Name is
               the heading; description is the conditions that must hold — not a
-              date.
+              date. Colour is a wash you can change in the inspector.
             </p>
           </div>
           <div>

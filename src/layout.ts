@@ -1,4 +1,4 @@
-import type { GatePlacement, NodeKind, OperationalDesign } from "./types";
+import { endStateColor, type GatePlacement, type NodeKind, type OperationalDesign } from "./types";
 import { wrapLabel } from "./wrap";
 
 export const LAYOUT = {
@@ -90,6 +90,7 @@ export interface DiagramLayout {
     height: number;
     name: string;
     description: string;
+    color: string;
     nameLines: string[];
     descriptionLines: string[];
   };
@@ -370,6 +371,7 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
       height: panelH,
       name: design.endState.name,
       description: design.endState.description,
+      color: endStateColor(design.endState),
       nameLines,
       descriptionLines,
     },

@@ -51,6 +51,8 @@ export interface OperationalDesign {
   endState: {
     name: string;
     description: string;
+    /** Wash/outline on the end-state panel. */
+    color: string;
   };
   phases: Phase[];
   linesOfEffort: LineOfEffort[];
@@ -82,3 +84,22 @@ export const LOE_COLORS = [
 
 export const MILESTONE_FILL = "#C62828";
 export const CONDITION_FILL = "#0F4C81";
+
+/** Quiet slate — sits in the picture instead of shouting. */
+export const END_STATE_DEFAULT_COLOR = "#5A6A78";
+
+export const END_STATE_COLORS = [
+  END_STATE_DEFAULT_COLOR,
+  "#1A365D",
+  "#2A6F7F",
+  "#4A5568",
+  "#5B8C2A",
+  "#8E4585",
+  "#8F732C",
+  "#2C3544",
+] as const;
+
+export function endStateColor(end: { color?: string }): string {
+  const color = end.color?.trim();
+  return color || END_STATE_DEFAULT_COLOR;
+}

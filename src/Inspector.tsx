@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { nodeKindLabel } from "./design";
 import { uid } from "./id";
 import { useDesign } from "./state";
-import { LOE_COLORS } from "./types";
+import { LOE_COLORS, END_STATE_COLORS } from "./types";
 
 function commit(previous: string, next: string, apply: () => void) {
   if (next === previous) return;
@@ -88,8 +88,8 @@ export function Inspector() {
         <Head>End state</Head>
         <p className="muted">
           The panel on the right. Every workstream reads into it. Name is the
-          heading; description sits under it — the conditions that must hold,
-          not a date.
+          heading; description sits under it. Colour is a light wash — keep it
+          part of the picture, not a billboard.
         </p>
         <Field label="Name">
           <input
@@ -117,6 +117,22 @@ export function Inspector() {
             }
             placeholder="What will be true — shown under the name on the panel."
           />
+        </Field>
+        <Field label="Colour">
+          <div className="palette">
+            {END_STATE_COLORS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                className={
+                  color === design.endState.color ? "swatch-btn on" : "swatch-btn"
+                }
+                style={{ background: color }}
+                aria-label={color}
+                onClick={() => dispatch({ type: "setEndState", color })}
+              />
+            ))}
+          </div>
         </Field>
       </aside>
     );
