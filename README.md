@@ -24,7 +24,13 @@ Milestones and conditions can sit on the same line of effort. Dependencies can c
 
 https://vvzt5znznh-cmd.github.io/OPSDesign/
 
-Pushes to `main` build and publish via GitHub Actions. In the repo: **Settings → Pages → Source → GitHub Actions**.
+The live site is GitHub Pages from the `main` branch. Pushes to `main` also run a production build in Actions. To refresh the files Pages serves:
+
+```bash
+npm run pages
+```
+
+That writes `index.html`, `404.html`, and `assets/` at the repo root. Commit those together with the source change.
 
 ## Run locally
 
