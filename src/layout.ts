@@ -1,4 +1,3 @@
-import { nodesInCell } from "./design";
 import type { NodeKind, OperationalDesign } from "./types";
 
 export const LAYOUT = {
@@ -19,6 +18,7 @@ export interface PhaseLayout {
   name: string;
   x: number;
   width: number;
+  slots: number;
 }
 
 export interface NodeLayout {
@@ -29,6 +29,7 @@ export interface NodeLayout {
   kind: NodeKind;
   x: number;
   y: number;
+  column: number;
 }
 
 export interface DpLayout {
@@ -69,22 +70,106 @@ export interface DiagramLayout {
   plot: { x: number; y: number; width: number; height: number };
 }
 
+/** Visual column per node: preferred `order`, then after same-phase predecessors. */
+export function nodeColumns(design: OperationalDesign): Map<string, number> {
+  const cols = new Map<string, number>();
+  for (const n of design.nodes) {
+    cols.set(n.id, Math.max(0, Math.floor(n.order)));
+  }
+
+  const preds = new Map<string, string[]>();
+  for (const n of design.nodes) preds.set(n.id, []);
+  for (const d of design.dependencies) {
+    const from = design.nodes.find((n) => n.id === d.fromId);
+    const to = design.nodes.find((n) => n.id === d.toId);
+    if (!from || !to || from.phaseId !== to.phaseId) continue;
+    preds.get(to.id)!.push(from.id);
+  }
+
+  const cap = Math.max(2, design.nodes.length + 2);
+  for (let pass = 0; pass < cap; pass++) {
+    let changed = false;
+    for (const n of design.nodes) {
+      let min = cols.get(n.id) ?? 0;
+      for (const p of preds.get(n.id) ?? []) {
+        min = Math.max(min, (cols.get(p) ?? 0) + 1);
+      }
+      if (min !== (cols.get(n.id) ?? 0)) {
+        cols.set(n.id, min);
+        changed = true;
+      }
+    }
+    for (const phase of design.phases) {
+      for (const loe of design.linesOfEffort) {
+        const group = design.nodes
+          .filter((n) => n.phaseId === phase.id && n.loeId === loe.id)
+          .sort((a, b) => {
+            const ca = cols.get(a.id) ?? 0;
+            const cb = cols.get(b.id) ?? 0;
+            if (ca !== cb) return ca - cb;
+            if (a.order !== b.order) return a.order - b.order;
+            return a.id.localeCompare(b.id);
+          });
+        let last = -1;
+        for (const n of group) {
+          const c = cols.get(n.id) ?? 0;
+          const next = c <= last ? last + 1 : c;
+          if (next !== c) changed = true;
+          cols.set(n.id, next);
+          last = next;
+        }
+      }
+    }
+    if (!changed) break;
+  }
+
+  return cols;
+}
+
+export function minColumnInPhase(
+  design: OperationalDesign,
+  columns: Map<string, number>,
+  nodeId: string,
+  phaseId: string,
+): number {
+  let min = 0;
+  for (const d of design.dependencies) {
+    if (d.toId !== nodeId) continue;
+    const from = design.nodes.find((n) => n.id === d.fromId);
+    if (!from || from.phaseId !== phaseId) continue;
+    min = Math.max(min, (columns.get(from.id) ?? Math.max(0, from.order)) + 1);
+  }
+  return min;
+}
+
+export function columnAtX(phase: PhaseLayout, x: number): number {
+  if (phase.slots <= 0 || phase.width <= 0) return 0;
+  const slotW = phase.width / phase.slots;
+  const col = Math.floor((x - phase.x) / slotW);
+  return Math.max(0, Math.min(phase.slots - 1, col));
+}
+
 export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const L = LAYOUT;
   const phases = design.phases;
   const titleH = design.purpose.trim() ? 64 : 44;
+  const columns = nodeColumns(design);
 
-  const phaseWidths = phases.map((phase) => {
-    const maxInPhase = Math.max(
+  const phaseMeta = phases.map((phase) => {
+    const inPhase = design.nodes.filter((n) => n.phaseId === phase.id);
+    const used = inPhase.reduce(
+      (max, n) => Math.max(max, (columns.get(n.id) ?? 0) + 1),
       1,
-      ...design.linesOfEffort.map(
-        (loe) => nodesInCell(design, loe.id, phase.id).length,
-      ),
     );
-    return Math.max(L.phaseMin, L.slot * (maxInPhase + 0.6));
+    const slots = used + 1;
+    const width = Math.max(L.phaseMin, L.slot * slots);
+    return {
+      slots: Math.max(slots, Math.round(width / L.slot)),
+      width,
+    };
   });
 
-  const phasesWidth = phaseWidths.reduce((a, b) => a + b, 0);
+  const phasesWidth = phaseMeta.reduce((a, p) => a + p.width, 0);
   const width = L.padX * 2 + L.leftGutter + phasesWidth + L.endW;
   const plotY = L.padY + titleH + L.phaseHeaderH;
   const plotH = L.dpBarH + design.linesOfEffort.length * L.loeH;
@@ -92,8 +177,14 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
 
   let x = L.padX + L.leftGutter;
   const phaseLayouts: PhaseLayout[] = phases.map((phase, i) => {
-    const layout = { id: phase.id, name: phase.name, x, width: phaseWidths[i] };
-    x += phaseWidths[i];
+    const layout = {
+      id: phase.id,
+      name: phase.name,
+      x,
+      width: phaseMeta[i].width,
+      slots: phaseMeta[i].slots,
+    };
+    x += phaseMeta[i].width;
     return layout;
   });
 
@@ -107,26 +198,27 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     x1: plotX - 8,
     x2: plotX + phasesWidth + 18,
   }));
+  const loeY = new Map(loes.map((l) => [l.id, l.y]));
+  const phaseById = new Map(phaseLayouts.map((p) => [p.id, p]));
 
-  const nodes: NodeLayout[] = [];
-  for (const loe of loes) {
-    for (const phase of phaseLayouts) {
-      const cell = nodesInCell(design, loe.id, phase.id);
-      const n = cell.length;
-      cell.forEach((node, i) => {
-        const t = (i + 1) / (n + 1);
-        nodes.push({
-          id: node.id,
-          loeId: loe.id,
-          phaseId: phase.id,
-          label: node.label,
-          kind: node.kind,
-          x: phase.x + t * phase.width,
-          y: loe.y,
-        });
-      });
-    }
-  }
+  const nodes: NodeLayout[] = design.nodes.map((node) => {
+    const phase = phaseById.get(node.phaseId);
+    const column = columns.get(node.id) ?? 0;
+    const slots = phase?.slots ?? 1;
+    const xPos = phase
+      ? phase.x + ((column + 0.5) / slots) * phase.width
+      : 0;
+    return {
+      id: node.id,
+      loeId: node.loeId,
+      phaseId: node.phaseId,
+      label: node.label,
+      kind: node.kind,
+      x: xPos,
+      y: loeY.get(node.loeId) ?? 0,
+      column,
+    };
+  });
 
   const byId = new Map(nodes.map((n) => [n.id, n]));
   const dependencies: DepLayout[] = [];

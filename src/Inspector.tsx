@@ -35,8 +35,9 @@ export function Inspector() {
         <ol className="how">
           <li>Hover a coloured line in a phase.</li>
           <li>Add a milestone (event) or a condition (state).</li>
+          <li>Drag along the line to move earlier or later — including within a phase.</li>
           <li>
-            Press <strong>Link</strong>, then click A then B.
+            Press <strong>Link</strong>, then click A then B. B sits to the right of A.
           </li>
         </ol>
         <div className="legend-card">
@@ -276,7 +277,8 @@ export function Inspector() {
         <p className="muted">
           {n.kind === "milestone"
             ? "An event or deliverable."
-            : "A state that must hold to reach the end state."}
+            : "A state that must hold to reach the end state."}{" "}
+          Drag it along the workstream to move earlier or later in the phase.
         </p>
         <Field label="Label">
           <input

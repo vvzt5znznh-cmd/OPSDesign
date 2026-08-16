@@ -51,7 +51,7 @@ npm run preview
 1. Start from **Service go-live** (a civilian project), a blank project, or a defence/security campaign.
 2. Click anything on the diagram — or in the left outline — to edit it.
 3. Hover a line of effort inside a phase: **△** adds a milestone, **◇** adds a condition.
-4. Drag a node along its arrow to move it between phases.
+4. Drag a node along its arrow to move it earlier or later — within a phase or into another. A node that depends on another sits to the right of it, including across workstreams.
 5. **Link dependencies**: click the predecessor, then the node that depends on it. Or add predecessors in the inspector.
 6. Export **PNG**, **SVG**, or **JSON**.
 

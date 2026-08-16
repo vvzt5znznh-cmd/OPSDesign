@@ -52,7 +52,7 @@ function Editor({ onNew }: { onNew: () => void }) {
             <Diagram svgRef={svgRef} />
           </div>
           <p className="canvas-hint hide-present">
-            Hover a workstream in a phase to add · Drag to move · Click anything
+            Hover a workstream in a phase to add · Drag along the line to move · Click anything
             to edit
           </p>
         </main>

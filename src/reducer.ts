@@ -1,5 +1,6 @@
-import { hasDependency, nextLabel, nextOrder, nodesInCell, wouldCreateCycle } from "./design";
+import { hasDependency, nextLabel, nextOrder, wouldCreateCycle } from "./design";
 import { uid } from "./id";
+import { nodeColumns } from "./layout";
 import {
   LOE_COLORS,
   type NodeKind,
@@ -264,20 +265,40 @@ export function reduceDesign(
     case "placeNode": {
       const moving = design.nodes.find((n) => n.id === action.id);
       if (!moving) return design;
-      const siblings = nodesInCell(design, moving.loeId, action.phaseId)
-        .filter((n) => n.id !== action.id)
-        .sort((a, b) => a.order - b.order);
-      const clamped = Math.max(0, Math.min(action.order, siblings.length));
-      siblings.splice(clamped, 0, { ...moving, phaseId: action.phaseId });
-      const reordered = siblings.map((n, i) => ({
-        ...n,
-        order: i,
-        phaseId: action.phaseId,
-      }));
-      const byId = new Map(reordered.map((n) => [n.id, n]));
+      const order = Math.max(0, Math.floor(action.order));
+      if (moving.phaseId === action.phaseId && moving.order === order) {
+        return design;
+      }
+      const nodes = design.nodes.map((n) => {
+        if (n.id === moving.id) {
+          return { ...n, phaseId: action.phaseId, order };
+        }
+        return n;
+      });
+      const line = nodes
+        .filter(
+          (n) =>
+            n.id !== moving.id &&
+            n.loeId === moving.loeId &&
+            n.phaseId === action.phaseId,
+        )
+        .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+      const shifted = new Map<string, number>();
+      let next = order;
+      for (const s of line) {
+        if (s.order < next) continue;
+        if (s.order === next) {
+          next += 1;
+          shifted.set(s.id, next);
+        } else {
+          break;
+        }
+      }
       return {
         ...design,
-        nodes: design.nodes.map((n) => byId.get(n.id) ?? n),
+        nodes: nodes.map((n) =>
+          shifted.has(n.id) ? { ...n, order: shifted.get(n.id)! } : n,
+        ),
       };
     }
     case "addDependency": {
@@ -287,19 +308,28 @@ export function reduceDesign(
       ) {
         return design;
       }
-      const from = design.nodes.some((n) => n.id === action.fromId);
-      const to = design.nodes.some((n) => n.id === action.toId);
-      if (!from || !to) return design;
+      const fromNode = design.nodes.find((n) => n.id === action.fromId);
+      const toNode = design.nodes.find((n) => n.id === action.toId);
+      if (!fromNode || !toNode) return design;
+      const dependencies = [
+        ...design.dependencies,
+        {
+          id: action.id ?? uid("dep"),
+          fromId: action.fromId,
+          toId: action.toId,
+        },
+      ];
+      const cols = nodeColumns({ ...design, dependencies });
+      const toCol = cols.get(toNode.id) ?? toNode.order;
       return {
         ...design,
-        dependencies: [
-          ...design.dependencies,
-          {
-            id: action.id ?? uid("dep"),
-            fromId: action.fromId,
-            toId: action.toId,
-          },
-        ],
+        dependencies,
+        nodes:
+          toCol > toNode.order
+            ? design.nodes.map((n) =>
+                n.id === toNode.id ? { ...n, order: toCol } : n,
+              )
+            : design.nodes,
       };
     }
     case "removeDependency":

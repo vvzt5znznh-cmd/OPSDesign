@@ -18,6 +18,7 @@ export interface DesignNode {
   phaseId: string;
   label: string;
   description: string;
+  /** Preferred column in the phase (0 = earliest). Layout may shift it right. */
   order: number;
 }
 

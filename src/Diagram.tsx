@@ -7,8 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { uid } from "./id";
-import { nodesInCell } from "./design";
-import { hitPhaseAtX, layoutDiagram, type DiagramLayout } from "./layout";
+import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, type DiagramLayout } from "./layout";
 import { useDesign } from "./state";
 import {
   CONDITION_FILL,
@@ -163,22 +162,12 @@ export function Diagram({
     if (!node) return;
     const phase = hitPhaseAtX(laid, x);
     if (!phase) return;
-    const siblings = nodesInCell(design, node.loeId, phase.id).filter(
-      (n) => n.id !== id,
+    const columns = new Map(laid.nodes.map((n) => [n.id, n.column]));
+    const order = Math.max(
+      columnAtX(phase, x),
+      minColumnInPhase(design, columns, id, phase.id),
     );
-    const siblingLayouts = laid.nodes.filter(
-      (n) => n.loeId === node.loeId && n.phaseId === phase.id && n.id !== id,
-    );
-    let order = siblings.length;
-    for (let i = 0; i < siblingLayouts.length; i++) {
-      if (x < siblingLayouts[i].x) {
-        order = i;
-        break;
-      }
-    }
-    const original = nodesInCell(design, node.loeId, node.phaseId);
-    const currentIndex = original.findIndex((n) => n.id === id);
-    if (phase.id === node.phaseId && order === currentIndex) return;
+    if (phase.id === node.phaseId && order === node.order) return;
     dispatch({ type: "placeNode", id, phaseId: phase.id, order });
   }
 
