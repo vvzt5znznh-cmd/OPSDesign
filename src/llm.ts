@@ -55,7 +55,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       phaseId: "ph-discover",
       label: "C1: Need is understood",
       description: "",
-      order: 1,
+      order: 2,
     },
     {
       id: "n-options-chosen",
@@ -73,7 +73,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       phaseId: "ph-define",
       label: "C2: Solution is agreed",
       description: "",
-      order: 1,
+      order: 2,
     },
     {
       id: "n-beta-released",
@@ -269,7 +269,7 @@ Root object:
 2. Copy the field names and nesting of the sample exactly. Do not add fields. Do not omit required fields. Node and gate \`description\` must be "". Only \`endState.description\` is drawn (under the name on the panel).
 3. Every \`phaseId\`, \`loeId\`, \`afterPhaseId\`, \`fromId\`, and \`toId\` must match an id you defined.
 4. IDs must be unique strings. Prefer readable kebab-case: \`op-…\`, \`ph-…\`, \`loe-…\`, \`n-…\`, \`dp-…\`, \`dep-…\`.
-5. \`order\` is the left-to-right slot in that workstream+phase, starting at 0. Two things in the same cell: 0 then 1.
+5. \`order\` is the left-to-right slot in that workstream+phase, starting at 0. A default phase has three slots (early, middle, late). Two things on the same stream in the same phase cannot share a slot: 0 then 1 then 2. A later slot widens the phase.
 6. Workstream colours, in order, pick from: ${LOE_COLORS.join(", ")}. End-state \`color\` is a wash on the panel; pick from: ${END_STATE_COLORS.join(", ")} (default ${END_STATE_DEFAULT_COLOR}). Do not fill it as a solid dark billboard.
 7. Typical size: 3–5 phases, 2–4 workstreams, 2–4 nodes per stream, 2–4 gates, a handful of dependencies. Prefer a readable picture over a complete WBS.
 8. End state is not a date, a deliverable, or "project complete". Gates are decisions, not milestones.

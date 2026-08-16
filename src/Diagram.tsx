@@ -101,6 +101,7 @@ export function Diagram({
   const [addMenu, setAddMenu] = useState<{
     loeId: string;
     phaseId: string;
+    x?: number;
   } | null>(null);
   const [drag, setDrag] = useState<{
     id: string;
@@ -296,16 +297,23 @@ export function Diagram({
 
   function addInCell(
     kind: NodeKind,
-    cell: { loeId: string; phaseId: string } | null,
+    cell: { loeId: string; phaseId: string; x?: number } | null,
   ) {
     if (!cell) return;
     const id = uid("n");
+    const phase = laidOut.phases.find((p) => p.id === cell.phaseId);
+    const occupied = cellOccupied(cell.loeId, cell.phaseId);
+    const order =
+      !occupied && phase && cell.x != null
+        ? columnAtX(phase, cell.x)
+        : undefined;
     dispatch({
       type: "addNode",
       id,
       kind,
       loeId: cell.loeId,
       phaseId: cell.phaseId,
+      order,
     });
     setSelection({ type: "node", id });
     setAddMenu(null);
@@ -320,9 +328,9 @@ export function Diagram({
     return design.nodes.some((n) => n.loeId === loeId && n.phaseId === phaseId);
   }
 
-  function openAddMenu(loeId: string, phaseId: string) {
+  function openAddMenu(loeId: string, phaseId: string, x?: number) {
     skipDeselect.current = true;
-    setAddMenu({ loeId, phaseId });
+    setAddMenu({ loeId, phaseId, x });
     setHoverCell({ loeId, phaseId });
   }
 
@@ -628,7 +636,10 @@ export function Diagram({
                 !linkMode &&
                 !cellOccupied(loe.id, phase.id)
               ) {
-                openAddMenu(loe.id, phase.id);
+                const p = svgRef.current
+                  ? svgPoint(svgRef.current, e.clientX, e.clientY)
+                  : { x: phase.x + phase.width / 2 };
+                openAddMenu(loe.id, phase.id, p.x);
                 return;
               }
               setSelection({ type: "loe", id: loe.id });
@@ -651,7 +662,15 @@ export function Diagram({
                 key={`plus-${loe.id}-${phase.id}`}
                 x={occupied ? phase.x + phase.width - 16 : phase.x + phase.width / 2}
                 y={occupied ? loe.y - 28 : loe.y}
-                onClick={() => openAddMenu(loe.id, phase.id)}
+                onClick={() =>
+                  openAddMenu(
+                    loe.id,
+                    phase.id,
+                    occupied
+                      ? phase.x + phase.width - 8
+                      : phase.x + phase.width / 2,
+                  )
+                }
               />
             );
           }),

@@ -13,6 +13,8 @@ export const LAYOUT = {
   legendH: 58,
   slot: 124,
   phaseMin: 256,
+  /** Drop in this many pixels of the right edge to add a column and widen the phase. */
+  phaseExpand: 22,
 };
 
 /** Heading band: title and purpose wrap to the picture width. */
@@ -227,7 +229,8 @@ export function minColumnInPhase(
 export function columnAtX(phase: PhaseLayout, x: number): number {
   const widths = phase.slotWidths;
   if (!widths.length) return 0;
-  let rel = x - phase.x;
+  const rel = x - phase.x;
+  if (rel >= phase.width - LAYOUT.phaseExpand) return widths.length;
   let acc = 0;
   for (let i = 0; i < widths.length; i++) {
     acc += widths[i];
@@ -236,9 +239,9 @@ export function columnAtX(phase: PhaseLayout, x: number): number {
   return widths.length - 1;
 }
 
-/** Columns that fit in the default phase width, without a spare that expands on drop. */
+/** Early / middle / late columns in a default-width phase. */
 export function minPhaseSlots(): number {
-  return Math.max(2, Math.round(LAYOUT.phaseMin / LAYOUT.slot));
+  return 3;
 }
 
 /** How wide a phase is for a given number of occupied columns (1-based). */
@@ -262,8 +265,10 @@ export function phaseBand(
     (max, n) => Math.max(max, (columns.get(n.id) ?? 0) + 1),
     0,
   );
-  const slots = Math.max(minPhaseSlots(), used, 1);
-  const widths = Array.from({ length: slots }, () => LAYOUT.slot);
+  const minSlots = minPhaseSlots();
+  const slots = Math.max(minSlots, used, 1);
+  const base = slots <= minSlots ? LAYOUT.phaseMin / slots : LAYOUT.slot;
+  const widths = Array.from({ length: slots }, () => base);
   for (const n of inPhase) {
     const col = columns.get(n.id) ?? 0;
     if (col < 0 || col >= slots) continue;
@@ -271,13 +276,14 @@ export function phaseBand(
     widths[col] = Math.max(widths[col], width + NODE_LABEL.gap);
   }
   const sum = widths.reduce((a, b) => a + b, 0);
-  if (sum >= LAYOUT.phaseMin) {
+  const minWidth = slots <= minSlots ? LAYOUT.phaseMin : LAYOUT.slot * slots;
+  if (sum >= minWidth) {
     return { slots, width: sum, slotWidths: widths };
   }
-  const extra = (LAYOUT.phaseMin - sum) / slots;
+  const extra = (minWidth - sum) / slots;
   return {
     slots,
-    width: LAYOUT.phaseMin,
+    width: minWidth,
     slotWidths: widths.map((w) => w + extra),
   };
 }

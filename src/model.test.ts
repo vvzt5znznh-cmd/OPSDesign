@@ -68,7 +68,7 @@ function node(
 describe("phaseMetrics", () => {
   it("keeps the default width while nodes sit in the last min-width column", () => {
     const minSlots = minPhaseSlots();
-    expect(minSlots).toBe(2);
+    expect(minSlots).toBe(3);
     expect(phaseMetrics(1).width).toBe(LAYOUT.phaseMin);
     expect(phaseMetrics(minSlots).width).toBe(LAYOUT.phaseMin);
     expect(phaseMetrics(minSlots).slots).toBe(minSlots);
@@ -97,6 +97,18 @@ describe("layoutDiagram", () => {
     expect(placed.x).toBeGreaterThan(
       p1After.x + p1After.width * 0.7,
     );
+  });
+
+  it("sits a node in the middle of a default phase", () => {
+    const laid = layoutDiagram(
+      design({
+        nodes: [node("n1", "l1", "p1", 1)],
+      }),
+    );
+    const phase = laid.phases[0];
+    const placed = laid.nodes.find((n) => n.id === "n1")!;
+    expect(phase.width).toBe(LAYOUT.phaseMin);
+    expect(placed.x).toBeCloseTo(phase.x + phase.width / 2, 0);
   });
 
   it("expands only when a later column is required", () => {
@@ -138,12 +150,17 @@ describe("layoutDiagram", () => {
     expect(seam?.phaseId).toBe(phase.id);
   });
 
-  it("maps a drop near the right edge to the last column, not a new one", () => {
+  it("maps a drop in the middle of a phase to the middle column", () => {
+    const laid = layoutDiagram(design());
+    const phase = laid.phases[0];
+    expect(columnAtX(phase, phase.x + phase.width / 2)).toBe(1);
+  });
+
+  it("maps a drop at the right edge to a new column so the phase can grow", () => {
     const laid = layoutDiagram(design());
     const phase = laid.phases[0];
     const col = columnAtX(phase, phase.x + phase.width - 2);
-    expect(col).toBe(phase.slots - 1);
-    expect(col).toBe(minPhaseSlots() - 1);
+    expect(col).toBe(phase.slots);
   });
 
   it("keeps two nodes in a phase far enough apart that labels need not sit on each other", () => {
@@ -154,7 +171,9 @@ describe("layoutDiagram", () => {
     );
     const a = laid.nodes.find((n) => n.id === "a")!;
     const b = laid.nodes.find((n) => n.id === "b")!;
-    expect(Math.abs(b.x - a.x)).toBeGreaterThanOrEqual(LAYOUT.slot - 1);
+    expect(Math.abs(b.x - a.x)).toBeGreaterThanOrEqual(
+      LAYOUT.phaseMin / minPhaseSlots() - 1,
+    );
   });
 
   it("widens a phase so long labels do not sit on each other", () => {
@@ -363,6 +382,21 @@ describe("reduceDesign", () => {
     });
     expect(next.nodes[0].order).toBe(later);
     expect(layoutDiagram(next).phases[0].width).toBe(LAYOUT.phaseMin);
+  });
+
+  it("adds a node in the middle of an empty phase when given that slot", () => {
+    const next = reduceDesign(design(), {
+      type: "addNode",
+      id: "n1",
+      kind: "milestone",
+      loeId: "l1",
+      phaseId: "p1",
+      order: 1,
+    });
+    expect(next.nodes[0].order).toBe(1);
+    const laid = layoutDiagram(next);
+    const phase = laid.phases[0];
+    expect(laid.nodes[0].x).toBeCloseTo(phase.x + phase.width / 2, 0);
   });
 
   it("rejects a dependency cycle", () => {

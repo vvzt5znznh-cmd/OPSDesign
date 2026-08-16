@@ -69,25 +69,25 @@ export function projectTemplate(): OperationalDesign {
 
   const n = {
     problemFramed: node("milestone", service, p1, "M1: Problem framed", 0),
-    needUnderstood: node("condition", service, p1, "C1: Need is understood", 1),
+    needUnderstood: node("condition", service, p1, "C1: Need is understood", 2),
     optionsChosen: node("milestone", service, p2, "M2: Options chosen", 0),
-    solutionAgreed: node("condition", service, p2, "C2: Solution is agreed", 1),
+    solutionAgreed: node("condition", service, p2, "C2: Solution is agreed", 2),
     betaReleased: node("milestone", service, p3, "M3: Beta released", 0),
-    serviceReliable: node("condition", service, p3, "C3: Service is reliable", 1),
-    goLive: node("milestone", service, p4, "M4: Go-live", 0),
+    serviceReliable: node("condition", service, p3, "C3: Service is reliable", 2),
+    goLive: node("milestone", service, p4, "M4: Go-live", 1),
     baseline: node("milestone", assurance, p1, "M1: Baseline captured", 0),
-    risksVisible: node("condition", assurance, p1, "C1: Risks are visible", 1),
+    risksVisible: node("condition", assurance, p1, "C1: Risks are visible", 2),
     requirements: node("milestone", assurance, p2, "M2: Requirements signed", 0),
-    funding: node("condition", assurance, p2, "C2: Funding is committed", 1),
-    testsPassed: node("milestone", assurance, p3, "M3: Tests passed", 0),
+    funding: node("condition", assurance, p2, "C2: Funding is committed", 2),
+    testsPassed: node("milestone", assurance, p3, "M3: Tests passed", 1),
     acceptance: node("milestone", assurance, p4, "M4: Acceptance signed", 0),
-    support: node("condition", assurance, p4, "C3: Support is in place", 1),
+    support: node("condition", assurance, p4, "C3: Support is in place", 2),
     stakeholders: node("milestone", adoption, p1, "M1: Stakeholders mapped", 0),
-    partners: node("condition", adoption, p1, "C1: Partners are engaged", 1),
-    comms: node("milestone", adoption, p2, "M2: Comms plan agreed", 0),
-    training: node("milestone", adoption, p3, "M3: Training delivered", 0),
+    partners: node("condition", adoption, p1, "C1: Partners are engaged", 2),
+    comms: node("milestone", adoption, p2, "M2: Comms plan agreed", 1),
+    training: node("milestone", adoption, p3, "M3: Training delivered", 1),
     usersReady: node("condition", adoption, p4, "C2: Users are ready", 0),
-    benefits: node("milestone", adoption, p4, "M4: Benefits tracking on", 1),
+    benefits: node("milestone", adoption, p4, "M4: Benefits tracking on", 2),
   };
 
   const dep = (from: DesignNode, to: DesignNode) => ({
@@ -190,18 +190,18 @@ export function militaryTemplate(): OperationalDesign {
     order: number,
   ): DesignNode => node("condition", loeId, phaseId, label, order);
 
-  const intel1 = c(l1, p1, "C1: Picture established", 0);
-  const intel2 = c(l1, p2, "C2: Intent confirmed", 0);
-  const intel3 = c(l1, p3, "C3: Targets cued", 0);
-  const intel4 = c(l1, p4, "C4: Pursuit enabled", 0);
-  const man1 = c(l2, p1, "C1: Forces postured", 0);
-  const man2 = c(l2, p2, "C2: Access secured", 0);
-  const man3 = c(l2, p3, "C3: Foothold taken", 0);
-  const man4 = c(l2, p4, "C4: Freedom of action", 0);
-  const inf1 = c(l3, p1, "C1: Narrative set", 0);
-  const inf2 = c(l3, p2, "C2: Partners aligned", 0);
-  const inf3 = c(l3, p3, "C3: Opposition isolated", 0);
-  const inf4 = c(l3, p4, "C4: Authority restored", 0);
+  const intel1 = c(l1, p1, "C1: Picture established", 1);
+  const intel2 = c(l1, p2, "C2: Intent confirmed", 1);
+  const intel3 = c(l1, p3, "C3: Targets cued", 1);
+  const intel4 = c(l1, p4, "C4: Pursuit enabled", 1);
+  const man1 = c(l2, p1, "C1: Forces postured", 1);
+  const man2 = c(l2, p2, "C2: Access secured", 1);
+  const man3 = c(l2, p3, "C3: Foothold taken", 1);
+  const man4 = c(l2, p4, "C4: Freedom of action", 1);
+  const inf1 = c(l3, p1, "C1: Narrative set", 1);
+  const inf2 = c(l3, p2, "C2: Partners aligned", 1);
+  const inf3 = c(l3, p3, "C3: Opposition isolated", 1);
+  const inf4 = c(l3, p4, "C4: Authority restored", 1);
 
   const dep = (from: DesignNode, to: DesignNode) => ({
     id: uid("dep"),

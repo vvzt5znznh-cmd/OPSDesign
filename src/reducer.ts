@@ -28,6 +28,7 @@ export type DesignAction =
       kind: NodeKind;
       label?: string;
       id?: string;
+      order?: number;
     }
   | {
       type: "updateNode";
@@ -202,7 +203,10 @@ export function reduceDesign(
             phaseId: action.phaseId,
             label: action.label ?? nextLabel(design, action.loeId, action.kind),
             description: "",
-            order: nextOrder(design, action.loeId, action.phaseId),
+            order:
+              typeof action.order === "number"
+                ? Math.max(0, Math.floor(action.order))
+                : nextOrder(design, action.loeId, action.phaseId),
           },
         ],
       };
