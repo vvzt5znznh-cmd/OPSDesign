@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { uid } from "./id";
-import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, END_STATE_TEXT, HEADING, LAYOUT, type DiagramLayout } from "./layout";
+import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, endStateTextBox, END_STATE_TEXT, HEADING, LAYOUT, type DiagramLayout } from "./layout";
 import { useDesign } from "./state";
 import { useTheme, type DiagramPalette } from "./theme";
 import {
@@ -84,16 +84,10 @@ export function Diagram({
   } = useDesign();
   const { diagram: palette } = useTheme();
   const laidOut = useMemo(() => layoutDiagram(design), [design]);
-  const endText = useMemo(() => {
-    const end = laidOut.endState;
-    const T = END_STATE_TEXT;
-    const nameH = end.nameLines.length * T.nameLh;
-    const descH = end.descriptionLines.length * T.descLh;
-    const gap =
-      end.nameLines.length && end.descriptionLines.length ? T.gap : 0;
-    const top = end.y + (end.height - (nameH + gap + descH)) / 2;
-    return { top, nameH, gap };
-  }, [laidOut.endState]);
+  const endText = useMemo(
+    () => endStateTextBox(laidOut.endState),
+    [laidOut.endState],
+  );
   const [hoverCell, setHoverCell] = useState<{
     loeId: string;
     phaseId: string;
@@ -850,7 +844,7 @@ export function Diagram({
         {laidOut.endState.nameLines.map((line, i) => (
           <text
             key={`n-${i}`}
-            x={laidOut.endState.x + laidOut.endState.width / 2}
+            x={endText.nameX}
             y={
               endText.top +
               i * END_STATE_TEXT.nameLh +
@@ -867,7 +861,7 @@ export function Diagram({
         {laidOut.endState.descriptionLines.map((line, i) => (
           <text
             key={`d-${i}`}
-            x={laidOut.endState.x + laidOut.endState.width / 2}
+            x={endText.descX}
             y={
               endText.top +
               endText.nameH +
@@ -875,7 +869,7 @@ export function Diagram({
               i * END_STATE_TEXT.descLh +
               END_STATE_TEXT.descLh / 2
             }
-            textAnchor="middle"
+            textAnchor="start"
             dominantBaseline="middle"
             className="svg-end-desc"
             fill={palette.purpose}

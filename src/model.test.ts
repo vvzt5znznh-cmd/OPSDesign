@@ -4,6 +4,7 @@ import { wouldCreateCycle, nextOrder, hasDependency } from "./design";
 import {
   LAYOUT,
   columnAtX,
+  endStateTextBox,
   layoutDiagram,
   minPhaseSlots,
   nodeColumns,
@@ -428,5 +429,25 @@ describe("wrapLabel", () => {
     const long = nodeLabelSize("Need is understood by the clinics who must change");
     expect(long.height).toBeGreaterThan(short.height);
     expect(long.lines.join("")).not.toContain("…");
+  });
+});
+
+describe("endStateTextBox", () => {
+  it("keeps the name centred and left-aligns what will be true", () => {
+    const laid = layoutDiagram(
+      design({
+        endState: {
+          name: "LIVE AND USED",
+          description:
+            "Users complete the journey unassisted. Support is in place. Residual risk is accepted. Benefits are being tracked.",
+          color: "#5A6A78",
+        },
+      }),
+    );
+    const box = endStateTextBox(laid.endState);
+    expect(laid.endState.descriptionLines.length).toBeGreaterThan(1);
+    expect(box.nameX).toBe(laid.endState.x + laid.endState.width / 2);
+    expect(box.descX).toBeLessThan(box.nameX);
+    expect(box.descX).toBe(laid.endState.x + 16);
   });
 });

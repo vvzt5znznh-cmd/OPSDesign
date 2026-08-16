@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING } from "./layout";
+import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, endStateTextBox } from "./layout";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
 import {
@@ -490,19 +490,15 @@ export async function downloadPptx(
   });
   {
     const end = laid.endState;
+    const box = endStateTextBox(end);
     const T = END_STATE_TEXT;
-    const nameH = end.nameLines.length * T.nameLh;
-    const descH = end.descriptionLines.length * T.descLh;
-    const gap =
-      end.nameLines.length && end.descriptionLines.length ? T.gap : 0;
-    const top = end.y + (end.height - (nameH + gap + descH)) / 2;
     if (end.nameLines.length) {
       text(
         end.nameLines.join("\n"),
-        X(end.x + 8),
-        Y(top),
-        S(end.width - 16),
-        S(Math.max(nameH, T.nameLh)),
+        X(end.x + T.padX),
+        Y(box.top),
+        S(end.width - T.padX * 2),
+        S(Math.max(box.nameH, T.nameLh)),
         {
           size: fs(13, 11),
           color: palette.title,
@@ -515,14 +511,14 @@ export async function downloadPptx(
     if (end.descriptionLines.length) {
       text(
         end.descriptionLines.join("\n"),
-        X(end.x + 8),
-        Y(top + nameH + gap),
-        S(end.width - 16),
-        S(Math.max(descH, T.descLh)),
+        X(box.descX),
+        Y(box.top + box.nameH + box.gap),
+        S(box.descW),
+        S(Math.max(box.descH, T.descLh)),
         {
           size: fs(11, 9),
           color: palette.purpose,
-          align: "center",
+          align: "left",
           valign: "top",
         },
       );

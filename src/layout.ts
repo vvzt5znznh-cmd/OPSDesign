@@ -46,9 +46,36 @@ export const END_STATE_TEXT = {
   nameLh: 18,
   descLh: 14,
   padY: 18,
+  padX: 16,
   gap: 10,
   inset: 10,
 };
+
+/** Name stays centred; “what will be true” is left-aligned body copy. */
+export function endStateTextBox(end: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  nameLines: string[];
+  descriptionLines: string[];
+}) {
+  const T = END_STATE_TEXT;
+  const nameH = end.nameLines.length * T.nameLh;
+  const descH = end.descriptionLines.length * T.descLh;
+  const gap =
+    end.nameLines.length && end.descriptionLines.length ? T.gap : 0;
+  const top = end.y + (end.height - (nameH + gap + descH)) / 2;
+  return {
+    top,
+    nameH,
+    gap,
+    descH,
+    nameX: end.x + end.width / 2,
+    descX: end.x + T.padX,
+    descW: end.width - T.padX * 2,
+  };
+}
 
 export interface PhaseLayout {
   id: string;
