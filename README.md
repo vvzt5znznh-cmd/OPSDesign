@@ -50,14 +50,14 @@ npm run preview
 
 ## How to use it
 
-1. Start from **Service go-live** (a civilian project), a blank project, or a defence/security campaign.
+1. You land on a picture. First visit is a blank project; coming back restores the last one from this browser. File → New… picks a layout (blank, service go-live, or campaign).
 2. Click anything on the diagram to edit it. Labels are the text on the picture. The end-state panel takes a name, what will be true (shown under the name), and a colour wash.
 3. Hover a workstream in a phase: **+** then Milestone or Condition. Hover the gate bar and click **+** to add a decision. Use the **+** marks to add a phase or workstream.
 4. Drag a node along its arrow to move it earlier or later — within a phase or into another. A node that depends on another sits to the right of it, including across workstreams. Drag a gate along the bar to sit in a phase or after it.
 5. **Link**: click what must happen first, then what depends on it.
-6. **File**: Open / Save JSON, Ask an LLM… (prompt + sample for a language model), Export PNG, SVG, or PowerPoint.
+6. **File**: New… (layout), Restore previous, Open / Save JSON, Ask an LLM…, Export PNG, SVG, or PowerPoint.
 
-The current design is also saved in the browser (`localStorage`). Older files still open; missing fields pick up quiet defaults.
+The current picture is saved in this browser (`localStorage`). Leave and come back and it is still there. Undo/Redo are for this tab (they survive refresh). File → New or Open JSON keeps the displaced picture as Restore previous. Older files still open; missing fields pick up quiet defaults.
 
 ### Keyboard
 

@@ -186,8 +186,7 @@ textarea:focus-visible {
 .inspector button,
 .modal button,
 .link-banner button,
-.modal-close,
-.theme-welcome {
+.modal-close {
   border: 0;
   background: var(--elev);
   color: var(--ink);
@@ -203,8 +202,7 @@ textarea:focus-visible {
 
 .tool.on,
 .menu-btn.open,
-.kind-toggle button.on,
-.theme-welcome.on {
+.kind-toggle button.on {
   box-shadow: inset 0 0 0 1px var(--gold);
   color: var(--ink);
 }
@@ -510,87 +508,21 @@ textarea:focus-visible {
   margin: 8px 0 6px;
 }
 
-.welcome.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-}
-
-.welcome {
-  position: relative;
-  min-height: 100%;
-  display: grid;
-  place-items: center;
-  padding: 40px 20px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(232, 119, 34, 0.16), transparent 32%),
-    radial-gradient(circle at 88% 100%, rgba(61, 154, 209, 0.12), transparent 36%),
-    var(--bg);
-}
-
-.theme-welcome {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 2;
-}
-
-.welcome-inner {
-  max-width: 860px;
-}
-
-.eyebrow {
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold);
-  font-size: 11px;
-  margin: 0 0 8px;
-}
-
-.welcome h1 {
-  font-family: "IBM Plex Serif", Georgia, serif;
-  font-size: 52px;
-  margin: 0 0 10px;
-  letter-spacing: -0.02em;
-}
-
-.lede {
-  color: var(--muted);
-  font-size: 17px;
-  line-height: 1.5;
-  max-width: 560px;
-  margin: 0;
-}
-
-.mini-conops {
-  width: min(420px, 100%);
-  height: auto;
-  margin: 28px 0 8px;
-  display: block;
-}
-
-.mini-phase {
-  fill: var(--muted);
-  font-size: 9px;
-  font-weight: 600;
-}
-
 .template-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
-  margin-top: 20px;
+  margin: 16px 0 8px;
 }
 
 .template-card {
   text-align: left;
-  background: var(--panel);
-  border-radius: 14px;
-  padding: 18px;
+  background: var(--elev);
+  border-radius: 12px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-height: 148px;
+  gap: 6px;
   border: 0;
   color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--line);
@@ -616,13 +548,6 @@ textarea:focus-visible {
   font-size: 11px !important;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.text-btn {
-  margin-top: 18px;
-  background: transparent;
-  border: 0;
-  color: var(--muted);
 }
 
 .modal-backdrop {

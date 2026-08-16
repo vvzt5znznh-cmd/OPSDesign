@@ -1,19 +1,24 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { downloadPng, downloadSvg } from "./export";
+import { LayoutPicker } from "./LayoutPicker";
 import { downloadPptx } from "./pptx";
 import { Menu } from "./Menu";
-import { downloadJson, parseImportedDesign } from "./storage";
+import {
+  downloadJson,
+  loadPrevious,
+  parseImportedDesign,
+  stashPrevious,
+} from "./storage";
 import { LlmModal } from "./LlmModal";
 import { useTheme } from "./theme";
 import { useDesign } from "./state";
+import type { OperationalDesign } from "./types";
 
 export function Toolbar({
   svgRef,
-  onNew,
   onHelp,
 }: {
   svgRef: RefObject<SVGSVGElement | null>;
-  onNew: () => void;
   onHelp: () => void;
 }) {
   const {
@@ -32,6 +37,8 @@ export function Toolbar({
   const fileRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(design.title);
   const [llmOpen, setLlmOpen] = useState(false);
+  const [layoutOpen, setLayoutOpen] = useState(false);
+  const [hasPrevious, setHasPrevious] = useState(() => !!loadPrevious());
 
   useEffect(() => {
     setTitle(design.title);
@@ -47,18 +54,30 @@ export function Toolbar({
     downloadSvg(svgRef.current, design.title);
   }
 
+  function replaceDesign(next: OperationalDesign) {
+    stashPrevious(design);
+    setHasPrevious(true);
+    dispatch({ type: "replace", design: next });
+  }
+
   function onImport(file: File | undefined) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const next = parseImportedDesign(String(reader.result));
-        dispatch({ type: "replace", design: next });
+        replaceDesign(parseImportedDesign(String(reader.result)));
       } catch (err) {
         window.alert(err instanceof Error ? err.message : "Import failed.");
       }
     };
     reader.readAsText(file);
+  }
+
+  function restorePrevious() {
+    const previous = loadPrevious();
+    if (!previous) return;
+    stashPrevious(design);
+    dispatch({ type: "replace", design: previous });
   }
 
   return (
@@ -104,9 +123,14 @@ export function Toolbar({
         </div>
         <div className="tool-group hide-present">
           <Menu label="File">
-            <button type="button" role="menuitem" onClick={onNew}>
-              New
+            <button type="button" role="menuitem" onClick={() => setLayoutOpen(true)}>
+              New…
             </button>
+            {hasPrevious && (
+              <button type="button" role="menuitem" onClick={restorePrevious}>
+                Restore previous
+              </button>
+            )}
             <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>
               Open JSON…
             </button>
@@ -171,6 +195,15 @@ export function Toolbar({
           </button>
         </div>
       </div>
+      {layoutOpen && (
+        <LayoutPicker
+          onChoose={(next) => {
+            replaceDesign(next);
+            setLayoutOpen(false);
+          }}
+          onCancel={() => setLayoutOpen(false)}
+        />
+      )}
       {llmOpen && <LlmModal onClose={() => setLlmOpen(false)} />}
     </header>
   );

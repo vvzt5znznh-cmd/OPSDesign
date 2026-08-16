@@ -5,10 +5,10 @@ import { Inspector } from "./Inspector";
 import { DesignProvider, useDesign } from "./state";
 import { saveDesign } from "./storage";
 import { Toolbar } from "./Toolbar";
-import { Welcome } from "./Welcome";
+import { blankDesign } from "./templates";
 import type { OperationalDesign } from "./types";
 
-function Editor({ onNew }: { onNew: () => void }) {
+function Editor() {
   const svgRef = useRef<SVGSVGElement>(null);
   const [help, setHelp] = useState(false);
   const { present, undo, redo, linkMode, setLinkMode, selection } = useDesign();
@@ -35,7 +35,7 @@ function Editor({ onNew }: { onNew: () => void }) {
 
   return (
     <div className={present ? "app present" : "app"}>
-      <Toolbar svgRef={svgRef} onNew={onNew} onHelp={() => setHelp(true)} />
+      <Toolbar svgRef={svgRef} onHelp={() => setHelp(true)} />
       <div className="workspace">
         <main className={selection && !present ? "canvas with-panel" : "canvas"}>
           {linkMode && (
@@ -62,25 +62,15 @@ export default function App({
 }: {
   initial: OperationalDesign | null;
 }) {
-  const [design, setDesign] = useState<OperationalDesign | null>(initial);
-  const [picking, setPicking] = useState(!initial);
+  const [start] = useState(() => initial ?? blankDesign());
 
-  function choose(next: OperationalDesign) {
-    saveDesign(next);
-    setDesign(next);
-    setPicking(false);
-  }
-
-  if (!design) {
-    return <Welcome onChoose={choose} />;
-  }
+  useEffect(() => {
+    if (!initial) saveDesign(start);
+  }, [initial, start]);
 
   return (
-    <DesignProvider key={design.id} initial={design}>
-      <Editor onNew={() => setPicking(true)} />
-      {picking && (
-        <Welcome onChoose={choose} onCancel={() => setPicking(false)} />
-      )}
+    <DesignProvider initial={start}>
+      <Editor />
     </DesignProvider>
   );
 }
