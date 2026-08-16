@@ -49,13 +49,13 @@ npm run preview
 ## How to use it
 
 1. Start from **Service go-live** (a civilian project), a blank project, or a defence/security campaign.
-2. Click anything on the diagram to edit it.
-3. Hover a line of effort inside a phase: **△** adds a milestone, **◇** adds a condition. Use the **+** marks to add a phase, workstream, or gate.
-4. Drag a node along its arrow to move it earlier or later — within a phase or into another. A node that depends on another sits to the right of it, including across workstreams.
-5. **Link dependencies**: click the predecessor, then the node that depends on it. Or add predecessors in the inspector.
-6. Export **PNG**, **SVG**, or **JSON**.
+2. Click anything on the diagram to edit it. The end-state panel takes a name, a description, and a colour wash.
+3. Hover a workstream in a phase: **+** then Milestone or Condition. Hover the gate bar and click **+** to add a decision. Use the **+** marks to add a phase or workstream.
+4. Drag a node along its arrow to move it earlier or later — within a phase or into another. A node that depends on another sits to the right of it, including across workstreams. Drag a gate along the bar to sit in a phase or after it.
+5. **Link**: click what must happen first, then what depends on it.
+6. **File**: Open / Save JSON, Ask an LLM… (prompt + sample for a language model), Export PNG, SVG, or PowerPoint.
 
-The current design is also saved in the browser (`localStorage`). Older files that used a single node type still open; each node becomes a milestone or a condition.
+The current design is also saved in the browser (`localStorage`). Older files still open; missing fields pick up quiet defaults.
 
 ### Keyboard
 

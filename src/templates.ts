@@ -1,5 +1,5 @@
 import { uid } from "./id";
-import type { DesignNode, NodeKind, OperationalDesign } from "./types";
+import { END_STATE_DEFAULT_COLOR, type DesignNode, type NodeKind, type OperationalDesign } from "./types";
 
 function blank(
   partial: Partial<OperationalDesign> & Pick<OperationalDesign, "title">,
@@ -13,7 +13,7 @@ function blank(
   return {
     id: uid("op"),
     purpose: "",
-    endState: { name: "END STATE", description: "" },
+    endState: { name: "END STATE", description: "", color: END_STATE_DEFAULT_COLOR },
     phases: [
       { id: p1, name: "Phase 1" },
       { id: p2, name: "Phase 2" },
@@ -105,6 +105,7 @@ export function projectTemplate(): OperationalDesign {
       name: "LIVE AND USED",
       description:
         "Users complete the journey unassisted. Support is in place. Residual risk is accepted. Benefits are being tracked.",
+      color: END_STATE_DEFAULT_COLOR,
     },
     phases: [
       { id: p1, name: "Discover" },
@@ -217,6 +218,7 @@ export function militaryTemplate(): OperationalDesign {
       name: "END STATE",
       description:
         "Partner authority is restored. Residual threat is contained. The force can transition.",
+      color: END_STATE_DEFAULT_COLOR,
     },
     phases: [
       { id: p1, name: "Shape" },

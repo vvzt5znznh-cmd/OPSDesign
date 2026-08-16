@@ -79,11 +79,11 @@ function MiniConops() {
       <path d="M118,50 L126,58 L118,66 L110,58 Z" fill="#0F4C81" />
       <polygon points="140,22 143,28 150,28 145,32 147,38 140,34 133,38 135,32 130,28 137,28" fill="#2E7D32" />
       <polygon points="240,22 243,28 250,28 245,32 247,38 240,34 233,38 235,32 230,28 237,28" fill="#2E7D32" />
-      <rect x="348" y="32" width="56" height="52" rx="7" fill="#1A365D" />
-      <text x="376" y="52" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="700">
+      <rect x="348" y="32" width="56" height="52" rx="7" fill="#5A6A78" fillOpacity="0.22" stroke="#5A6A78" strokeOpacity="0.55" />
+      <text x="376" y="52" textAnchor="middle" fill="#1a1f2b" fontSize="8" fontWeight="700">
         LIVE
       </text>
-      <text x="376" y="66" textAnchor="middle" fill="#d6e4f0" fontSize="6">
+      <text x="376" y="66" textAnchor="middle" fill="#5c6570" fontSize="6">
         in use
       </text>
     </svg>

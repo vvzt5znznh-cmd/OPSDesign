@@ -1,4 +1,4 @@
-import { LOE_COLORS, type DecisionPoint, type DesignNode, type Dependency, type LineOfEffort, type OperationalDesign } from "./types";
+import { LOE_COLORS, endStateColor, type DecisionPoint, type DesignNode, type Dependency, type LineOfEffort, type OperationalDesign } from "./types";
 import { blankDesign } from "./templates";
 
 const KEY = "opsdesign:current";
@@ -65,6 +65,13 @@ export function normalizeDesign(value: unknown): OperationalDesign | null {
     return null;
   }
 
+  const phases: OperationalDesign["phases"] = [];
+  for (const item of value.phases) {
+    if (!isRecord(item) || typeof item.id !== "string") continue;
+    phases.push({ id: item.id, name: asString(item.name, "Phase") });
+  }
+  if (phases.length === 0) return null;
+
   const fallbackKind =
     value.nodeKind === "decisive_condition" ? "condition" : "milestone";
   const rawNodes = Array.isArray(value.nodes)
@@ -97,6 +104,13 @@ export function normalizeDesign(value: unknown): OperationalDesign | null {
     }
   }
 
+  const linesOfEffort = value.linesOfEffort.flatMap((item, i) => {
+    if (!isRecord(item)) return [];
+    const loe = migrateLoe(item, i);
+    return loe ? [loe] : [];
+  });
+  if (linesOfEffort.length === 0) return null;
+
   return {
     id: value.id,
     title: value.title,
@@ -104,13 +118,10 @@ export function normalizeDesign(value: unknown): OperationalDesign | null {
     endState: {
       name: asString(value.endState.name, "END STATE"),
       description: asString(value.endState.description),
+      color: endStateColor({ color: asString(value.endState.color) }),
     },
-    phases: value.phases as OperationalDesign["phases"],
-    linesOfEffort: value.linesOfEffort.flatMap((item, i) => {
-      if (!isRecord(item)) return [];
-      const loe = migrateLoe(item, i);
-      return loe ? [loe] : [];
-    }),
+    phases,
+    linesOfEffort,
     nodes,
     dependencies,
     decisionPoints: Array.isArray(value.decisionPoints)
@@ -138,11 +149,22 @@ export function saveDesign(design: OperationalDesign): void {
 }
 
 export function parseImportedDesign(text: string): OperationalDesign {
-  const parsed = normalizeDesign(JSON.parse(text));
+  const parsed = normalizeDesign(JSON.parse(extractJson(text)));
   if (!parsed) {
     throw new Error("That file is not a valid OPSDesign document.");
   }
   return parsed;
+}
+
+/** Accept raw JSON, or the fenced block an LLM often returns. */
+export function extractJson(text: string): string {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) return fenced[1].trim();
+  const start = trimmed.indexOf("{");
+  const end = trimmed.lastIndexOf("}");
+  if (start >= 0 && end > start) return trimmed.slice(start, end + 1);
+  return trimmed;
 }
 
 export function downloadJson(design: OperationalDesign): void {

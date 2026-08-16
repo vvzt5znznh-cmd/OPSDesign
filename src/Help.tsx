@@ -19,7 +19,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <p>
               The panel on the right. Every workstream reads into it. Name is
               the heading; description is the conditions that must hold — not a
-              date.
+              date. Colour is a wash you can change in the inspector.
             </p>
           </div>
           <div>
@@ -51,12 +51,15 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         </div>
         <p className="help-how">
           Hover a workstream in a phase, or click the + in an empty cell, to add
-          a milestone or condition. Drag nodes along a workstream. Drag a gate
-          along the bar to place it in a phase or after it. Click the bar to add
-          a gate. Use the + marks to add a phase, workstream, or gate.{" "}
+          a milestone or condition. Hover the gate bar and click the + to add a
+          decision. Drag nodes along a workstream. Drag a gate along the bar to
+          place it in a phase or after it. Use the + marks to add a phase or
+          workstream.{" "}
           <strong>Link</strong>, then click A then B — B sits to the right of A.
-          File → Export PowerPoint makes an editable briefing slide that matches
-          the picture. Dependency links are PowerPoint connectors glued to the
+          File → Ask an LLM… copies a prompt and sample JSON so a language model
+          can draft a picture from a plain-language brief; File → Open JSON loads
+          the file it returns. File → Export PowerPoint makes an editable
+          briefing slide that matches the picture. Dependency links are PowerPoint connectors glued to the
           figures — copy one, or draw a new Elbow / Straight connector, and snap
           it to a milestone or condition. End-state name and description sit on
           the panel; other inspector detail goes to speaker notes.
