@@ -48,6 +48,7 @@ function node(
   phaseId: string,
   label: string,
   order: number,
+  description = "",
 ): DesignNode {
   return {
     id: uid("n"),
@@ -55,7 +56,7 @@ function node(
     loeId,
     phaseId,
     label,
-    description: "",
+    description,
     order,
   };
 }
@@ -70,26 +71,166 @@ export function projectTemplate(): OperationalDesign {
   const adoption = uid("loe");
 
   const n = {
-    problemFramed: node("milestone", service, p1, "M1: Problem framed", 0),
-    needUnderstood: node("condition", service, p1, "C1: Need is understood", 2),
-    optionsChosen: node("milestone", service, p2, "M2: Options chosen", 0),
-    solutionAgreed: node("condition", service, p2, "C2: Solution is agreed", 2),
-    betaReleased: node("milestone", service, p3, "M3: Beta released", 0),
-    serviceReliable: node("condition", service, p3, "C3: Service is reliable", 2),
-    goLive: node("milestone", service, p4, "M4: Go-live", 1),
-    baseline: node("milestone", assurance, p1, "M1: Baseline captured", 0),
-    risksVisible: node("condition", assurance, p1, "C1: Risks are visible", 2),
-    requirements: node("milestone", assurance, p2, "M2: Requirements signed", 0),
-    funding: node("condition", assurance, p2, "C2: Funding is committed", 2),
-    testsPassed: node("milestone", assurance, p3, "M3: Tests passed", 1),
-    acceptance: node("milestone", assurance, p4, "M4: Acceptance signed", 0),
-    support: node("condition", assurance, p4, "C3: Support is in place", 2),
-    stakeholders: node("milestone", adoption, p1, "M1: Stakeholders mapped", 0),
-    partners: node("condition", adoption, p1, "C1: Partners are engaged", 2),
-    comms: node("milestone", adoption, p2, "M2: Comms plan agreed", 1),
-    training: node("milestone", adoption, p3, "M3: Training delivered", 1),
-    usersReady: node("condition", adoption, p4, "C2: Users are ready", 0),
-    benefits: node("milestone", adoption, p4, "M4: Benefits tracking on", 2),
+    problemFramed: node(
+      "milestone",
+      service,
+      p1,
+      "M1: Problem framed",
+      0,
+      "People cannot finish an application without calling. That is the problem to fix.",
+    ),
+    needUnderstood: node(
+      "condition",
+      service,
+      p1,
+      "C1: Need is understood",
+      2,
+      "The journeys that matter, and who they are for, are agreed.",
+    ),
+    optionsChosen: node(
+      "milestone",
+      service,
+      p2,
+      "M2: Options chosen",
+      0,
+      "A preferred option is on the table. Discarded options are recorded.",
+    ),
+    solutionAgreed: node(
+      "condition",
+      service,
+      p2,
+      "C2: Solution is agreed",
+      2,
+      "The service to build is named, scoped, and accepted.",
+    ),
+    betaReleased: node(
+      "milestone",
+      service,
+      p3,
+      "M3: Beta released",
+      0,
+      "A working service is in the hands of a limited set of users.",
+    ),
+    serviceReliable: node(
+      "condition",
+      service,
+      p3,
+      "C3: Service is reliable",
+      2,
+      "The live path holds under expected load. Known defects are accepted.",
+    ),
+    goLive: node(
+      "milestone",
+      service,
+      p4,
+      "M4: Go-live",
+      1,
+      "The new service is the default path. The old process is withdrawn.",
+    ),
+    baseline: node(
+      "milestone",
+      assurance,
+      p1,
+      "M1: Baseline captured",
+      0,
+      "Current performance, cost, and risk are written down so change can be judged.",
+    ),
+    risksVisible: node(
+      "condition",
+      assurance,
+      p1,
+      "C1: Risks are visible",
+      2,
+      "Owners, likelihood, and treatment sit on one list.",
+    ),
+    requirements: node(
+      "milestone",
+      assurance,
+      p2,
+      "M2: Requirements signed",
+      0,
+      "What must be true for go-live is agreed in writing.",
+    ),
+    funding: node(
+      "condition",
+      assurance,
+      p2,
+      "C2: Funding is committed",
+      2,
+      "Money and people for build and run are allocated.",
+    ),
+    testsPassed: node(
+      "milestone",
+      assurance,
+      p3,
+      "M3: Tests passed",
+      1,
+      "The agreed tests have been run. Residual defects are listed.",
+    ),
+    acceptance: node(
+      "milestone",
+      assurance,
+      p4,
+      "M4: Acceptance signed",
+      0,
+      "The receiving owner accepts the service as ready to run.",
+    ),
+    support: node(
+      "condition",
+      assurance,
+      p4,
+      "C3: Support is in place",
+      2,
+      "Someone answers when it breaks, in hours that match demand.",
+    ),
+    stakeholders: node(
+      "milestone",
+      adoption,
+      p1,
+      "M1: Stakeholders mapped",
+      0,
+      "Who must agree, who must use it, and who can block it.",
+    ),
+    partners: node(
+      "condition",
+      adoption,
+      p1,
+      "C1: Partners are engaged",
+      2,
+      "The people we depend on are working with us, not waiting to be told.",
+    ),
+    comms: node(
+      "milestone",
+      adoption,
+      p2,
+      "M2: Comms plan agreed",
+      1,
+      "Who hears what, when, and through which channel.",
+    ),
+    training: node(
+      "milestone",
+      adoption,
+      p3,
+      "M3: Training delivered",
+      1,
+      "The people who will run the service have practised the new path.",
+    ),
+    usersReady: node(
+      "condition",
+      adoption,
+      p4,
+      "C2: Users are ready",
+      0,
+      "Users know the new path and can complete it without a workaround.",
+    ),
+    benefits: node(
+      "milestone",
+      adoption,
+      p4,
+      "M4: Benefits tracking on",
+      2,
+      "The measures that prove the change are being collected.",
+    ),
   };
 
   const dep = (from: DesignNode, to: DesignNode) => ({
@@ -145,7 +286,8 @@ export function projectTemplate(): OperationalDesign {
         afterPhaseId: p1,
         placement: "after",
         order: 0,
-        description: "",
+        description:
+          "Is the problem real enough, and the need clear enough, to spend design time?",
       },
       {
         id: uid("dp"),
@@ -153,7 +295,8 @@ export function projectTemplate(): OperationalDesign {
         afterPhaseId: p2,
         placement: "after",
         order: 0,
-        description: "",
+        description:
+          "Is the solution agreed and funded, so build should start?",
       },
       {
         id: uid("dp"),
@@ -161,7 +304,8 @@ export function projectTemplate(): OperationalDesign {
         afterPhaseId: p3,
         placement: "after",
         order: 0,
-        description: "",
+        description:
+          "Is the service reliable, support in place, and residual risk accepted?",
       },
     ],
     nodes: Object.values(n),
@@ -195,20 +339,93 @@ export function militaryTemplate(): OperationalDesign {
     phaseId: string,
     label: string,
     order: number,
-  ): DesignNode => node("condition", loeId, phaseId, label, order);
+    description: string,
+  ): DesignNode => node("condition", loeId, phaseId, label, order, description);
 
-  const intel1 = c(l1, p1, "C1: Picture established", 1);
-  const intel2 = c(l1, p2, "C2: Intent confirmed", 1);
-  const intel3 = c(l1, p3, "C3: Targets cued", 1);
-  const intel4 = c(l1, p4, "C4: Pursuit enabled", 1);
-  const man1 = c(l2, p1, "C1: Forces postured", 1);
-  const man2 = c(l2, p2, "C2: Access secured", 1);
-  const man3 = c(l2, p3, "C3: Foothold taken", 1);
-  const man4 = c(l2, p4, "C4: Freedom of action", 1);
-  const inf1 = c(l3, p1, "C1: Narrative set", 1);
-  const inf2 = c(l3, p2, "C2: Partners aligned", 1);
-  const inf3 = c(l3, p3, "C3: Opposition isolated", 1);
-  const inf4 = c(l3, p4, "C4: Authority restored", 1);
+  const intel1 = c(
+    l1,
+    p1,
+    "C1: Picture established",
+    1,
+    "The situation is described well enough to decide.",
+  );
+  const intel2 = c(
+    l1,
+    p2,
+    "C2: Intent confirmed",
+    1,
+    "What must be achieved, and what must be avoided, is agreed.",
+  );
+  const intel3 = c(
+    l1,
+    p3,
+    "C3: Targets cued",
+    1,
+    "The next actions have a clear object and timing.",
+  );
+  const intel4 = c(
+    l1,
+    p4,
+    "C4: Pursuit enabled",
+    1,
+    "Follow-on action can be directed without starting from scratch.",
+  );
+  const man1 = c(
+    l2,
+    p1,
+    "C1: Forces postured",
+    1,
+    "People and means are where they can act when authorised.",
+  );
+  const man2 = c(
+    l2,
+    p2,
+    "C2: Access secured",
+    1,
+    "The force can get to the places it must operate.",
+  );
+  const man3 = c(
+    l2,
+    p3,
+    "C3: Foothold taken",
+    1,
+    "A position exists from which the rest of the action can proceed.",
+  );
+  const man4 = c(
+    l2,
+    p4,
+    "C4: Freedom of action",
+    1,
+    "The force can manoeuvre without being fixed.",
+  );
+  const inf1 = c(
+    l3,
+    p1,
+    "C1: Narrative set",
+    1,
+    "The story we need others to hear is in play.",
+  );
+  const inf2 = c(
+    l3,
+    p2,
+    "C2: Partners aligned",
+    1,
+    "Those we need with us share the same immediate purpose.",
+  );
+  const inf3 = c(
+    l3,
+    p3,
+    "C3: Opposition isolated",
+    1,
+    "The opposing story and its backers have less room.",
+  );
+  const inf4 = c(
+    l3,
+    p4,
+    "C4: Authority restored",
+    1,
+    "A legitimate authority can act in public and be recognised.",
+  );
 
   const dep = (from: DesignNode, to: DesignNode) => ({
     id: uid("dep"),
@@ -263,7 +480,8 @@ export function militaryTemplate(): OperationalDesign {
         afterPhaseId: p1,
         placement: "after",
         order: 0,
-        description: "",
+        description:
+          "Is the picture good enough to posture and warn, rather than wait?",
       },
       {
         id: uid("dp"),
@@ -271,7 +489,7 @@ export function militaryTemplate(): OperationalDesign {
         afterPhaseId: p2,
         placement: "after",
         order: 0,
-        description: "",
+        description: "Are access and intent sufficient to act?",
       },
       {
         id: uid("dp"),
@@ -279,7 +497,8 @@ export function militaryTemplate(): OperationalDesign {
         afterPhaseId: p3,
         placement: "after",
         order: 0,
-        description: "",
+        description:
+          "Has initiative been seized enough to press, or should we hand over?",
       },
     ],
     nodes: [

@@ -96,17 +96,18 @@ describe("LLM sample design", () => {
     expect(again.nodes).toHaveLength(SAMPLE_DESIGN.nodes.length);
   });
 
-  it("puts extra wording on campaign and stream end states, not on figures", () => {
+  it("puts extra wording on end states and in the detail list, not on figure labels", () => {
     expect(SAMPLE_DESIGN.endState.description.trim()).not.toBe("");
     for (const loe of SAMPLE_DESIGN.linesOfEffort) {
       expect(loe.endState.trim()).not.toBe("");
     }
     for (const n of SAMPLE_DESIGN.nodes) {
-      expect(n.description).toBe("");
+      expect(n.description.trim()).not.toBe("");
       expect(n.label.trim()).not.toBe("");
+      expect(n.label.includes(n.description)).toBe(false);
     }
     for (const dp of SAMPLE_DESIGN.decisionPoints) {
-      expect(dp.description).toBe("");
+      expect(dp.description.trim()).not.toBe("");
       expect(dp.label.trim()).not.toBe("");
     }
   });

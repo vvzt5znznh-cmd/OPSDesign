@@ -48,7 +48,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-discover",
       label: "M1: Problem framed",
-      description: "",
+      description:
+        "Patients cannot book without calling. That is the problem to fix.",
       order: 0,
     },
     {
@@ -57,7 +58,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-discover",
       label: "C1: Need is understood",
-      description: "",
+      description:
+        "The journeys that matter, and who they are for, are agreed.",
       order: 2,
     },
     {
@@ -66,7 +68,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-define",
       label: "M2: Options chosen",
-      description: "",
+      description:
+        "A preferred booking option is on the table. Discarded options are recorded.",
       order: 0,
     },
     {
@@ -75,7 +78,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-define",
       label: "C2: Solution is agreed",
-      description: "",
+      description: "The journey to build is named, scoped, and accepted.",
       order: 2,
     },
     {
@@ -84,7 +87,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-build",
       label: "M3: Beta released",
-      description: "",
+      description:
+        "A working booking path is in the hands of a limited set of clinics.",
       order: 0,
     },
     {
@@ -93,7 +97,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-service",
       phaseId: "ph-launch",
       label: "M4: Go-live",
-      description: "",
+      description:
+        "The new journey is the default path. Phone booking is no longer the way in.",
       order: 0,
     },
     {
@@ -102,7 +107,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-assurance",
       phaseId: "ph-discover",
       label: "C1: Risks are visible",
-      description: "",
+      description: "Owners, likelihood, and treatment sit on one list.",
       order: 0,
     },
     {
@@ -111,7 +116,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-assurance",
       phaseId: "ph-define",
       label: "C2: Funding is committed",
-      description: "",
+      description: "Money and people for build and run are allocated.",
       order: 0,
     },
     {
@@ -120,7 +125,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-assurance",
       phaseId: "ph-build",
       label: "M3: Tests passed",
-      description: "",
+      description:
+        "The agreed tests have been run. Residual defects are listed.",
       order: 0,
     },
     {
@@ -129,7 +135,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-assurance",
       phaseId: "ph-launch",
       label: "C3: Support is in place",
-      description: "",
+      description:
+        "Someone answers when booking breaks, in hours that match clinic demand.",
       order: 0,
     },
     {
@@ -138,7 +145,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-adoption",
       phaseId: "ph-discover",
       label: "C1: Clinics are engaged",
-      description: "",
+      description:
+        "Clinic leads are working with us, not waiting to be told.",
       order: 0,
     },
     {
@@ -147,7 +155,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-adoption",
       phaseId: "ph-build",
       label: "M3: Training delivered",
-      description: "",
+      description:
+        "The people who will run booking have practised the new path.",
       order: 0,
     },
     {
@@ -156,7 +165,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       loeId: "loe-adoption",
       phaseId: "ph-launch",
       label: "C2: Users are ready",
-      description: "",
+      description:
+        "Patients and clinic staff can complete the journey without a workaround.",
       order: 0,
     },
   ],
@@ -199,7 +209,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       afterPhaseId: "ph-discover",
       placement: "after",
       order: 0,
-      description: "",
+      description:
+        "Is the booking problem real enough to spend design time?",
     },
     {
       id: "dp-build",
@@ -207,7 +218,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       afterPhaseId: "ph-define",
       placement: "after",
       order: 0,
-      description: "",
+      description: "Is the journey agreed and funded, so build should start?",
     },
     {
       id: "dp-go-live",
@@ -215,7 +226,8 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       afterPhaseId: "ph-build",
       placement: "in",
       order: 1,
-      description: "",
+      description:
+        "Is booking reliable, support in place, and residual risk accepted?",
     },
   ],
   showLoeEndStates: true,
@@ -273,7 +285,7 @@ Root object:
 
 ## Rules
 1. Output **only** a single JSON object. No markdown, no commentary, no trailing text.
-2. Copy the field names and nesting of the sample exactly. Do not add fields. Do not omit required fields. Node and gate \`description\` is optional supporting prose ("" if none) — it is not drawn on the figures. Do not invent descriptions. \`endState.description\` is the campaign panel. Each workstream \`endState\` is that stream's outcome. \`showLoeEndStates\` is true to draw those as pills (usual); false hides the pills and runs the lines into the campaign panel. \`showDetail\` is true to show a list under the picture (usual is false). File → Export follows that toggle: PNG and SVG put the list under the picture; PowerPoint is one 16:9 slide for the picture, plus a second 16:9 slide if \`showDetail\` is true.
+2. Copy the field names and nesting of the sample exactly. Do not add fields. Do not omit required fields. Node and gate \`description\` is optional supporting prose for the list under the picture — not drawn on the figures. The sample includes descriptions so you can see the field; use "" when the source material has nothing extra, and do not invent annex copy. \`endState.description\` is the campaign panel. Each workstream \`endState\` is that stream's outcome. \`showLoeEndStates\` is true to draw those as pills (usual); false hides the pills and runs the lines into the campaign panel. \`showDetail\` is true to show a list under the picture (usual is false). File → Export follows that toggle: PNG and SVG put the list under the picture; PowerPoint is one 16:9 slide for the picture, plus a second 16:9 slide if \`showDetail\` is true.
 3. Every \`phaseId\`, \`loeId\`, \`afterPhaseId\`, \`fromId\`, and \`toId\` must match an id you defined.
 4. IDs must be unique strings. Prefer readable kebab-case: \`op-…\`, \`ph-…\`, \`loe-…\`, \`n-…\`, \`dp-…\`, \`dep-…\`.
 5. \`order\` is the left-to-right slot in that workstream+phase, starting at 0. A default phase has three slots (early, middle, late). Two things on the same stream in the same phase cannot share a slot: 0 then 1 then 2. A later slot widens the phase.

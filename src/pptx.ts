@@ -349,7 +349,7 @@ export function layoutDetailSlide(design: OperationalDesign): DetailSlideLayout 
     let cy = (purposeBox ? purposeBox.y + purposeBox.h : nameBox.y + nameBox.h) + 0.08;
     const textW = nameBox.w - 0.2;
     const groups = streamPhaseGroups(stream.nodes, design.phases.map((p) => p.name));
-    const phases: DetailSlideLayout["streams"][number]["phases"] = [];
+    const limitY = card.y + card.h - 0.12;
     if (stream.nodes.length === 0) {
       return {
         id: stream.id,
@@ -364,47 +364,65 @@ export function layoutDetailSlide(design: OperationalDesign): DetailSlideLayout 
         phases: [],
       };
     }
-    for (const group of groups) {
-      const heading: Box = {
-        x: nameBox.x,
-        y: cy,
-        w: nameBox.w,
-        h: 0.2,
-      };
-      cy += 0.2;
-      const items: DetailSlideLayout["streams"][number]["phases"][number]["items"] = [];
-      for (const node of group.nodes) {
-        const descLines = wrapInches(node.description, textW, 4);
-        const mark: Box = { x: nameBox.x, y: cy + 0.03, w: 0.14, h: 0.14 };
-        const label: Box = {
-          x: nameBox.x + 0.2,
-          y: cy,
-          w: textW,
-          h: 0.2,
+
+    const pack = (itemH: number, phaseH: number, descLine: number, gap: number) => {
+      let yCursor = cy;
+      const phases: DetailSlideLayout["streams"][number]["phases"] = [];
+      for (const group of groups) {
+        const heading: Box = {
+          x: nameBox.x,
+          y: yCursor,
+          w: nameBox.w,
+          h: phaseH,
         };
-        let desc: Box | null = null;
-        if (descLines.length) {
-          desc = {
-            x: label.x,
-            y: label.y + label.h,
-            w: textW,
-            h: descLines.length * 0.15,
+        yCursor += phaseH;
+        const items: DetailSlideLayout["streams"][number]["phases"][number]["items"] = [];
+        for (const node of group.nodes) {
+          const descLines = wrapInches(node.description, textW, 4);
+          const mark: Box = {
+            x: nameBox.x,
+            y: yCursor + 0.03,
+            w: 0.14,
+            h: 0.14,
           };
+          const label: Box = {
+            x: nameBox.x + 0.2,
+            y: yCursor,
+            w: textW,
+            h: Math.max(0.16, itemH - 0.02),
+          };
+          let desc: Box | null = null;
+          if (descLines.length) {
+            desc = {
+              x: label.x,
+              y: label.y + label.h,
+              w: textW,
+              h: descLines.length * descLine,
+            };
+          }
+          items.push({
+            id: node.id,
+            kind: node.kind,
+            text: node.label,
+            mark,
+            label,
+            desc,
+            descLines,
+          });
+          yCursor += itemH + (desc ? desc.h : 0);
         }
-        items.push({
-          id: node.id,
-          kind: node.kind,
-          text: node.label,
-          mark,
-          label,
-          desc,
-          descLines,
-        });
-        cy += 0.22 + (desc ? desc.h : 0);
+        phases.push({ name: group.name, heading, items });
+        yCursor += gap;
       }
-      phases.push({ name: group.name, heading, items });
-      cy += 0.06;
+      return { phases, endY: yCursor };
+    };
+
+    let packed = pack(0.22, 0.2, 0.15, 0.06);
+    if (packed.endY > limitY) {
+      const k = Math.max(0.7, (limitY - cy) / Math.max(packed.endY - cy, 0.01));
+      packed = pack(0.22 * k, 0.2 * k, 0.15 * k, 0.06 * k);
     }
+
     return {
       id: stream.id,
       name: stream.name,
@@ -415,7 +433,7 @@ export function layoutDetailSlide(design: OperationalDesign): DetailSlideLayout 
       nameBox,
       purposeBox,
       empty: null,
-      phases,
+      phases: packed.phases,
     };
   });
 

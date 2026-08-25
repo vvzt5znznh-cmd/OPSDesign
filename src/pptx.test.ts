@@ -165,6 +165,20 @@ describe("PowerPoint detail slide", () => {
       expect(stream.phases.length).toBeGreaterThan(0);
     }
     expect(laid.streams[0].phases[0].name).toBe("Discover");
+    expect(laid.gates[0].desc).toContain("design time");
+    for (const stream of laid.streams) {
+      expect(stream.phases.some((p) => p.items.some((i) => i.descLines.length))).toBe(
+        true,
+      );
+      for (const phase of stream.phases) {
+        for (const item of phase.items) {
+          const bottom = item.desc
+            ? item.desc.y + item.desc.h
+            : item.label.y + item.label.h;
+          expect(bottom).toBeLessThanOrEqual(stream.card.y + stream.card.h - 0.06);
+        }
+      }
+    }
   });
 
   it("uses figure marks instead of stacked unicode text", async () => {
@@ -179,6 +193,7 @@ describe("PowerPoint detail slide", () => {
     expect(detail).toContain('prst="triangle"');
     expect(detail).toContain('prst="diamond"');
     expect(detail).toContain("After Discover");
+    expect(detail).toContain("cannot finish an application");
     expect(detail).not.toContain("▲");
     expect(detail).not.toContain("◆");
   });
