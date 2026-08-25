@@ -41,41 +41,6 @@ function Field({
   );
 }
 
-function DetailToggle() {
-  const { design, dispatch } = useDesign();
-  const on = design.showDetail;
-  return (
-    <>
-      <p className="field-label">Detail figure</p>
-      <div
-        className="kind-toggle inspector-toggle"
-        role="group"
-        aria-label="Detail figure"
-      >
-        <button
-          type="button"
-          className={!on ? "on" : ""}
-          onClick={() => dispatch({ type: "setShowDetail", value: false })}
-        >
-          Off
-        </button>
-        <button
-          type="button"
-          className={on ? "on" : ""}
-          onClick={() => dispatch({ type: "setShowDetail", value: true })}
-        >
-          On
-        </button>
-      </div>
-      <p className="muted">
-        {on
-          ? "A list under the picture: gates, then each workstream. Turn off if you do not want descriptions."
-          : "Hidden. Typed descriptions are kept. Turn on to list milestones, conditions, and gates under the picture."}
-      </p>
-    </>
-  );
-}
-
 function LoeEndStatesToggle() {
   const { design, dispatch } = useDesign();
   const on = design.showLoeEndStates;
@@ -148,7 +113,6 @@ export function Inspector() {
             }
           />
         </Field>
-        <DetailToggle />
       </aside>
     );
   }
@@ -422,7 +386,6 @@ export function Inspector() {
             }
           />
         </Field>
-        <DetailToggle />
         {design.showDetail && (
           <Field label="Description">
             <textarea
@@ -599,7 +562,6 @@ export function Inspector() {
             }
           />
         </Field>
-        <DetailToggle />
         {design.showDetail && (
           <Field label="Description">
             <textarea

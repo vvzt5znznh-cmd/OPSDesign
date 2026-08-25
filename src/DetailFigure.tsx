@@ -29,6 +29,32 @@ function GateMark() {
   );
 }
 
+export function DetailFigureToggle() {
+  const { design, dispatch } = useDesign();
+  const on = design.showDetail;
+  return (
+    <div className="detail-toggle hide-present">
+      <span className="detail-toggle-label">Detail figure</span>
+      <div className="kind-toggle" role="group" aria-label="Detail figure">
+        <button
+          type="button"
+          className={!on ? "on" : ""}
+          onClick={() => dispatch({ type: "setShowDetail", value: false })}
+        >
+          Off
+        </button>
+        <button
+          type="button"
+          className={on ? "on" : ""}
+          onClick={() => dispatch({ type: "setShowDetail", value: true })}
+        >
+          On
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function DetailFigure() {
   const { design, selection, setSelection } = useDesign();
   const model = detailFigureModel(design);

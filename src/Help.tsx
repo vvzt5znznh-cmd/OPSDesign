@@ -83,8 +83,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           right of its line. Campaign end-state name and the conditions that
           must hold sit on the panel. A second figure under the picture can list
           gates and each workstream's milestones and conditions, with optional
-          descriptions. Off/On is in the Project inspector (click the title),
-          or on a milestone, condition, or gate.
+          descriptions. Off/On sits under the left of the picture.
         </p>
         <p className="help-how">
           The picture stays in this browser when you leave. Undo/Redo cover this

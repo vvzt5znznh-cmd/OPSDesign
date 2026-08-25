@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { DetailFigure } from "./DetailFigure";
+import { DetailFigure, DetailFigureToggle } from "./DetailFigure";
 import { Diagram } from "./Diagram";
 import { HelpModal } from "./Help";
 import { Inspector } from "./Inspector";
@@ -51,6 +51,7 @@ function Editor() {
           <div className="canvas-scroll">
             <div className="figures">
               <Diagram svgRef={svgRef} />
+              <DetailFigureToggle />
               {design.showDetail && <DetailFigure />}
             </div>
           </div>
