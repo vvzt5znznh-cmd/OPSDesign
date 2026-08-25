@@ -79,7 +79,7 @@ function itemBlock(
     parts.push(t(x + 18, iy, meta, { size: 11, fill: palette.purpose }));
   }
   if (desc) {
-    const lines = wrapToWidth(desc, textW, DESC_PX, 8);
+    const lines = wrapToWidth(desc, textW, DESC_PX, 10_000);
     for (const line of lines) {
       iy += 15;
       parts.push(t(x + 18, iy, line, { size: 12, fill: palette.label }));

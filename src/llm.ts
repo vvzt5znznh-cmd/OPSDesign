@@ -49,7 +49,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       phaseId: "ph-discover",
       label: "M1: Problem framed",
       description:
-        "Patients cannot book without calling. That is the problem to fix.",
+        "Patients cannot book without calling. Call volumes and drop-off on the public form are the evidence; the problem is the journey, not the switchboard. Until this is accepted, later options will argue different problems.",
       order: 0,
     },
     {
@@ -98,7 +98,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       phaseId: "ph-launch",
       label: "M4: Go-live",
       description:
-        "The new journey is the default path. Phone booking is no longer the way in.",
+        "The new journey is the default path. Phone booking is no longer the way in, except for cases the new path cannot yet take, which are named in advance. Clinics have already heard; go-live is not the first time they hear.",
       order: 0,
     },
     {
@@ -227,7 +227,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       placement: "in",
       order: 1,
       description:
-        "Is booking reliable, support in place, and residual risk accepted?",
+        "Is booking reliable, support in place, and residual risk accepted by the person who will own it on Monday morning? This is permission to make online booking the default and close the old path, not a ceremony for finishing the build.",
     },
   ],
   showLoeEndStates: true,

@@ -391,7 +391,7 @@ export function layoutDetailSlides(
         (slot.purposeBox
           ? slot.purposeBox.y + slot.purposeBox.h
           : slot.nameBox.y + slot.nameBox.h) + 0.08;
-      const avail = slot.card.y + slot.card.h - 0.12 - startY;
+      const avail = slot.card.y + slot.card.h - 0.22 - startY;
       if (model.streams[i].nodes.length === 0 && !streamsStarted) {
         slot.empty = {
           x: slot.nameBox.x,

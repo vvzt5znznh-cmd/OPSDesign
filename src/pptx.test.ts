@@ -168,6 +168,21 @@ describe("PowerPoint detail slide", () => {
     }
     expect(laid.streams[0].phases[0].name).toBe("Discover");
     expect(laid.gates[0].desc).toContain("design time");
+    const allCopy = layoutDetailSlides({
+      ...projectTemplate(),
+      showDetail: true,
+    })
+      .flatMap((page) => [
+        ...page.gates.map((g) => g.desc),
+        ...page.streams.flatMap((stream) =>
+          stream.phases.flatMap((phase) =>
+            phase.items.flatMap((item) => item.descLines),
+          ),
+        ),
+      ])
+      .join(" ");
+    expect(allCopy).toContain("rollback that has been walked through");
+    expect(allCopy).toContain("Monday morning");
     for (const stream of laid.streams) {
       expect(stream.phases.some((p) => p.items.some((i) => i.descLines.length))).toBe(
         true,
@@ -234,9 +249,7 @@ describe("PowerPoint detail slide", () => {
             const bottom = item.desc
               ? item.desc.y + item.desc.h
               : item.label.y + item.label.h;
-            expect(bottom).toBeLessThanOrEqual(
-              stream.card.y + stream.card.h - 0.04,
-            );
+            expect(bottom).toBeLessThanOrEqual(stream.card.y + stream.card.h);
           }
         }
       }
