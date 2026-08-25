@@ -223,7 +223,229 @@ type PptxSlide = {
     text: string | Array<{ text: string; options?: object }>,
     opts?: object,
   ) => unknown;
+  addShape: (type: string, opts: object) => unknown;
 };
+
+type Box = { x: number; y: number; w: number; h: number };
+
+export type DetailSlideLayout = {
+  title: Box;
+  subtitle: Box;
+  gatesHeading: Box | null;
+  gates: Array<Box & { id: string; label: string; meta: string; desc: string }>;
+  streams: Array<{
+    id: string;
+    name: string;
+    color: string;
+    purpose: string;
+    card: Box;
+    bar: Box;
+    nameBox: Box;
+    purposeBox: Box | null;
+    empty: Box | null;
+    phases: Array<{
+      name: string;
+      heading: Box;
+      items: Array<{
+        id: string;
+        kind: NodeKind;
+        text: string;
+        mark: Box;
+        label: Box;
+        desc: Box | null;
+        descLines: string[];
+      }>;
+    }>;
+  }>;
+};
+
+function wrapInches(text: string, widthIn: number, maxLines: number): string[] {
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+  const chars = Math.max(10, Math.floor(widthIn / 0.072));
+  return wrapLabel(trimmed, chars, maxLines);
+}
+
+function streamPhaseGroups(
+  nodes: Array<{ id: string; kind: NodeKind; label: string; description: string; phaseName: string }>,
+  phaseNames: string[],
+) {
+  const by = new Map<string, typeof nodes>();
+  for (const n of nodes) {
+    const key = n.phaseName || "";
+    const list = by.get(key) ?? [];
+    list.push(n);
+    by.set(key, list);
+  }
+  const groups: Array<{ name: string; nodes: typeof nodes }> = [];
+  for (const name of phaseNames) {
+    const list = by.get(name);
+    if (list?.length) {
+      groups.push({ name, nodes: list });
+      by.delete(name);
+    }
+  }
+  for (const [name, list] of by) {
+    if (list.length) groups.push({ name, nodes: list });
+  }
+  return groups;
+}
+
+/** Positions for the 16:9 detail slide — gates in a row, workstreams as equal cards. */
+export function layoutDetailSlide(design: OperationalDesign): DetailSlideLayout {
+  const m = 0.38;
+  const innerW = PPTX_SLIDE.width - m * 2;
+  const bottom = PPTX_SLIDE.height - m;
+  const model = detailFigureModel(design);
+  const nCols = Math.max(1, model.streams.length);
+  const gap = 0.18;
+  const colW = (innerW - gap * (nCols - 1)) / nCols;
+  const colX = (i: number) => m + (i % nCols) * (colW + gap);
+
+  const title: Box = { x: m, y: m, w: innerW, h: 0.32 };
+  const subtitle: Box = { x: m, y: m + 0.3, w: innerW, h: 0.22 };
+  let y = m + 0.58;
+
+  let gatesHeading: Box | null = null;
+  const gates: DetailSlideLayout["gates"] = [];
+  if (model.gates.length) {
+    gatesHeading = { x: m, y, w: innerW, h: 0.2 };
+    y += 0.22;
+    const pad = 0.12;
+    const textW = colW - pad * 2 - 0.22;
+    let rowY = y;
+    let rowH = 0;
+    model.gates.forEach((g, i) => {
+      const col = i % nCols;
+      if (col === 0 && i > 0) {
+        y += rowH + 0.1;
+        rowY = y;
+        rowH = 0;
+      }
+      const meta = `${g.placement === "in" ? "In" : "After"} ${g.phaseName}`.trim();
+      const desc = g.description.trim();
+      const descLines = wrapInches(desc, textW, 3);
+      const h =
+        pad +
+        0.2 +
+        (meta ? 0.16 : 0) +
+        descLines.length * 0.15 +
+        pad;
+      gates.push({
+        id: g.id,
+        label: g.label,
+        meta,
+        desc,
+        x: colX(i),
+        y: rowY,
+        w: colW,
+        h,
+      });
+      rowH = Math.max(rowH, h);
+    });
+    y += rowH + 0.16;
+  }
+
+  const cardH = Math.max(1.4, bottom - y);
+  const streams: DetailSlideLayout["streams"] = model.streams.map((stream, i) => {
+    const card: Box = { x: colX(i), y, w: colW, h: cardH };
+    const pad = 0.16;
+    const bar: Box = {
+      x: card.x + 0.05,
+      y: card.y + 0.12,
+      w: 0.07,
+      h: card.h - 0.24,
+    };
+    const nameBox: Box = {
+      x: card.x + pad + 0.08,
+      y: card.y + 0.12,
+      w: card.w - pad * 2 - 0.08,
+      h: 0.24,
+    };
+    const purposeLines = wrapInches(stream.purpose, nameBox.w, 2);
+    const purposeBox = purposeLines.length
+      ? {
+          x: nameBox.x,
+          y: nameBox.y + nameBox.h,
+          w: nameBox.w,
+          h: 0.16 * purposeLines.length + 0.04,
+        }
+      : null;
+    let cy = (purposeBox ? purposeBox.y + purposeBox.h : nameBox.y + nameBox.h) + 0.08;
+    const textW = nameBox.w - 0.2;
+    const groups = streamPhaseGroups(stream.nodes, design.phases.map((p) => p.name));
+    const phases: DetailSlideLayout["streams"][number]["phases"] = [];
+    if (stream.nodes.length === 0) {
+      return {
+        id: stream.id,
+        name: stream.name,
+        color: stream.color,
+        purpose: stream.purpose.trim(),
+        card,
+        bar,
+        nameBox,
+        purposeBox,
+        empty: { x: nameBox.x, y: cy, w: nameBox.w, h: 0.22 },
+        phases: [],
+      };
+    }
+    for (const group of groups) {
+      const heading: Box = {
+        x: nameBox.x,
+        y: cy,
+        w: nameBox.w,
+        h: 0.2,
+      };
+      cy += 0.2;
+      const items: DetailSlideLayout["streams"][number]["phases"][number]["items"] = [];
+      for (const node of group.nodes) {
+        const descLines = wrapInches(node.description, textW, 4);
+        const mark: Box = { x: nameBox.x, y: cy + 0.03, w: 0.14, h: 0.14 };
+        const label: Box = {
+          x: nameBox.x + 0.2,
+          y: cy,
+          w: textW,
+          h: 0.2,
+        };
+        let desc: Box | null = null;
+        if (descLines.length) {
+          desc = {
+            x: label.x,
+            y: label.y + label.h,
+            w: textW,
+            h: descLines.length * 0.15,
+          };
+        }
+        items.push({
+          id: node.id,
+          kind: node.kind,
+          text: node.label,
+          mark,
+          label,
+          desc,
+          descLines,
+        });
+        cy += 0.22 + (desc ? desc.h : 0);
+      }
+      phases.push({ name: group.name, heading, items });
+      cy += 0.06;
+    }
+    return {
+      id: stream.id,
+      name: stream.name,
+      color: stream.color,
+      purpose: stream.purpose.trim(),
+      card,
+      bar,
+      nameBox,
+      purposeBox,
+      empty: null,
+      phases,
+    };
+  });
+
+  return { title, subtitle, gatesHeading, gates, streams };
+}
 
 function addDetailSlide(
   pptx: { addSlide: () => PptxSlide },
@@ -232,187 +454,168 @@ function addDetailSlide(
 ) {
   const slide = pptx.addSlide();
   slide.background = { color: hex(palette.bg) };
-  const m = PPTX_SLIDE.margin;
-  const innerW = PPTX_SLIDE.width - m * 2;
-  const model = detailFigureModel(design);
+  const laid = layoutDetailSlide(design);
+  const noLine = { color: hex(palette.bg), transparency: 100 };
+  const paper = hex(palette.phaseA);
+  const ink = hex(palette.label);
+  const muted = hex(palette.purpose);
 
-  slide.addText(design.title.trim() || "Detail", {
-    x: m,
-    y: m,
-    w: innerW,
-    h: 0.3,
-    fontFace: FONT,
-    fontSize: 16,
-    bold: true,
-    color: hex(palette.title),
-    margin: 0,
-    valign: "middle",
-  });
-  slide.addText("Gates, milestones, and conditions", {
-    x: m,
-    y: m + 0.28,
-    w: innerW,
-    h: 0.24,
-    fontFace: FONT,
-    fontSize: 11,
-    color: hex(palette.purpose),
-    margin: 0,
-    valign: "middle",
-  });
-
-  let y = m + 0.56;
-  if (model.gates.length) {
-    slide.addText("Gates", {
-      x: m,
-      y,
-      w: innerW,
-      h: 0.22,
+  function label(
+    value: string,
+    box: Box,
+    opts: {
+      size: number;
+      color: string;
+      bold?: boolean;
+      valign?: "top" | "middle";
+    },
+  ) {
+    slide.addText(value, {
+      x: box.x,
+      y: box.y,
+      w: box.w,
+      h: box.h,
       fontFace: FONT,
-      fontSize: 12,
-      bold: true,
-      color: hex(palette.phase),
+      fontSize: opts.size,
+      color: opts.color,
+      bold: opts.bold ?? false,
       margin: 0,
+      valign: opts.valign ?? "middle",
+      wrap: true,
     });
-    y += 0.22;
-    const gateRuns = model.gates.flatMap((g, i) => {
-      const where = g.placement === "in" ? "in" : "after";
-      const head = `★  ${g.label}${g.phaseName ? `  (${where} ${g.phaseName})` : ""}`;
-      const runs: Array<{ text: string; options: Record<string, unknown> }> = [
-        {
-          text: head,
-          options: {
-            fontFace: FONT,
-            fontSize: 11,
-            bold: true,
-            color: hex(palette.label),
-            breakLine: true,
-          },
-        },
-      ];
-      if (g.description.trim()) {
-        runs.push({
-          text: g.description.trim(),
-          options: {
-            fontFace: FONT,
-            fontSize: 10,
-            color: hex(palette.purpose),
-            breakLine: true,
-          },
-        });
-      }
-      if (i < model.gates.length - 1) {
-        runs.push({
-          text: "",
-          options: { breakLine: true },
-        });
-      }
-      return runs;
-    });
-    const gateH = Math.min(
-      1.6,
-      0.2 * model.gates.length +
-        0.16 * model.gates.filter((g) => g.description.trim()).length +
-        0.08,
-    );
-    slide.addText(gateRuns, {
-      x: m,
-      y,
-      w: innerW,
-      h: gateH,
-      valign: "top",
-      margin: 0,
-    });
-    y += gateH + 0.14;
   }
 
-  const n = Math.max(1, model.streams.length);
-  const gap = 0.16;
-  const colW = (innerW - gap * (n - 1)) / n;
-  const colH = Math.max(1.2, PPTX_SLIDE.height - m - y);
-  model.streams.forEach((stream, i) => {
-    const x = m + i * (colW + gap);
-    const runs: Array<{ text: string; options: Record<string, unknown> }> = [
-      {
-        text: stream.name,
-        options: {
-          fontFace: FONT,
-          fontSize: 13,
-          bold: true,
-          color: hex(stream.color),
-          breakLine: true,
-        },
-      },
-    ];
-    if (stream.purpose.trim()) {
-      runs.push({
-        text: stream.purpose.trim(),
-        options: {
-          fontFace: FONT,
-          fontSize: 10,
-          color: hex(palette.purpose),
-          breakLine: true,
-        },
-      });
-    }
-    if (stream.nodes.length === 0) {
-      runs.push({
-        text: "No milestones or conditions.",
-        options: {
-          fontFace: FONT,
-          fontSize: 10,
-          color: hex(palette.purpose),
-          breakLine: true,
-        },
-      });
-    }
-    for (const node of stream.nodes) {
-      const mark = node.kind === "milestone" ? "▲" : "◆";
-      runs.push({
-        text: "",
-        options: { breakLine: true },
-      });
-      runs.push({
-        text: `${mark}  ${node.label}`,
-        options: {
-          fontFace: FONT,
-          fontSize: 11,
-          bold: true,
-          color: hex(palette.label),
-          breakLine: true,
-        },
-      });
-      if (node.phaseName) {
-        runs.push({
-          text: node.phaseName,
-          options: {
-            fontFace: FONT,
-            fontSize: 9,
-            color: hex(palette.purpose),
-            breakLine: true,
-          },
-        });
-      }
-      if (node.description.trim()) {
-        runs.push({
-          text: node.description.trim(),
-          options: {
-            fontFace: FONT,
-            fontSize: 10,
-            color: hex(palette.label),
-            breakLine: true,
-          },
-        });
-      }
-    }
-    slide.addText(runs, {
-      x,
-      y,
-      w: colW,
-      h: colH,
-      valign: "top",
-      margin: 0,
-    });
+  label(design.title.trim() || "Detail", laid.title, {
+    size: 18,
+    color: hex(palette.title),
+    bold: true,
   });
+  label("Gates, milestones, and conditions", laid.subtitle, {
+    size: 11,
+    color: muted,
+  });
+
+  if (laid.gatesHeading) {
+    label("Gates", laid.gatesHeading, {
+      size: 11,
+      color: hex(palette.phase),
+      bold: true,
+    });
+  }
+
+  for (const g of laid.gates) {
+    slide.addShape("roundRect", {
+      x: g.x,
+      y: g.y,
+      w: g.w,
+      h: g.h,
+      fill: { color: paper },
+      line: noLine,
+      rectRadius: 0.06,
+    });
+    const pad = 0.12;
+    slide.addShape("star5", {
+      x: g.x + pad,
+      y: g.y + pad + 0.02,
+      w: 0.16,
+      h: 0.16,
+      fill: { color: hex(GATE) },
+      line: { color: hex(GATE_LINE), width: 0.6 },
+    });
+    label(g.label, {
+      x: g.x + pad + 0.22,
+      y: g.y + pad,
+      w: g.w - pad * 2 - 0.22,
+      h: 0.2,
+    }, { size: 12, color: ink, bold: true });
+    if (g.meta) {
+      label(g.meta, {
+        x: g.x + pad + 0.22,
+        y: g.y + pad + 0.18,
+        w: g.w - pad * 2 - 0.22,
+        h: 0.16,
+      }, { size: 10, color: muted });
+    }
+    if (g.desc) {
+      label(g.desc, {
+        x: g.x + pad + 0.22,
+        y: g.y + pad + 0.34,
+        w: g.w - pad * 2 - 0.22,
+        h: g.h - pad * 2 - 0.34,
+      }, { size: 10, color: ink, valign: "top" });
+    }
+  }
+
+  for (const stream of laid.streams) {
+    slide.addShape("roundRect", {
+      x: stream.card.x,
+      y: stream.card.y,
+      w: stream.card.w,
+      h: stream.card.h,
+      fill: { color: paper },
+      line: noLine,
+      rectRadius: 0.06,
+    });
+    slide.addShape("rect", {
+      x: stream.bar.x,
+      y: stream.bar.y,
+      w: stream.bar.w,
+      h: stream.bar.h,
+      fill: { color: hex(stream.color) },
+      line: noLine,
+    });
+    label(stream.name, stream.nameBox, {
+      size: 14,
+      color: hex(stream.color),
+      bold: true,
+    });
+    if (stream.purposeBox && stream.purpose) {
+      label(stream.purpose, stream.purposeBox, {
+        size: 10,
+        color: muted,
+        valign: "top",
+      });
+    }
+    if (stream.empty) {
+      label("No milestones or conditions.", stream.empty, {
+        size: 10,
+        color: muted,
+      });
+    }
+    for (const phase of stream.phases) {
+      if (phase.name) {
+        label(phase.name.toUpperCase(), phase.heading, {
+          size: 9,
+          color: muted,
+          bold: true,
+        });
+      }
+      for (const item of phase.items) {
+        slide.addShape(item.kind === "milestone" ? "triangle" : "diamond", {
+          x: item.mark.x,
+          y: item.mark.y,
+          w: item.mark.w,
+          h: item.mark.h,
+          fill: {
+            color: hex(item.kind === "milestone" ? MILESTONE_FILL : CONDITION_FILL),
+          },
+          line: noLine,
+        });
+        label(item.text, item.label, {
+          size: 11,
+          color: ink,
+          bold: true,
+        });
+        if (item.desc && item.descLines.length) {
+          label(item.descLines.join("\n"), item.desc, {
+            size: 10,
+            color: ink,
+            valign: "top",
+          });
+        }
+      }
+    }
+  }
 }
 
 export async function buildPptxArrayBuffer(

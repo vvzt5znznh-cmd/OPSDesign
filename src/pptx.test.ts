@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
-import { connectionSites, glueConnectors, buildPptxArrayBuffer, PPTX_SLIDE, pptxFitScale, pptxFontPt } from "./pptx";
+import { connectionSites, glueConnectors, buildPptxArrayBuffer, PPTX_SLIDE, pptxFitScale, pptxFontPt, layoutDetailSlide } from "./pptx";
 import { projectTemplate } from "./templates";
 import { DIAGRAM_PALETTES } from "./theme";
 import { layoutDiagram } from "./layout";
@@ -152,5 +152,34 @@ describe("PowerPoint detail slide", () => {
     const cx = Number(pres.match(/sldSz[^>]*cx="(\d+)"/)?.[1]);
     const cy = Number(pres.match(/sldSz[^>]*cy="(\d+)"/)?.[1]);
     expect(cx / cy).toBeCloseTo(16 / 9, 2);
+  });
+
+  it("keeps workstream cards below the gates and lays gates in a row", () => {
+    const laid = layoutDetailSlide({ ...projectTemplate(), showDetail: true });
+    expect(laid.gates).toHaveLength(3);
+    expect(laid.gates[1].x).toBeGreaterThan(laid.gates[0].x);
+    expect(Math.abs(laid.gates[1].y - laid.gates[0].y)).toBeLessThan(0.02);
+    const gateBottom = Math.max(...laid.gates.map((g) => g.y + g.h));
+    for (const stream of laid.streams) {
+      expect(stream.card.y).toBeGreaterThan(gateBottom + 0.08);
+      expect(stream.phases.length).toBeGreaterThan(0);
+    }
+    expect(laid.streams[0].phases[0].name).toBe("Discover");
+  });
+
+  it("uses figure marks instead of stacked unicode text", async () => {
+    const design = { ...projectTemplate(), showDetail: true };
+    const buf = await buildPptxArrayBuffer(design, DIAGRAM_PALETTES.light);
+    const zip = await JSZip.loadAsync(buf);
+    const slides = Object.keys(zip.files)
+      .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
+      .sort();
+    const detail = await zip.file(slides[1])!.async("string");
+    expect(detail).toContain('prst="star5"');
+    expect(detail).toContain('prst="triangle"');
+    expect(detail).toContain('prst="diamond"');
+    expect(detail).toContain("After Discover");
+    expect(detail).not.toContain("▲");
+    expect(detail).not.toContain("◆");
   });
 });
