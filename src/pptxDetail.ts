@@ -13,10 +13,21 @@ const GATE = "#2E7D32";
 const GATE_LINE = "#1B5E20";
 /** Keep in step with PPTX_SLIDE in pptx.ts. */
 const SLIDE = { width: 13.333, height: 7.5 } as const;
-const PHASE_H = 0.2;
-const ITEM_LABEL_H = 0.22;
-const DESC_LINE_H = 0.16;
-const MIN_STREAM_H = 1.7;
+const PHASE_H = 0.22;
+const NAME_LINE_H = 0.22;
+const LABEL_LINE_H = 0.2;
+const DESC_LINE_H = 0.18;
+const META_LINE_H = 0.17;
+const ITEM_GAP = 0.06;
+const CARD_BOTTOM_PAD = 0.18;
+/** Inches per character — slightly wide so we over-estimate wrap, never under. */
+const CHAR = {
+  name: 0.1,
+  label: 0.09,
+  desc: 0.082,
+} as const;
+/** Minimum body under the stream header for at least one stacked item. */
+const MIN_ITEM_BODY = 1.15;
 
 type PptxSlide = {
   background?: { color?: string };
@@ -34,7 +45,17 @@ export type DetailSlideLayout = {
   title: Box;
   subtitle: Box;
   gatesHeading: Box | null;
-  gates: Array<Box & { id: string; label: string; meta: string; desc: string }>;
+  gates: Array<
+    Box & {
+      id: string;
+      label: string;
+      meta: string;
+      desc: string;
+      labelBox: Box;
+      metaBox: Box | null;
+      descBox: Box | null;
+    }
+  >;
   streams: Array<{
     id: string;
     name: string;
@@ -55,6 +76,7 @@ export type DetailSlideLayout = {
         mark: Box;
         label: Box;
         desc: Box | null;
+        labelLines: string[];
         descLines: string[];
       }>;
     }>;
@@ -80,10 +102,14 @@ function hex(css: string): string {
   ).toUpperCase();
 }
 
-function wrapInches(text: string, widthIn: number): string[] {
+function wrapInches(
+  text: string,
+  widthIn: number,
+  charIn: number = CHAR.desc,
+): string[] {
   const trimmed = text.trim();
   if (!trimmed) return [];
-  const chars = Math.max(10, Math.floor(widthIn / 0.072));
+  const chars = Math.max(8, Math.floor(widthIn / charIn));
   return wrapLabel(trimmed, chars, 10_000).filter(Boolean);
 }
 
@@ -94,12 +120,16 @@ type StreamUnit =
       id: string;
       nodeKind: NodeKind;
       text: string;
+      labelLines: string[];
       descLines: string[];
+      labelH: number;
       h: number;
     };
 
-function itemHeight(descLines: string[]): number {
-  return ITEM_LABEL_H + descLines.length * DESC_LINE_H;
+type ItemUnit = Extract<StreamUnit, { kind: "item" }>;
+
+function itemHeight(labelH: number, descLines: string[]): number {
+  return labelH + descLines.length * DESC_LINE_H + ITEM_GAP;
 }
 
 function streamUnits(
@@ -119,14 +149,18 @@ function streamUnits(
   for (const group of streamPhaseGroups(stream.nodes, phaseNames)) {
     if (group.name) units.push({ kind: "phase", name: group.name, h: PHASE_H });
     for (const node of group.nodes) {
-      const descLines = wrapInches(node.description, textW);
+      const labelLines = wrapInches(node.label, textW, CHAR.label);
+      const descLines = wrapInches(node.description, textW, CHAR.desc);
+      const labelH = Math.max(LABEL_LINE_H, labelLines.length * LABEL_LINE_H);
       units.push({
         kind: "item",
         id: node.id,
         nodeKind: node.kind,
         text: node.label,
+        labelLines,
         descLines,
-        h: itemHeight(descLines),
+        labelH,
+        h: itemHeight(labelH, descLines),
       });
     }
   }
@@ -134,17 +168,21 @@ function streamUnits(
 }
 
 function splitItem(
-  unit: Extract<StreamUnit, { kind: "item" }>,
+  unit: ItemUnit,
   maxH: number,
-): { head: StreamUnit; tail: StreamUnit | null } {
+): { head: ItemUnit; tail: ItemUnit | null } {
+  const minHead = itemHeight(unit.labelH, []);
   if (unit.h <= maxH) return { head: unit, tail: null };
-  const maxLines = Math.max(0, Math.floor((maxH - ITEM_LABEL_H) / DESC_LINE_H));
+  const maxLines = Math.max(
+    0,
+    Math.floor((Math.max(maxH, minHead) - unit.labelH - ITEM_GAP) / DESC_LINE_H),
+  );
   const headLines = unit.descLines.slice(0, maxLines);
   const tailLines = unit.descLines.slice(maxLines);
   return {
-    head: { ...unit, descLines: headLines, h: itemHeight(headLines) },
+    head: { ...unit, descLines: headLines, h: itemHeight(unit.labelH, headLines) },
     tail: tailLines.length
-      ? { ...unit, descLines: tailLines, h: itemHeight(tailLines) }
+      ? { ...unit, descLines: tailLines, h: itemHeight(unit.labelH, tailLines) }
       : null,
   };
 }
@@ -153,30 +191,52 @@ function takeUnits(
   units: StreamUnit[],
   maxH: number,
 ): { taken: StreamUnit[]; rest: StreamUnit[] } {
+  if (units.length === 0) return { taken: [], rest: [] };
   const taken: StreamUnit[] = [];
   let used = 0;
-  for (let i = 0; i < units.length; i++) {
+  let i = 0;
+
+  const splitAt = (item: ItemUnit, space: number, after: StreamUnit[]) => {
+    const { head, tail } = splitItem(item, Math.max(space, item.labelH + ITEM_GAP));
+    taken.push(head);
+    return { taken, rest: tail ? [tail, ...after] : after };
+  };
+
+  for (; i < units.length; i++) {
     const unit = units[i];
     if (used + unit.h <= maxH + 1e-6) {
       taken.push(unit);
       used += unit.h;
       continue;
     }
-    if (taken.length === 0 && unit.kind === "item") {
-      const { head, tail } = splitItem(unit, Math.max(maxH, ITEM_LABEL_H));
-      taken.push(head);
-      return {
-        taken,
-        rest: tail ? [tail, ...units.slice(i + 1)] : units.slice(i + 1),
-      };
+    if (unit.kind === "item") {
+      const space = maxH - used;
+      if (taken.length === 0 || space >= unit.labelH + DESC_LINE_H) {
+        return splitAt(unit, space, units.slice(i + 1));
+      }
+      break;
     }
-    if (taken.length === 0) {
-      taken.push(unit);
-      return { taken, rest: units.slice(i + 1) };
-    }
-    return { taken, rest: units.slice(i) };
+    break;
   }
-  return { taken, rest: [] };
+
+  while (taken.length && taken[taken.length - 1].kind === "phase") {
+    taken.pop();
+    i -= 1;
+  }
+
+  if (taken.length === 0) {
+    const first = units[0];
+    if (first.kind === "item") {
+      return splitAt(first, maxH, units.slice(1));
+    }
+    if (first.kind === "phase" && units[1]?.kind === "item") {
+      taken.push(first);
+      return splitAt(units[1], maxH - first.h, units.slice(2));
+    }
+    return { taken: [first], rest: units.slice(1) };
+  }
+
+  return { taken, rest: units.slice(taken.length) };
 }
 
 function phasesFromUnits(
@@ -190,7 +250,11 @@ function phasesFromUnits(
     null;
   const open = (name: string) => {
     const heading: Box = { x: nameBox.x, y: cy, w: nameBox.w, h: PHASE_H };
-    const next = { name, heading, items: [] as DetailSlideLayout["streams"][number]["phases"][number]["items"] };
+    const next = {
+      name,
+      heading,
+      items: [] as DetailSlideLayout["streams"][number]["phases"][number]["items"],
+    };
     phases.push(next);
     cy += PHASE_H;
     current = next;
@@ -207,7 +271,7 @@ function phasesFromUnits(
       x: nameBox.x + 0.2,
       y: cy,
       w: nameBox.w - 0.2,
-      h: ITEM_LABEL_H - 0.02,
+      h: unit.labelH,
     };
     let desc: Box | null = null;
     if (unit.descLines.length) {
@@ -225,6 +289,7 @@ function phasesFromUnits(
       mark,
       label,
       desc,
+      labelLines: unit.labelLines,
       descLines: unit.descLines,
     });
     cy += unit.h;
@@ -237,8 +302,46 @@ type GateDraft = {
   label: string;
   meta: string;
   desc: string;
+  labelLines: string[];
+  metaLines: string[];
+  descLines: string[];
   h: number;
 };
+
+type PlacedGate = DetailSlideLayout["gates"][number];
+
+function gateInner(
+  card: Box,
+  draft: Pick<
+    GateDraft,
+    "label" | "meta" | "desc" | "labelLines" | "metaLines" | "descLines"
+  >,
+): Pick<PlacedGate, "labelBox" | "metaBox" | "descBox"> {
+  const gpad = 0.12;
+  const textX = card.x + gpad + 0.22;
+  const textW = Math.max(0.4, card.w - gpad * 2 - 0.22);
+  let y = card.y + gpad;
+  const labelBox: Box = {
+    x: textX,
+    y,
+    w: textW,
+    h: Math.max(LABEL_LINE_H, draft.labelLines.length * LABEL_LINE_H),
+  };
+  y += labelBox.h + 0.02;
+  const metaBox: Box | null = draft.metaLines.length
+    ? {
+        x: textX,
+        y,
+        w: textW,
+        h: draft.metaLines.length * META_LINE_H,
+      }
+    : null;
+  if (metaBox) y += metaBox.h;
+  const descBox: Box | null = draft.descLines.length
+    ? { x: textX, y, w: textW, h: draft.descLines.length * DESC_LINE_H }
+    : null;
+  return { labelBox, metaBox, descBox };
+}
 
 function placeGates(
   drafts: GateDraft[],
@@ -246,9 +349,8 @@ function placeGates(
   colW: number,
   startY: number,
   nCols: number,
-): Array<Box & { id: string; label: string; meta: string; desc: string }> {
-  const placed: Array<Box & { id: string; label: string; meta: string; desc: string }> =
-    [];
+): PlacedGate[] {
+  const placed: PlacedGate[] = [];
   let y = startY;
   let rowH = 0;
   drafts.forEach((g, i) => {
@@ -257,19 +359,18 @@ function placeGates(
       y += rowH + 0.1;
       rowH = 0;
     }
+    const card: Box = { x: colX(i), y, w: colW, h: g.h };
     placed.push({
+      ...card,
       id: g.id,
       label: g.label,
       meta: g.meta,
       desc: g.desc,
-      x: colX(i),
-      y,
-      w: colW,
-      h: g.h,
+      ...gateInner(card, g),
     });
     rowH = Math.max(rowH, g.h);
   });
-  const byRow = new Map<number, typeof placed>();
+  const byRow = new Map<number, PlacedGate[]>();
   for (const g of placed) {
     const list = byRow.get(g.y) ?? [];
     list.push(g);
@@ -277,7 +378,20 @@ function placeGates(
   }
   for (const row of byRow.values()) {
     const h = Math.max(...row.map((g) => g.h));
-    for (const g of row) g.h = h;
+    for (const g of row) {
+      g.h = h;
+      const inner = gateInner(g, {
+        label: g.label,
+        meta: g.meta,
+        desc: g.desc,
+        labelLines: wrapInches(g.label, g.labelBox.w, CHAR.label),
+        metaLines: wrapInches(g.meta, g.labelBox.w, CHAR.desc),
+        descLines: wrapInches(g.desc, g.labelBox.w, CHAR.desc),
+      });
+      g.labelBox = inner.labelBox;
+      g.metaBox = inner.metaBox;
+      g.descBox = inner.descBox;
+    }
   }
   return placed;
 }
@@ -295,6 +409,33 @@ function pageChrome(continued: boolean): Pick<
   };
 }
 
+function streamHeader(
+  name: string,
+  purpose: string,
+  card: Box,
+): { nameBox: Box; purposeBox: Box | null } {
+  const pad = 0.16;
+  const nameW = card.w - pad * 2 - 0.08;
+  const nameX = card.x + pad + 0.08;
+  const nameLines = wrapInches(name, nameW, CHAR.name);
+  const nameBox: Box = {
+    x: nameX,
+    y: card.y + 0.12,
+    w: nameW,
+    h: Math.max(NAME_LINE_H, nameLines.length * NAME_LINE_H),
+  };
+  const purposeLines = wrapInches(purpose, nameW, CHAR.desc);
+  const purposeBox = purposeLines.length
+    ? {
+        x: nameBox.x,
+        y: nameBox.y + nameBox.h + 0.02,
+        w: nameBox.w,
+        h: purposeLines.length * META_LINE_H + 0.02,
+      }
+    : null;
+  return { nameBox, purposeBox };
+}
+
 function emptyStreamCards(
   model: ReturnType<typeof detailFigureModel>,
   colX: (i: number) => number,
@@ -302,36 +443,24 @@ function emptyStreamCards(
   y: number,
   cardH: number,
   continued: boolean,
+  hadContent: boolean[],
 ): DetailSlideLayout["streams"] {
-  const pad = 0.16;
   return model.streams.map((stream, i) => {
     const card: Box = { x: colX(i), y, w: colW, h: cardH };
-    const nameBox: Box = {
-      x: card.x + pad + 0.08,
-      y: card.y + 0.12,
-      w: card.w - pad * 2 - 0.08,
-      h: 0.24,
-    };
-    const purposeLines = continued ? [] : wrapInches(stream.purpose, nameBox.w);
-    const purposeBox = purposeLines.length
-      ? {
-          x: nameBox.x,
-          y: nameBox.y + nameBox.h,
-          w: nameBox.w,
-          h: 0.16 * Math.min(purposeLines.length, 2) + 0.04,
-        }
-      : null;
+    const name = continued && hadContent[i] ? `${stream.name} (continued)` : stream.name;
+    const purpose = continued ? "" : stream.purpose.trim();
+    const { nameBox, purposeBox } = streamHeader(name, purpose, card);
     return {
       id: stream.id,
-      name: continued ? `${stream.name} (continued)` : stream.name,
+      name,
       color: stream.color,
-      purpose: continued ? "" : stream.purpose.trim(),
+      purpose,
       card,
       bar: {
         x: card.x + 0.05,
         y: card.y + 0.12,
         w: 0.07,
-        h: card.h - 0.24,
+        h: Math.max(0.2, card.h - 0.24),
       },
       nameBox,
       purposeBox,
@@ -341,7 +470,32 @@ function emptyStreamCards(
   });
 }
 
-/** One or more 16:9 pages. Long descriptions continue; type is not shrunk. */
+function contentStartY(slot: DetailSlideLayout["streams"][number]): number {
+  return (
+    (slot.purposeBox
+      ? slot.purposeBox.y + slot.purposeBox.h
+      : slot.nameBox.y + slot.nameBox.h) + 0.08
+  );
+}
+
+function headerStackH(name: string, purpose: string, colW: number): number {
+  const card: Box = { x: 0, y: 0, w: colW, h: 7 };
+  const { nameBox, purposeBox } = streamHeader(name, purpose, card);
+  return contentStartY({
+    id: "",
+    name,
+    color: "",
+    purpose,
+    card,
+    bar: card,
+    nameBox,
+    purposeBox,
+    empty: null,
+    phases: [],
+  });
+}
+
+/** One or more 16:9 pages. Long copy continues; type is not shrunk or overlapped. */
 export function layoutDetailSlides(
   design: OperationalDesign,
 ): DetailSlideLayout[] {
@@ -356,23 +510,37 @@ export function layoutDetailSlides(
   const phaseNames = design.phases.map((p) => p.name);
   const pad = 0.16;
   const textW = colW - pad * 2 - 0.08 - 0.2;
+  const gateTextW = colW - 0.12 * 2 - 0.22;
 
   const gateDrafts: GateDraft[] = model.gates.map((g) => {
     const meta = `${g.placement === "in" ? "In" : "After"} ${g.phaseName}`.trim();
     const desc = g.description.trim();
-    const descLines = wrapInches(desc, colW - 0.12 * 2 - 0.22);
+    const labelLines = wrapInches(g.label, gateTextW, CHAR.label);
+    const metaLines = wrapInches(meta, gateTextW, CHAR.desc);
+    const descLines = wrapInches(desc, gateTextW, CHAR.desc);
     const h =
       0.12 +
-      0.2 +
-      (meta ? 0.16 : 0) +
+      Math.max(LABEL_LINE_H, labelLines.length * LABEL_LINE_H) +
+      0.02 +
+      metaLines.length * META_LINE_H +
       descLines.length * DESC_LINE_H +
       0.12;
-    return { id: g.id, label: g.label, meta, desc, h };
+    return {
+      id: g.id,
+      label: g.label,
+      meta,
+      desc,
+      labelLines,
+      metaLines,
+      descLines,
+      h,
+    };
   });
 
   const remaining = model.streams.map((stream) =>
     streamUnits(stream, phaseNames, textW),
   );
+  const hadContent = model.streams.map((stream) => stream.nodes.length > 0);
   const pages: DetailSlideLayout[] = [];
   let streamsStarted = false;
 
@@ -385,13 +553,11 @@ export function layoutDetailSlides(
       y,
       cardH,
       streamsStarted,
+      hadContent,
     );
     page.streams.forEach((slot, i) => {
-      const startY =
-        (slot.purposeBox
-          ? slot.purposeBox.y + slot.purposeBox.h
-          : slot.nameBox.y + slot.nameBox.h) + 0.08;
-      const avail = slot.card.y + slot.card.h - 0.22 - startY;
+      const startY = contentStartY(slot);
+      const avail = slot.card.y + slot.card.h - CARD_BOTTOM_PAD - startY;
       if (model.streams[i].nodes.length === 0 && !streamsStarted) {
         slot.empty = {
           x: slot.nameBox.x,
@@ -402,9 +568,13 @@ export function layoutDetailSlides(
         remaining[i] = [];
         return;
       }
+      if (avail < MIN_ITEM_BODY && remaining[i].length > 0) {
+        return;
+      }
       const { taken, rest } = takeUnits(remaining[i], Math.max(avail, 0.2));
       remaining[i] = rest;
       slot.phases = phasesFromUnits(taken, slot.nameBox, startY);
+      if (taken.length) hadContent[i] = true;
     });
     streamsStarted = true;
   };
@@ -418,18 +588,27 @@ export function layoutDetailSlides(
     const gatesH = placed.length
       ? Math.max(...placed.map((g) => g.y + g.h)) - y
       : 0;
-    const roomForStreams = bottom - (y + gatesH + 0.16) >= MIN_STREAM_H;
+    const streamY = y + gatesH + 0.16;
+    const headerNeed = Math.max(
+      ...model.streams.map((s) => headerStackH(s.name, s.purpose, colW)),
+      0.5,
+    );
+    const roomForStreams =
+      bottom - streamY >= headerNeed + MIN_ITEM_BODY;
     const page: DetailSlideLayout = {
       ...chrome,
       gatesHeading: heading,
       gates: placed,
       streams: [],
     };
-    if (roomForStreams) fillStreams(page, y + gatesH + 0.16);
+    if (roomForStreams) fillStreams(page, streamY);
     pages.push(page);
   }
 
+  let guard = 0;
   while (remaining.some((units) => units.length > 0) || pages.length === 0) {
+    if (++guard > 80) break;
+    const before = remaining.reduce((n, u) => n + u.length, 0);
     const chrome = pageChrome(streamsStarted);
     const page: DetailSlideLayout = {
       ...chrome,
@@ -439,6 +618,8 @@ export function layoutDetailSlides(
     };
     fillStreams(page, m + 0.58);
     pages.push(page);
+    const after = remaining.reduce((n, u) => n + u.length, 0);
+    if (after >= before && remaining.some((units) => units.length > 0)) break;
     if (remaining.every((units) => units.length === 0)) break;
   }
 
@@ -480,7 +661,7 @@ function paintDetailPage(
       color: opts.color,
       bold: opts.bold ?? false,
       margin: 0,
-      valign: opts.valign ?? "middle",
+      valign: opts.valign ?? "top",
       wrap: true,
     });
   }
@@ -489,13 +670,14 @@ function paintDetailPage(
     size: 18,
     color: hex(palette.title),
     bold: true,
+    valign: "middle",
   });
   label(
     laid.continued
       ? "Gates, milestones, and conditions (continued)"
       : "Gates, milestones, and conditions",
     laid.subtitle,
-    { size: 11, color: muted },
+    { size: 11, color: muted, valign: "middle" },
   );
 
   if (laid.gatesHeading) {
@@ -525,39 +707,12 @@ function paintDetailPage(
       fill: { color: hex(GATE) },
       line: { color: hex(GATE_LINE), width: 0.6 },
     });
-    label(
-      g.label,
-      {
-        x: g.x + gpad + 0.22,
-        y: g.y + gpad,
-        w: g.w - gpad * 2 - 0.22,
-        h: 0.2,
-      },
-      { size: 12, color: ink, bold: true },
-    );
-    if (g.meta) {
-      label(
-        g.meta,
-        {
-          x: g.x + gpad + 0.22,
-          y: g.y + gpad + 0.18,
-          w: g.w - gpad * 2 - 0.22,
-          h: 0.16,
-        },
-        { size: 10, color: muted },
-      );
+    label(g.label, g.labelBox, { size: 12, color: ink, bold: true });
+    if (g.meta && g.metaBox) {
+      label(g.meta, g.metaBox, { size: 10, color: muted });
     }
-    if (g.desc) {
-      label(
-        g.desc,
-        {
-          x: g.x + gpad + 0.22,
-          y: g.y + gpad + 0.34,
-          w: g.w - gpad * 2 - 0.22,
-          h: Math.max(0.16, g.h - gpad * 2 - 0.34),
-        },
-        { size: 10, color: ink, valign: "top" },
-      );
+    if (g.desc && g.descBox) {
+      label(g.desc, g.descBox, { size: 10, color: ink });
     }
   }
 
@@ -580,7 +735,7 @@ function paintDetailPage(
       line: noLine,
     });
     label(stream.name, stream.nameBox, {
-      size: 14,
+      size: 13,
       color: hex(stream.color),
       bold: true,
     });
@@ -588,7 +743,6 @@ function paintDetailPage(
       label(stream.purpose, stream.purposeBox, {
         size: 10,
         color: muted,
-        valign: "top",
       });
     }
     if (stream.empty) {
@@ -618,7 +772,7 @@ function paintDetailPage(
           },
           line: noLine,
         });
-        label(item.text, item.label, {
+        label(item.labelLines.join("\n") || item.text, item.label, {
           size: 11,
           color: ink,
           bold: true,
@@ -627,7 +781,6 @@ function paintDetailPage(
           label(item.descLines.join("\n"), item.desc, {
             size: 10,
             color: ink,
-            valign: "top",
           });
         }
       }
