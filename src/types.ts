@@ -11,6 +11,8 @@ export interface LineOfEffort {
   color: string;
   /** One-line purpose, shown under the name. */
   purpose: string;
+  /** What will be true for this stream — feeds the campaign end state. */
+  endState: string;
 }
 
 export interface DesignNode {

@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_GUTTER, endStateTextBox, loeGutterTextWidth } from "./layout";
+import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_END, LOE_GUTTER, endStateTextBox, loeGutterTextWidth } from "./layout";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
 import {
@@ -169,6 +169,13 @@ function speakerNotes(design: OperationalDesign): string {
   lines.push(`End state: ${design.endState.name}`);
   if (design.endState.description.trim()) {
     lines.push(design.endState.description.trim());
+  }
+  const streamEnds = design.linesOfEffort.filter((loe) => loe.endState.trim());
+  if (streamEnds.length) {
+    lines.push("", "Workstream end states");
+    for (const loe of streamEnds) {
+      lines.push(`- ${loe.name}: ${loe.endState.trim()}`);
+    }
   }
   lines.push("");
   if (design.decisionPoints.length) {
@@ -379,6 +386,51 @@ export async function downloadPptx(
         S(loeGutterTextWidth()),
         S(loe.purposeLines.length * LOE_GUTTER.purposeLh),
         { size: fs(9, 8), color: palette.purpose, valign: "top" },
+      );
+    }
+  }
+
+  for (const pill of laid.loeEndStates) {
+    const filled = pill.text.trim().length > 0;
+    slide.addShape(pptx.ShapeType.line, {
+      x: X(pill.x + pill.width),
+      y: Y(pill.y + pill.height / 2),
+      w: Math.max(X(laid.endState.x) - X(pill.x + pill.width), 0.05),
+      h: 0,
+      line: {
+        color: hex(pill.color),
+        width: lw(3),
+      },
+    });
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: X(pill.x),
+      y: Y(pill.y),
+      w: S(pill.width),
+      h: S(pill.height),
+      fill: filled
+        ? { color: hex(pill.color), transparency: 84 }
+        : { color: hex(palette.bg), transparency: 100 },
+      line: {
+        color: hex(pill.color),
+        width: 1,
+        ...(filled ? {} : { dashType: "dash" as const }),
+      },
+      rectRadius: 0.08,
+    });
+    if (pill.lines.length) {
+      text(
+        pill.lines.join("\n"),
+        X(pill.x + LOE_END.padX),
+        Y(pill.y + LOE_END.padY),
+        S(pill.width - LOE_END.padX * 2),
+        S(Math.max(pill.lines.length * LOE_END.lh, LOE_END.lh)),
+        {
+          size: fs(9, 8),
+          color: palette.title,
+          align: "center",
+          bold: true,
+          valign: "middle",
+        },
       );
     }
   }

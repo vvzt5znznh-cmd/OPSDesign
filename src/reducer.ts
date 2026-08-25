@@ -18,7 +18,14 @@ export type DesignAction =
   | { type: "removePhase"; id: string }
   | { type: "movePhase"; id: string; direction: -1 | 1 }
   | { type: "addLoe"; id?: string }
-  | { type: "updateLoe"; id: string; name?: string; color?: string; purpose?: string }
+  | {
+      type: "updateLoe";
+      id: string;
+      name?: string;
+      color?: string;
+      purpose?: string;
+      endState?: string;
+    }
   | { type: "removeLoe"; id: string }
   | { type: "moveLoe"; id: string; direction: -1 | 1 }
   | {
@@ -148,6 +155,7 @@ export function reduceDesign(
             name: `Workstream ${design.linesOfEffort.length + 1}`,
             color,
             purpose: "",
+            endState: "",
           },
         ],
       };
@@ -158,13 +166,19 @@ export function reduceDesign(
       const name = action.name ?? loe.name;
       const color = action.color ?? loe.color;
       const purpose = action.purpose ?? loe.purpose;
-      if (name === loe.name && color === loe.color && purpose === loe.purpose) {
+      const endState = action.endState ?? loe.endState;
+      if (
+        name === loe.name &&
+        color === loe.color &&
+        purpose === loe.purpose &&
+        endState === loe.endState
+      ) {
         return design;
       }
       return {
         ...design,
         linesOfEffort: design.linesOfEffort.map((l) =>
-          l.id === action.id ? { ...l, name, color, purpose } : l,
+          l.id === action.id ? { ...l, name, color, purpose, endState } : l,
         ),
       };
     }

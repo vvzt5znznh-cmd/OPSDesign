@@ -11,6 +11,7 @@ Operational design asks: what outcome must hold, what concurrent work produces i
 | On the drawing | Meaning | Also called |
 | --- | --- | --- |
 | **End state** | Desired outcome — conditions that must hold when the work is done | End state |
+| **Workstream end state** | What will be true for that line of effort; feeds the campaign panel | Nested / supporting end state |
 | **Phases** | Stages in the life cycle | Phases |
 | **Lines of effort** | Workstreams organised by purpose | Lines of effort |
 | **Milestone** | An event or deliverable (“beta released”) | Milestone |
@@ -51,7 +52,7 @@ npm run preview
 ## How to use it
 
 1. First visit: **Start from a sample** (empty, service go-live, or campaign). Coming back restores the last picture from this browser. File → New… is the same prompt.
-2. Click anything on the diagram to edit it. Labels are the text on the picture. The end-state panel takes a name, what will be true (shown under the name), and a colour wash.
+2. Click anything on the diagram to edit it. Labels are the text on the picture. Click a workstream to set its end state (shown at the right of that line). The campaign end-state panel takes a name, what will be true (shown under the name), and a colour wash.
 3. Hover a workstream in a phase: **+** then Milestone or Condition. Hover the gate bar and click **+** to add a decision. Use the **+** marks to add a phase or workstream.
 4. Drag a node along its arrow to move it earlier or later — early, middle, or late in a phase, or into another phase. Drop at the right edge of a phase to widen it. A node that depends on another sits to the right of it, including across workstreams. Drag a gate along the bar to sit in a phase or after it.
 5. **Link**: click what must happen first, then what depends on it.

@@ -19,7 +19,9 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <p>
               The panel on the right. Every workstream reads into it. Name is
               the heading; what will be true sits under it — not a date. Colour
-              is a wash you can change in the inspector.
+              is a wash you can change in the inspector. Each workstream also
+              has its own end state at the right of its line; those stream
+              outcomes build the campaign panel.
             </p>
           </div>
           <div>
@@ -30,7 +32,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <h3>Workstreams</h3>
             <p>
               Concurrent work organised by purpose. Name the stream, then the
-              one-line job it does.
+              one-line job it does. Click the stream (or the pill at the end of
+              the line) to set its end state.
             </p>
           </div>
           <div>
@@ -65,7 +68,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           and sample JSON; File → Open JSON loads the file it returns. File →
           Export PowerPoint makes an editable briefing slide that matches the
           picture. Dependency links are curved PowerPoint connectors glued to
-          the sides of the figures. Labels are the text on the picture. End-state name and the
+          the sides of the figures.           Labels are the text on the picture. Each workstream can carry an end
+          state at the right of its line. Campaign end-state name and the
           conditions that must hold sit on the panel.
         </p>
         <p className="help-how">

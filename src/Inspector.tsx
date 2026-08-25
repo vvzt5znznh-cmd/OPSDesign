@@ -237,6 +237,26 @@ export function Inspector() {
             }
           />
         </Field>
+        <Field label="End state">
+          <textarea
+            key={`${loe.id}-end-state`}
+            rows={3}
+            defaultValue={loe.endState}
+            onBlur={(e) =>
+              commit(loe.endState, e.target.value, () =>
+                dispatch({
+                  type: "updateLoe",
+                  id: loe.id,
+                  endState: e.target.value,
+                }),
+              )
+            }
+            placeholder="What will be true for this stream"
+          />
+        </Field>
+        <p className="muted">
+          This stream's outcome. It feeds the campaign end state on the right.
+        </p>
         <Field label="Colour">
           <div className="palette">
             {LOE_COLORS.map((color) => (

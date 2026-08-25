@@ -25,6 +25,20 @@ describe("LLM sample design", () => {
     expect(parsed?.endState.color).toBe(END_STATE_DEFAULT_COLOR);
   });
 
+  it("fills an empty workstream end state when a file omits it", () => {
+    const raw = JSON.parse(sampleDesignJson()) as Record<string, unknown>;
+    raw.linesOfEffort = (raw.linesOfEffort as object[]).map((item) => {
+      const next = { ...item } as Record<string, unknown>;
+      delete next.endState;
+      return next;
+    });
+    const parsed = normalizeDesign(raw);
+    expect(parsed).not.toBeNull();
+    for (const loe of parsed!.linesOfEffort) {
+      expect(loe.endState).toBe("");
+    }
+  });
+
   it("uses ids that all resolve", () => {
     const phaseIds = new Set(SAMPLE_DESIGN.phases.map((p) => p.id));
     const loeIds = new Set(SAMPLE_DESIGN.linesOfEffort.map((l) => l.id));
@@ -42,11 +56,15 @@ describe("LLM sample design", () => {
     }
   });
 
-  it("lays out with every workstream reading into the end state", () => {
+  it("lays out with every workstream reading into the campaign end state", () => {
     const laid = layoutDiagram(SAMPLE_DESIGN);
     expect(laid.loes.length).toBe(SAMPLE_DESIGN.linesOfEffort.length);
+    expect(laid.loeEndStates).toHaveLength(SAMPLE_DESIGN.linesOfEffort.length);
     for (const loe of laid.loes) {
-      expect(loe.x2).toBe(laid.endState.x);
+      const pill = laid.loeEndStates.find((p) => p.id === loe.id)!;
+      expect(loe.x2).toBe(pill.x);
+      expect(pill.lines.length).toBeGreaterThan(0);
+      expect(pill.x + pill.width).toBeLessThan(laid.endState.x);
     }
     expect(laid.dps).toHaveLength(SAMPLE_DESIGN.decisionPoints.length);
   });
@@ -57,8 +75,11 @@ describe("LLM sample design", () => {
     expect(again.nodes).toHaveLength(SAMPLE_DESIGN.nodes.length);
   });
 
-  it("puts extra wording only on the end-state panel", () => {
+  it("puts extra wording on campaign and stream end states, not on figures", () => {
     expect(SAMPLE_DESIGN.endState.description.trim()).not.toBe("");
+    for (const loe of SAMPLE_DESIGN.linesOfEffort) {
+      expect(loe.endState.trim()).not.toBe("");
+    }
     for (const n of SAMPLE_DESIGN.nodes) {
       expect(n.description).toBe("");
       expect(n.label.trim()).not.toBe("");

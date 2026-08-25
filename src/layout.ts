@@ -8,6 +8,12 @@ export const LAYOUT = {
   dpBarH: 76,
   leftGutter: 204,
   addGap: 44,
+  /** Gap after the last phase before stream end-state pills. */
+  loeEndGap: 16,
+  /** Width of the per-workstream end-state column. */
+  loeEndW: 136,
+  /** Gap from stream pills to the campaign end-state column. */
+  loeEndToPanel: 12,
   outcomeW: 232,
   loeH: 128,
   legendH: 58,
@@ -70,6 +76,31 @@ export function wrapLoePurpose(purpose: string): string[] {
     LOE_GUTTER.purposePx,
     LOE_GUTTER.purposeMax,
   );
+}
+
+/** Stream outcome at the right end of each coloured line. */
+export const LOE_END = {
+  h: 52,
+  padX: 7,
+  padY: 6,
+  lh: 11,
+  px: 5.3,
+  max: 4,
+};
+
+export function wrapLoeEndState(text: string): string[] {
+  if (!text.trim()) return [];
+  return wrapToWidth(
+    text,
+    LAYOUT.loeEndW - LOE_END.padX * 2,
+    LOE_END.px,
+    LOE_END.max,
+  );
+}
+
+export function loeEndHeight(lines: string[]): number {
+  if (!lines.length) return LOE_END.h;
+  return Math.max(LOE_END.h, LOE_END.padY * 2 + lines.length * LOE_END.lh);
 }
 
 export const END_STATE_TEXT = {
@@ -144,12 +175,24 @@ export interface LoeLayout {
   name: string;
   color: string;
   purpose: string;
+  endState: string;
   nameLines: string[];
   purposeLines: string[];
   y: number;
   height: number;
   x1: number;
   x2: number;
+}
+
+export interface LoeEndStateLayout {
+  id: string;
+  text: string;
+  lines: string[];
+  color: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface DepLayout {
@@ -168,6 +211,8 @@ export interface DiagramLayout {
   purposeLines: string[];
   phases: PhaseLayout[];
   loes: LoeLayout[];
+  loeEndStates: LoeEndStateLayout[];
+  loeEndCol: { x: number; y: number; width: number; height: number };
   nodes: NodeLayout[];
   dps: DpLayout[];
   dependencies: DepLayout[];
@@ -356,7 +401,13 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const phaseMeta = phases.map((phase) => phaseBand(design, phase.id, columns));
   const phasesWidth = phaseMeta.reduce((a, p) => a + p.width, 0);
   const width =
-    L.padX * 2 + L.leftGutter + phasesWidth + L.addGap + L.outcomeW;
+    L.padX * 2 +
+    L.leftGutter +
+    phasesWidth +
+    L.loeEndGap +
+    L.loeEndW +
+    L.loeEndToPanel +
+    L.outcomeW;
   const textWidth = Math.max(240, width - L.padX * 2);
   const titleLines = wrapToWidth(
     design.title || "Untitled",
@@ -400,7 +451,8 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   });
 
   const plotX = L.padX + L.leftGutter;
-  const outcomeX = plotX + phasesWidth + L.addGap;
+  const loeEndX = plotX + phasesWidth + L.loeEndGap;
+  const outcomeX = loeEndX + L.loeEndW + L.loeEndToPanel;
   const loeTop = plotY + dpBarH;
   const T = END_STATE_TEXT;
   const panelW = L.outcomeW - T.inset * 2;
@@ -441,13 +493,30 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     name: loe.name,
     color: loe.color,
     purpose: loe.purpose ?? "",
+    endState: loe.endState ?? "",
     nameLines: wrapLoeName(loe.name),
     purposeLines: wrapLoePurpose(loe.purpose ?? ""),
     y: loeYs[i],
     height: loeHeights[i],
     x1: plotX - 8,
-    x2: panelX,
+    x2: loeEndX,
   }));
+  const loeEndStates: LoeEndStateLayout[] = design.linesOfEffort.map(
+    (loe, i) => {
+      const lines = wrapLoeEndState(loe.endState ?? "");
+      const height = loeEndHeight(lines);
+      return {
+        id: loe.id,
+        text: loe.endState ?? "",
+        lines,
+        color: loe.color,
+        x: loeEndX,
+        y: loeYs[i] - height / 2,
+        width: L.loeEndW,
+        height,
+      };
+    },
+  );
   const loeY = new Map(loes.map((l) => [l.id, l.y]));
   const phaseById = new Map(phaseLayouts.map((p) => [p.id, p]));
 
@@ -526,6 +595,13 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     purposeLines,
     phases: phaseLayouts,
     loes,
+    loeEndStates,
+    loeEndCol: {
+      x: loeEndX,
+      y: bandY,
+      width: L.loeEndW,
+      height: bandH,
+    },
     nodes,
     dps,
     dependencies,

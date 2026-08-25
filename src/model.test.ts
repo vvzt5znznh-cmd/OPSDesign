@@ -31,8 +31,8 @@ function design(
       { id: "p3", name: "Three" },
     ],
     linesOfEffort: [
-      { id: "l1", name: "Alpha", color: "#E87722", purpose: "A" },
-      { id: "l2", name: "Beta", color: "#5B8C2A", purpose: "B" },
+      { id: "l1", name: "Alpha", color: "#E87722", purpose: "A", endState: "" },
+      { id: "l2", name: "Beta", color: "#5B8C2A", purpose: "B", endState: "" },
     ],
     nodes: [],
     dependencies: [],
@@ -123,8 +123,9 @@ describe("layoutDiagram", () => {
             name: "Service. Here is an example of a very long workstream name",
             color: "#E87722",
             purpose: "Build the right service",
+            endState: "",
           },
-          { id: "l2", name: "Beta", color: "#5B8C2A", purpose: "B" },
+          { id: "l2", name: "Beta", color: "#5B8C2A", purpose: "B", endState: "" },
         ],
       }),
     );
@@ -146,7 +147,7 @@ describe("layoutDiagram", () => {
     expect(laid.phases[0].width).toBeGreaterThan(LAYOUT.phaseMin);
   });
 
-  it("lands every workstream on the end-state panel", () => {
+  it("lands every workstream on a stream end state that feeds the campaign panel", () => {
     const laid = layoutDiagram(
       design({
         nodes: [
@@ -156,13 +157,39 @@ describe("layoutDiagram", () => {
       }),
     );
     expect(laid.loes.length).toBe(2);
-    for (const loe of laid.loes) {
-      expect(loe.x2).toBe(laid.endState.x);
+    expect(laid.loeEndStates).toHaveLength(2);
+    for (let i = 0; i < laid.loes.length; i++) {
+      const loe = laid.loes[i];
+      const pill = laid.loeEndStates[i];
+      expect(loe.x2).toBe(pill.x);
+      expect(pill.x + pill.width).toBeLessThan(laid.endState.x);
       expect(loe.y).toBeGreaterThanOrEqual(laid.endState.y);
       expect(loe.y).toBeLessThanOrEqual(
         laid.endState.y + laid.endState.height,
       );
     }
+  });
+
+  it("wraps a workstream end state inside the pill", () => {
+    const laid = layoutDiagram(
+      design({
+        linesOfEffort: [
+          {
+            id: "l1",
+            name: "Alpha",
+            color: "#E87722",
+            purpose: "A",
+            endState:
+              "Users complete the journey unassisted and do not call the helpdesk.",
+          },
+          { id: "l2", name: "Beta", color: "#5B8C2A", purpose: "B", endState: "" },
+        ],
+      }),
+    );
+    const pill = laid.loeEndStates.find((p) => p.id === "l1")!;
+    expect(pill.lines.length).toBeGreaterThan(1);
+    expect(pill.lines.join(" ")).toContain("unassisted");
+    expect(pill.x).toBe(laid.loes.find((l) => l.id === "l1")!.x2);
   });
 
   it("snaps a gate inside a phase or onto the seam after it", () => {
@@ -292,6 +319,17 @@ describe("reduceDesign", () => {
     expect(next.endState.name).toBe("END");
   });
 
+  it("sets a workstream end state without dropping the name", () => {
+    const next = reduceDesign(design(), {
+      type: "updateLoe",
+      id: "l1",
+      endState: "This stream is complete.",
+    });
+    const loe = next.linesOfEffort.find((l) => l.id === "l1")!;
+    expect(loe.name).toBe("Alpha");
+    expect(loe.endState).toBe("This stream is complete.");
+  });
+
   it("adds a gate at the requested snap without moving the others", () => {
     const next = reduceDesign(design(), {
       type: "addDp",
@@ -390,7 +428,9 @@ describe("reduceDesign", () => {
     expect(laid.nodes).toHaveLength(6);
     expect(new Set(laid.dps.map((d) => d.id)).size).toBe(6);
     for (const loe of laid.loes) {
-      expect(loe.x2).toBe(laid.endState.x);
+      const pill = laid.loeEndStates.find((p) => p.id === loe.id)!;
+      expect(loe.x2).toBe(pill.x);
+      expect(pill.x + pill.width).toBeLessThan(laid.endState.x);
     }
     const xs = laid.dps.map((d) => d.x).sort((a, b) => a - b);
     expect(xs[0]).toBeGreaterThan(laid.plot.x - 20);
