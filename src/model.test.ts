@@ -707,4 +707,27 @@ describe("endStateTextBox", () => {
       true,
     );
   });
+
+  it("shows the full campaign end-state description instead of clipping it", () => {
+    const long =
+      "The campaign is complete when the last named condition holds. " +
+      "Freedom of navigation is restored and held. Residual threat is contained. ".repeat(
+        8,
+      ) +
+      "The coalition remains intact.";
+    const laid = layoutDiagram(
+      design({
+        endState: {
+          name: "REACH DESTROYED, ROUTE DENIED",
+          description: long,
+          color: "#5A6A78",
+        },
+      }),
+    );
+    const spoken = laid.endState.descriptionLines.join(" ");
+    expect(spoken).not.toContain("…");
+    expect(spoken).toContain("The coalition remains intact");
+    expect(laid.endState.descriptionLines.length).toBeGreaterThan(14);
+    expect(laid.endState.height).toBeGreaterThan(88);
+  });
 });

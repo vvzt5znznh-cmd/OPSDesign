@@ -103,5 +103,11 @@ describe("File → Open JSON fixtures", () => {
     expect(design.showDetail).toBe(true);
     expect(laid.titleLines.join(" ")).toContain("Epic Fury");
     expect(laid.purposeLines.join("")).not.toContain("…");
+    expect(laid.endState.description).toContain("conflict unwidened");
+    expect(laid.endState.description).not.toContain("task words");
+    expect(laid.endState.descriptionLines.join("")).not.toContain("…");
+    expect(laid.endState.descriptionLines.join(" ")).toContain(
+      "conflict unwidened",
+    );
   });
 });
