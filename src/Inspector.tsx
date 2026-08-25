@@ -41,6 +41,41 @@ function Field({
   );
 }
 
+function DetailToggle() {
+  const { design, dispatch } = useDesign();
+  const on = design.showDetail;
+  return (
+    <>
+      <p className="field-label">Detail figure</p>
+      <div
+        className="kind-toggle inspector-toggle"
+        role="group"
+        aria-label="Detail figure"
+      >
+        <button
+          type="button"
+          className={!on ? "on" : ""}
+          onClick={() => dispatch({ type: "setShowDetail", value: false })}
+        >
+          Off
+        </button>
+        <button
+          type="button"
+          className={on ? "on" : ""}
+          onClick={() => dispatch({ type: "setShowDetail", value: true })}
+        >
+          On
+        </button>
+      </div>
+      <p className="muted">
+        {on
+          ? "A list under the picture: gates, then each workstream. Turn off if you do not want descriptions."
+          : "Hidden. Typed descriptions are kept. Turn on to list milestones, conditions, and gates under the picture."}
+      </p>
+    </>
+  );
+}
+
 function LoeEndStatesToggle() {
   const { design, dispatch } = useDesign();
   const on = design.showLoeEndStates;
@@ -113,6 +148,7 @@ export function Inspector() {
             }
           />
         </Field>
+        <DetailToggle />
       </aside>
     );
   }
@@ -386,6 +422,26 @@ export function Inspector() {
             }
           />
         </Field>
+        <DetailToggle />
+        {design.showDetail && (
+          <Field label="Description">
+            <textarea
+              key={`${n.id}-desc`}
+              rows={3}
+              defaultValue={n.description}
+              placeholder="What this means — shown in the list under the picture."
+              onBlur={(e) =>
+                commit(n.description, e.target.value, () =>
+                  dispatch({
+                    type: "updateNode",
+                    id: n.id,
+                    description: e.target.value,
+                  }),
+                )
+              }
+            />
+          </Field>
+        )}
         <Field label="Line of effort">
           <select
             value={n.loeId}
@@ -543,6 +599,26 @@ export function Inspector() {
             }
           />
         </Field>
+        <DetailToggle />
+        {design.showDetail && (
+          <Field label="Description">
+            <textarea
+              key={`${dp.id}-desc`}
+              rows={3}
+              defaultValue={dp.description}
+              placeholder="What this decision is about — shown in the list under the picture."
+              onBlur={(e) =>
+                commit(dp.description, e.target.value, () =>
+                  dispatch({
+                    type: "updateDp",
+                    id: dp.id,
+                    description: e.target.value,
+                  }),
+                )
+              }
+            />
+          </Field>
+        )}
         <Field label="Phase">
           <select
             value={dp.afterPhaseId}

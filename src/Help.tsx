@@ -39,17 +39,25 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <h3>Milestone △</h3>
-            <p>An event or deliverable. It happened, or it did not.</p>
+            <p>
+              An event or deliverable. It happened, or it did not. Optional
+              description sits in the detail list under the picture, not on the
+              figure.
+            </p>
           </div>
           <div>
             <h3>Condition ◇</h3>
-            <p>A state that must hold. Funding is committed. Users are ready.</p>
+            <p>
+              A state that must hold. Funding is committed. Users are ready.
+              Optional description sits in the detail list under the picture.
+            </p>
           </div>
           <div>
             <h3>Gate ★</h3>
             <p>
               A decision: proceed, recycle, or stop. Sit inside a phase, or on
-              the seam after it. Name it as the decision, not "Gate 1".
+              the seam after it. Name it as the decision, not "Gate 1". Optional
+              description sits in the detail list under the picture.
             </p>
           </div>
         </div>
@@ -73,7 +81,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           the picture. Workstream end states are optional (Off/On in the
           inspector). When on, each workstream can carry an end state at the
           right of its line. Campaign end-state name and the conditions that
-          must hold sit on the panel.
+          must hold sit on the panel. A second figure under the picture can list
+          gates and each workstream's milestones and conditions, with optional
+          descriptions. Off/On is in the Project inspector (click the title),
+          or on a milestone, condition, or gate.
         </p>
         <p className="help-how">
           The picture stays in this browser when you leave. Undo/Redo cover this

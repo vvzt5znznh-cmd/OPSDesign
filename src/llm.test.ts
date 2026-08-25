@@ -46,13 +46,18 @@ describe("LLM sample design", () => {
     expect(parsed?.showLoeEndStates).toBe(true);
   });
 
-  it("honours workstream end states turned off in a file", () => {
+  it("keeps the detail figure off when a file omits the toggle", () => {
     const raw = JSON.parse(sampleDesignJson()) as Record<string, unknown>;
-    raw.showLoeEndStates = false;
+    delete raw.showDetail;
     const parsed = normalizeDesign(raw);
-    expect(parsed?.showLoeEndStates).toBe(false);
-    const laid = layoutDiagram(parsed!);
-    expect(laid.loeEndStates).toEqual([]);
+    expect(parsed?.showDetail).toBe(false);
+  });
+
+  it("honours the detail figure turned on in a file", () => {
+    const raw = JSON.parse(sampleDesignJson()) as Record<string, unknown>;
+    raw.showDetail = true;
+    const parsed = normalizeDesign(raw);
+    expect(parsed?.showDetail).toBe(true);
   });
 
   it("uses ids that all resolve", () => {
@@ -119,6 +124,7 @@ describe("LLM prompt", () => {
       "placement",
       "op-clinic-booking",
       "showLoeEndStates",
+      "showDetail",
     ]) {
       expect(text).toContain(token);
     }

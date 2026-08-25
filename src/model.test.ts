@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { wrapLabel, wrapNodeLabel, nodeLabelSize, NODE_LABEL } from "./wrap";
-import { wouldCreateCycle, nextOrder, hasDependency } from "./design";
+import { wouldCreateCycle, nextOrder, hasDependency, detailFigureModel } from "./design";
 import {
   LAYOUT,
   LOE_GUTTER,
@@ -47,6 +47,7 @@ function design(
       },
     ],
     showLoeEndStates: true,
+    showDetail: false,
     ...partial,
   };
 }
@@ -421,6 +422,59 @@ describe("reduceDesign", () => {
     const on = reduceDesign(off, { type: "setShowLoeEndStates", value: true });
     expect(on.showLoeEndStates).toBe(true);
     expect(on.linesOfEffort[0].endState).toBe("This stream is complete.");
+  });
+
+  it("toggles the detail figure without dropping descriptions", () => {
+    const start = design({
+      nodes: [
+        {
+          ...node("n1", "l1", "p1", 0),
+          label: "M1: Framed",
+          description: "The problem is agreed.",
+        },
+      ],
+    });
+    const on = reduceDesign(start, { type: "setShowDetail", value: true });
+    expect(on.showDetail).toBe(true);
+    expect(on.nodes[0].description).toBe("The problem is agreed.");
+    const off = reduceDesign(on, { type: "setShowDetail", value: false });
+    expect(off.showDetail).toBe(false);
+    expect(off.nodes[0].description).toBe("The problem is agreed.");
+  });
+
+  it("groups the detail figure by gates then workstream order", () => {
+    const model = detailFigureModel(
+      design({
+        nodes: [
+          { ...node("b", "l2", "p1", 0), label: "M1: Beta first" },
+          { ...node("a", "l1", "p2", 0), label: "M2: Alpha later" },
+          { ...node("a0", "l1", "p1", 0), label: "M1: Alpha first" },
+        ],
+        decisionPoints: [
+          {
+            id: "d-after",
+            label: "After one?",
+            afterPhaseId: "p1",
+            placement: "after",
+            order: 0,
+            description: "Go or stop.",
+          },
+          {
+            id: "d-in",
+            label: "In one?",
+            afterPhaseId: "p1",
+            placement: "in",
+            order: 1,
+            description: "",
+          },
+        ],
+      }),
+    );
+    expect(model.gates.map((g) => g.id)).toEqual(["d-in", "d-after"]);
+    expect(model.streams.map((s) => s.id)).toEqual(["l1", "l2"]);
+    expect(model.streams[0].nodes.map((n) => n.id)).toEqual(["a0", "a"]);
+    expect(model.streams[1].nodes.map((n) => n.id)).toEqual(["b"]);
+    expect(model.gates[1].description).toBe("Go or stop.");
   });
 
   it("adds a gate at the requested snap without moving the others", () => {

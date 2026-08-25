@@ -17,7 +17,7 @@ Operational design asks: what outcome must hold, what concurrent work produces i
 | **Milestone** | An event or deliverable (“beta released”) | Milestone |
 | **Condition** | A state that must hold (“users are ready”) | Decisive condition |
 | **Dependency** | This cannot happen until that is true | Arranging operations / cause and effect |
-| **Decision point** | A gate: proceed, recycle, or stop | Decision point |
+| **Detail figure** | Optional list under the picture: gates and each workstream's items, with descriptions | Annex / supporting list |
 
 Milestones and conditions can sit on the same line of effort. Dependencies can cross workstreams.
 
@@ -52,7 +52,7 @@ npm run preview
 ## How to use it
 
 1. First visit: **Start from a sample** (empty, service go-live, or campaign). Coming back restores the last picture from this browser. File → New… is the same prompt.
-2. Click anything on the diagram to edit it. Labels are the text on the picture. Click a workstream to set its end state (shown at the right of that line when workstream end states are on). Off/On is in the inspector on the campaign panel or a workstream. The campaign end-state panel takes a name, what will be true (shown under the name), and a colour wash.
+2. Click anything on the diagram to edit it. Labels are the text on the picture. Click a workstream to set its end state (shown at the right of that line when workstream end states are on). Off/On is in the inspector on the campaign panel or a workstream. The campaign end-state panel takes a name, what will be true (shown under the name), and a colour wash. A **detail figure** under the picture can list milestones, conditions, and gates with optional descriptions — Off/On in the Project inspector (click the title).
 3. Hover a workstream in a phase: **+** then Milestone or Condition. Hover the gate bar and click **+** to add a decision. Use the **+** marks to add a phase or workstream.
 4. Drag a node along its arrow to move it earlier or later — early, middle, or late in a phase, or into another phase. Drop at the right edge of a phase to widen it. A node that depends on another sits to the right of it, including across workstreams. Drag a gate along the bar to sit in a phase or after it.
 5. **Link**: click what must happen first, then what depends on it.

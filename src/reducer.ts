@@ -14,6 +14,7 @@ export type DesignAction =
   | { type: "setPurpose"; purpose: string }
   | { type: "setEndState"; name?: string; description?: string; color?: string }
   | { type: "setShowLoeEndStates"; value: boolean }
+  | { type: "setShowDetail"; value: boolean }
   | { type: "addPhase"; afterId?: string; id?: string }
   | { type: "renamePhase"; id: string; name: string }
   | { type: "removePhase"; id: string }
@@ -102,6 +103,10 @@ export function reduceDesign(
       return action.value === design.showLoeEndStates
         ? design
         : { ...design, showLoeEndStates: action.value };
+    case "setShowDetail":
+      return action.value === design.showDetail
+        ? design
+        : { ...design, showDetail: action.value };
     case "addPhase": {
       const phase = {
         id: action.id ?? uid("ph"),

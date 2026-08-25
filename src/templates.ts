@@ -30,6 +30,7 @@ function blank(
       { id: uid("dp"), label: "Decision 2", afterPhaseId: p2, placement: "after", order: 0, description: "" },
     ],
     showLoeEndStates: false,
+    showDetail: false,
     ...partial,
   };
 }
@@ -165,6 +166,7 @@ export function projectTemplate(): OperationalDesign {
     ],
     nodes: Object.values(n),
     showLoeEndStates: true,
+    showDetail: false,
     dependencies: [
       dep(n.problemFramed, n.needUnderstood),
       dep(n.optionsChosen, n.solutionAgreed),
@@ -302,6 +304,7 @@ export function militaryTemplate(): OperationalDesign {
       dep(inf3, man4),
     ],
     showLoeEndStates: true,
+    showDetail: false,
   };
 }
 

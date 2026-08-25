@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { DetailFigure } from "./DetailFigure";
 import { Diagram } from "./Diagram";
 import { HelpModal } from "./Help";
 import { Inspector } from "./Inspector";
@@ -11,7 +12,8 @@ import type { OperationalDesign } from "./types";
 function Editor() {
   const svgRef = useRef<SVGSVGElement>(null);
   const [help, setHelp] = useState(false);
-  const { present, undo, redo, linkMode, setLinkMode, selection } = useDesign();
+  const { present, undo, redo, linkMode, setLinkMode, selection, design } =
+    useDesign();
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -47,7 +49,10 @@ function Editor() {
             </div>
           )}
           <div className="canvas-scroll">
-            <Diagram svgRef={svgRef} />
+            <div className="figures">
+              <Diagram svgRef={svgRef} />
+              {design.showDetail && <DetailFigure />}
+            </div>
           </div>
         </main>
         {selection && !present && <Inspector />}

@@ -21,7 +21,7 @@ export interface DesignNode {
   loeId: string;
   phaseId: string;
   label: string;
-  /** Kept for older files. Not drawn; the label is the picture text. */
+  /** Optional. Shown in the detail list under the picture, not on the figure. */
   description: string;
   /** Preferred column in the phase (0 = earliest). Layout may shift it right. */
   order: number;
@@ -44,7 +44,7 @@ export interface DecisionPoint {
   placement: GatePlacement;
   /** Preferred slot when placement is "in". */
   order: number;
-  /** Kept for older files. Not drawn; the label is the picture text. */
+  /** Optional. Shown in the detail list under the picture, not on the figure. */
   description: string;
 }
 
@@ -65,6 +65,8 @@ export interface OperationalDesign {
   decisionPoints: DecisionPoint[];
   /** Per-workstream pills at the right of each line. Off runs lines into the campaign panel. */
   showLoeEndStates: boolean;
+  /** Second figure under the picture: list of gates and each workstream's nodes. */
+  showDetail: boolean;
 }
 
 /** Missing in older files means on — keep the current look. */
@@ -72,6 +74,11 @@ export function loeEndStatesShown(design: {
   showLoeEndStates?: unknown;
 }): boolean {
   return design.showLoeEndStates !== false;
+}
+
+/** Missing in older files means off — the annex is optional. */
+export function detailShown(design: { showDetail?: unknown }): boolean {
+  return design.showDetail === true;
 }
 
 export type Selection =

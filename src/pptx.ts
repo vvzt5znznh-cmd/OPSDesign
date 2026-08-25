@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_GUTTER, endStateTextBox, loeGutterTextWidth } from "./layout";
+import { detailFigureModel } from "./design";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
 import {
@@ -208,6 +209,23 @@ function speakerNotes(design: OperationalDesign): string {
       lines.push(
         `- ${dp.label}${phase ? ` (${where} ${phase})` : ""}`,
       );
+      if (design.showDetail && dp.description.trim()) {
+        lines.push(`  ${dp.description.trim()}`);
+      }
+    }
+  }
+  if (design.showDetail) {
+    const detail = detailFigureModel(design);
+    for (const stream of detail.streams) {
+      lines.push("", stream.name);
+      for (const n of stream.nodes) {
+        lines.push(
+          `- ${n.label}${n.phaseName ? ` (${n.phaseName})` : ""}`,
+        );
+        if (n.description.trim()) {
+          lines.push(`  ${n.description.trim()}`);
+        }
+      }
     }
   }
   return lines.join("\n");

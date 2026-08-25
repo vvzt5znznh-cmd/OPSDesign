@@ -1,6 +1,7 @@
 import type {
   DesignNode,
   Dependency,
+  GatePlacement,
   NodeKind,
   OperationalDesign,
 } from "./types";
@@ -100,4 +101,69 @@ export function hasDependency(
   toId: string,
 ): boolean {
   return deps.some((d) => d.fromId === fromId && d.toId === toId);
+}
+
+export type DetailNodeRow = {
+  id: string;
+  kind: NodeKind;
+  label: string;
+  description: string;
+  phaseName: string;
+};
+
+export type DetailGateRow = {
+  id: string;
+  label: string;
+  description: string;
+  phaseName: string;
+  placement: GatePlacement;
+};
+
+export type DetailStream = {
+  id: string;
+  name: string;
+  color: string;
+  purpose: string;
+  nodes: DetailNodeRow[];
+};
+
+/** Grouping for the list figure under the picture. */
+export function detailFigureModel(design: OperationalDesign): {
+  gates: DetailGateRow[];
+  streams: DetailStream[];
+} {
+  const phaseName = (id: string) =>
+    design.phases.find((p) => p.id === id)?.name ?? "";
+  const phaseIndex = new Map(design.phases.map((p, i) => [p.id, i]));
+  const gates = design.decisionPoints
+    .slice()
+    .sort((a, b) => {
+      const pa = phaseIndex.get(a.afterPhaseId) ?? 0;
+      const pb = phaseIndex.get(b.afterPhaseId) ?? 0;
+      if (pa !== pb) return pa - pb;
+      if (a.placement !== b.placement) return a.placement === "in" ? -1 : 1;
+      if (a.order !== b.order) return a.order - b.order;
+      return a.id.localeCompare(b.id);
+    })
+    .map((dp) => ({
+      id: dp.id,
+      label: dp.label,
+      description: dp.description,
+      phaseName: phaseName(dp.afterPhaseId),
+      placement: dp.placement,
+    }));
+  const streams = design.linesOfEffort.map((loe) => ({
+    id: loe.id,
+    name: loe.name,
+    color: loe.color,
+    purpose: loe.purpose,
+    nodes: nodesOnLoe(design, loe.id).map((n) => ({
+      id: n.id,
+      kind: n.kind,
+      label: n.label,
+      description: n.description,
+      phaseName: phaseName(n.phaseId),
+    })),
+  }));
+  return { gates, streams };
 }
