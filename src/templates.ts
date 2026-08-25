@@ -77,7 +77,7 @@ export function projectTemplate(): OperationalDesign {
       p1,
       "M1: Problem framed",
       0,
-      "People cannot finish an application without calling. That is the problem to fix.",
+      "People cannot finish an application without calling. Call volumes and drop-off on the public form are the evidence; the problem is the journey, not the contact centre. Until this is written down and accepted, later options will argue different problems.",
     ),
     needUnderstood: node(
       "condition",
@@ -85,7 +85,7 @@ export function projectTemplate(): OperationalDesign {
       p1,
       "C1: Need is understood",
       2,
-      "The journeys that matter, and who they are for, are agreed.",
+      "The journeys that matter, who they are for, and what 'done' looks like from the user's side are agreed. Out of scope is named so it does not creep back in as a hidden requirement.",
     ),
     optionsChosen: node(
       "milestone",
@@ -93,7 +93,7 @@ export function projectTemplate(): OperationalDesign {
       p2,
       "M2: Options chosen",
       0,
-      "A preferred option is on the table. Discarded options are recorded.",
+      "A preferred option is on the table. Discarded options and the reason they were dropped are recorded so the choice can be defended later.",
     ),
     solutionAgreed: node(
       "condition",
@@ -101,7 +101,7 @@ export function projectTemplate(): OperationalDesign {
       p2,
       "C2: Solution is agreed",
       2,
-      "The service to build is named, scoped, and accepted.",
+      "The service to build is named, scoped, and accepted by the people who will run it and the people who will fund it.",
     ),
     betaReleased: node(
       "milestone",
@@ -109,7 +109,7 @@ export function projectTemplate(): OperationalDesign {
       p3,
       "M3: Beta released",
       0,
-      "A working service is in the hands of a limited set of users.",
+      "A working service is in the hands of a limited set of users. Support knows it is live for them. Feedback is being collected against the original need, not against a feature list.",
     ),
     serviceReliable: node(
       "condition",
@@ -117,7 +117,7 @@ export function projectTemplate(): OperationalDesign {
       p3,
       "C3: Service is reliable",
       2,
-      "The live path holds under expected load. Known defects are accepted.",
+      "The live path holds under expected load. Known defects are listed, owned, and accepted for go-live or scheduled. There is a rollback that has been walked through, not just written.",
     ),
     goLive: node(
       "milestone",
@@ -125,7 +125,7 @@ export function projectTemplate(): OperationalDesign {
       p4,
       "M4: Go-live",
       1,
-      "The new service is the default path. The old process is withdrawn.",
+      "The new service is the default path. The old process is withdrawn on a named date, with a short assisted route only for cases the new path cannot yet take. Communications have already gone to users and staff; go-live is not the first time they hear.",
     ),
     baseline: node(
       "milestone",
@@ -133,7 +133,7 @@ export function projectTemplate(): OperationalDesign {
       p1,
       "M1: Baseline captured",
       0,
-      "Current performance, cost, and risk are written down so change can be judged.",
+      "Current performance, cost, and risk are written down so later claims of improvement can be judged against something real.",
     ),
     risksVisible: node(
       "condition",
@@ -141,7 +141,7 @@ export function projectTemplate(): OperationalDesign {
       p1,
       "C1: Risks are visible",
       2,
-      "Owners, likelihood, and treatment sit on one list.",
+      "Owners, likelihood, treatment, and residual risk sit on one list that the decision-makers actually use.",
     ),
     requirements: node(
       "milestone",
@@ -149,7 +149,7 @@ export function projectTemplate(): OperationalDesign {
       p2,
       "M2: Requirements signed",
       0,
-      "What must be true for go-live is agreed in writing.",
+      "What must be true for go-live is agreed in writing. Nice-to-haves are separate so they cannot stall the gate.",
     ),
     funding: node(
       "condition",
@@ -157,7 +157,7 @@ export function projectTemplate(): OperationalDesign {
       p2,
       "C2: Funding is committed",
       2,
-      "Money and people for build and run are allocated.",
+      "Money and people for build and for the first period of run are allocated. A service that can be built but not run is not funded.",
     ),
     testsPassed: node(
       "milestone",
@@ -165,7 +165,7 @@ export function projectTemplate(): OperationalDesign {
       p3,
       "M3: Tests passed",
       1,
-      "The agreed tests have been run. Residual defects are listed.",
+      "The agreed tests have been run. Residual defects are listed with an owner and a decision: fix before go-live, accept, or watch.",
     ),
     acceptance: node(
       "milestone",
@@ -173,7 +173,7 @@ export function projectTemplate(): OperationalDesign {
       p4,
       "M4: Acceptance signed",
       0,
-      "The receiving owner accepts the service as ready to run.",
+      "The receiving owner accepts the service as ready to run, including support hours, residual risk, and what happens when it fails.",
     ),
     support: node(
       "condition",
@@ -181,7 +181,7 @@ export function projectTemplate(): OperationalDesign {
       p4,
       "C3: Support is in place",
       2,
-      "Someone answers when it breaks, in hours that match demand.",
+      "Someone answers when it breaks, in hours that match demand. The handover from the build team is done; the run team is not discovering the service on the night.",
     ),
     stakeholders: node(
       "milestone",
@@ -189,7 +189,7 @@ export function projectTemplate(): OperationalDesign {
       p1,
       "M1: Stakeholders mapped",
       0,
-      "Who must agree, who must use it, and who can block it.",
+      "Who must agree, who must use it, and who can block it. Interests and fears are named, not just job titles.",
     ),
     partners: node(
       "condition",
@@ -197,7 +197,7 @@ export function projectTemplate(): OperationalDesign {
       p1,
       "C1: Partners are engaged",
       2,
-      "The people we depend on are working with us, not waiting to be told.",
+      "The people we depend on are working with us, not waiting to be told. Dependencies they own have dates.",
     ),
     comms: node(
       "milestone",
@@ -205,7 +205,7 @@ export function projectTemplate(): OperationalDesign {
       p2,
       "M2: Comms plan agreed",
       1,
-      "Who hears what, when, and through which channel.",
+      "Who hears what, when, and through which channel, including the day the old path closes.",
     ),
     training: node(
       "milestone",
@@ -213,7 +213,7 @@ export function projectTemplate(): OperationalDesign {
       p3,
       "M3: Training delivered",
       1,
-      "The people who will run the service have practised the new path.",
+      "The people who will run the service have practised the new path on the real system, not only on slides. Cover for the first weeks is named.",
     ),
     usersReady: node(
       "condition",
@@ -221,7 +221,7 @@ export function projectTemplate(): OperationalDesign {
       p4,
       "C2: Users are ready",
       0,
-      "Users know the new path and can complete it without a workaround.",
+      "Users know the new path and can complete it without a workaround. Assisted routes exist only for the cases we have already named as out of the default path.",
     ),
     benefits: node(
       "milestone",
@@ -229,7 +229,7 @@ export function projectTemplate(): OperationalDesign {
       p4,
       "M4: Benefits tracking on",
       2,
-      "The measures that prove the change are being collected.",
+      "The measures that prove the change are being collected from go-live, against the baseline captured in Discover. If a measure cannot be collected yet, that gap is visible.",
     ),
   };
 
@@ -287,7 +287,7 @@ export function projectTemplate(): OperationalDesign {
         placement: "after",
         order: 0,
         description:
-          "Is the problem real enough, and the need clear enough, to spend design time?",
+          "Is the problem real enough, and the need clear enough, to spend design time? You should be able to say who is harmed today, what 'fixed' looks like, and what you will not design.",
       },
       {
         id: uid("dp"),
@@ -296,7 +296,7 @@ export function projectTemplate(): OperationalDesign {
         placement: "after",
         order: 0,
         description:
-          "Is the solution agreed and funded, so build should start?",
+          "Is the solution agreed and funded, so build should start? If run cost, support, or residual risk is still a shrug, do not commit.",
       },
       {
         id: uid("dp"),
@@ -305,7 +305,7 @@ export function projectTemplate(): OperationalDesign {
         placement: "after",
         order: 0,
         description:
-          "Is the service reliable, support in place, and residual risk accepted?",
+          "Is the service reliable, support in place, and residual risk accepted by the person who will own it on Monday morning? Authorising go-live is not a ceremony for finishing the build; it is permission to make this the default path and close the old one.",
       },
     ],
     nodes: Object.values(n),
@@ -347,84 +347,84 @@ export function militaryTemplate(): OperationalDesign {
     p1,
     "C1: Picture established",
     1,
-    "The situation is described well enough to decide.",
+    "The situation is described well enough to decide. Gaps are named as gaps, not filled with assumption. Collection is pointed at the questions that would change the next decision, not at a complete picture for its own sake.",
   );
   const intel2 = c(
     l1,
     p2,
     "C2: Intent confirmed",
     1,
-    "What must be achieved, and what must be avoided, is agreed.",
+    "What must be achieved, and what must be avoided, is agreed and can be restated by the people who will act on it.",
   );
   const intel3 = c(
     l1,
     p3,
     "C3: Targets cued",
     1,
-    "The next actions have a clear object and timing.",
+    "The next actions have a clear object and timing. Cueing is current enough to act; stale cueing is treated as no cueing.",
   );
   const intel4 = c(
     l1,
     p4,
     "C4: Pursuit enabled",
     1,
-    "Follow-on action can be directed without starting from scratch.",
+    "Follow-on action can be directed without starting the picture from scratch. Handover to whoever continues the hunt is a named path, not an afterthought.",
   );
   const man1 = c(
     l2,
     p1,
     "C1: Forces postured",
     1,
-    "People and means are where they can act when authorised.",
+    "People and means are where they can act when authorised, with sustainment that matches the time they may have to wait.",
   );
   const man2 = c(
     l2,
     p2,
     "C2: Access secured",
     1,
-    "The force can get to the places it must operate.",
+    "The force can get to the places it must operate, and can stay there long enough for the next condition to be set.",
   );
   const man3 = c(
     l2,
     p3,
     "C3: Foothold taken",
     1,
-    "A position exists from which the rest of the action can proceed.",
+    "A position exists from which the rest of the action can proceed. It is held, supplied, and not merely visited.",
   );
   const man4 = c(
     l2,
     p4,
     "C4: Freedom of action",
     1,
-    "The force can manoeuvre without being fixed.",
+    "The force can manoeuvre without being fixed. Residual threat is contained enough that the main effort is no longer survival of the foothold.",
   );
   const inf1 = c(
     l3,
     p1,
     "C1: Narrative set",
     1,
-    "The story we need others to hear is in play.",
+    "The story we need others to hear is in play in the channels that matter, including among the people whose consent the later authority will need.",
   );
   const inf2 = c(
     l3,
     p2,
     "C2: Partners aligned",
     1,
-    "Those we need with us share the same immediate purpose.",
+    "Those we need with us share the same immediate purpose and know what they will be asked to do when the decision to act is taken.",
   );
   const inf3 = c(
     l3,
     p3,
     "C3: Opposition isolated",
     1,
-    "The opposing story and its backers have less room.",
+    "The opposing story and its backers have less room. Isolation is visible in behaviour, not only in our own messaging plan.",
   );
   const inf4 = c(
     l3,
     p4,
     "C4: Authority restored",
     1,
-    "A legitimate authority can act in public and be recognised.",
+    "A legitimate authority can act in public and be recognised. The force can begin to step back because that authority is doing the work, not because we declared the campaign over.",
   );
 
   const dep = (from: DesignNode, to: DesignNode) => ({
@@ -481,7 +481,7 @@ export function militaryTemplate(): OperationalDesign {
         placement: "after",
         order: 0,
         description:
-          "Is the picture good enough to posture and warn, rather than wait?",
+          "Is the picture good enough to posture and warn, rather than wait? If the next week of collection would not change the decision, you already know enough to deter or you are collecting to avoid deciding.",
       },
       {
         id: uid("dp"),
@@ -489,7 +489,8 @@ export function militaryTemplate(): OperationalDesign {
         afterPhaseId: p2,
         placement: "after",
         order: 0,
-        description: "Are access and intent sufficient to act?",
+        description:
+          "Are access and intent sufficient to act? Authorisation is for a named action and a named object, not for 'beginning the campaign' in the abstract.",
       },
       {
         id: uid("dp"),
@@ -498,7 +499,7 @@ export function militaryTemplate(): OperationalDesign {
         placement: "after",
         order: 0,
         description:
-          "Has initiative been seized enough to press, or should we hand over?",
+          "Has initiative been seized enough to press, or should we hand over? Pressing without a foothold that can be held burns the force; transitioning before authority can act in public leaves a vacuum.",
       },
     ],
     nodes: [

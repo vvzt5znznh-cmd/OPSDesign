@@ -18,6 +18,8 @@ describe("detail figure SVG export", () => {
     expect(markup).toContain("DISCOVER");
     expect(markup).toContain("After Discover");
     expect(markup).toContain("cannot finish an application");
+    expect(markup).toContain("rollback that has been walked through");
+    expect(markup).not.toContain("walked through…");
     expect(markup).toContain('rx="8"');
     expect(height).toBeGreaterThan(200);
   });
