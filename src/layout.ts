@@ -105,7 +105,7 @@ export function loeEndHeight(lines: string[]): number {
 
 export const END_STATE_TEXT = {
   nameMax: 6,
-  descMax: 14,
+  descMax: 10_000,
   nameLh: 18,
   descLh: 14,
   namePx: 7.2,
