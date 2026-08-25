@@ -65,7 +65,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           Hover a workstream in a phase and click the +, or click an empty cell,
           to add a milestone or condition — it lands where you click (early,
           middle, or late). On a busy cell the + sits at the right so it does
-          not cover the figures. Hover the gate bar and click the + to add a
+          not cover the figures. The Milestone / Condition pills sit in front of
+          existing marks; click anywhere else or press Escape to close them. Hover the gate bar and click the + to add a
           decision. Drag nodes along a workstream to sit early, in the middle,
           or late in a phase; drop at the right edge to widen the phase. Drag a
           gate along the bar to place it in a phase or after it. Use the + marks

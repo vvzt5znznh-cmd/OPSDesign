@@ -573,6 +573,10 @@ textarea:focus-visible {
   cursor: pointer;
 }
 
+.add-menu-dismiss {
+  cursor: default;
+}
+
 .dep-hit {
   cursor: pointer;
 }

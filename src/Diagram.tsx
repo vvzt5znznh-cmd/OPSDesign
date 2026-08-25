@@ -172,6 +172,17 @@ export function Diagram({
     return () => window.removeEventListener("keydown", onKey);
   }, [selection, dispatch, setSelection, linkMode, setLinkMode, renameId, addMenu]);
 
+  useEffect(() => {
+    if (!addMenu) return;
+    const onPointerDown = (e: Event) => {
+      const root = svgRef.current;
+      if (root && e.target instanceof Node && root.contains(e.target)) return;
+      setAddMenu(null);
+    };
+    window.addEventListener("pointerdown", onPointerDown, true);
+    return () => window.removeEventListener("pointerdown", onPointerDown, true);
+  }, [addMenu, svgRef]);
+
   function dropAt(laid: DiagramLayout, id: string, x: number) {
     const node = design.nodes.find((n) => n.id === id);
     if (!node) return;
@@ -762,19 +773,6 @@ export function Diagram({
           }),
         )}
 
-      {addMenu && !drag?.active && !dpDrag?.active && !linkMode && !present && (
-        <AddPills
-          x={
-            (laidOut.phases.find((p) => p.id === addMenu.phaseId)?.x ?? 0) +
-            (laidOut.phases.find((p) => p.id === addMenu.phaseId)?.width ?? 0) -
-            100
-          }
-          y={(laidOut.loes.find((l) => l.id === addMenu.loeId)?.y ?? 0) + 18}
-          onMilestone={() => addInCell("milestone", addMenu)}
-          onCondition={() => addInCell("condition", addMenu)}
-        />
-      )}
-
       {laidOut.nodes.map((n) => {
         if (drag?.active && drag.id === n.id) return null;
         return (
@@ -1020,6 +1018,35 @@ export function Diagram({
       )}
 
       <Legend x={36} y={laidOut.height - 36} />
+
+      {addMenu && !drag?.active && !dpDrag?.active && !linkMode && !present && (
+        <>
+          <rect
+            className="add-menu-dismiss"
+            data-ui="true"
+            x={0}
+            y={0}
+            width={laidOut.width}
+            height={laidOut.height}
+            fill="transparent"
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              setAddMenu(null);
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <AddPills
+            x={
+              (laidOut.phases.find((p) => p.id === addMenu.phaseId)?.x ?? 0) +
+              (laidOut.phases.find((p) => p.id === addMenu.phaseId)?.width ?? 0) -
+              100
+            }
+            y={(laidOut.loes.find((l) => l.id === addMenu.loeId)?.y ?? 0) + 18}
+            onMilestone={() => addInCell("milestone", addMenu)}
+            onCondition={() => addInCell("condition", addMenu)}
+          />
+        </>
+      )}
     </svg>
   );
 }
@@ -1101,6 +1128,15 @@ function AddPills({
   const { diagram: palette } = useTheme();
   return (
     <g data-ui="true" className="add-on-canvas" transform={`translate(${x}, ${y})`}>
+      <rect
+        x={0}
+        y={0}
+        width={92}
+        height={48}
+        fill="transparent"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      />
       <g
         onClick={(e) => {
           e.stopPropagation();
