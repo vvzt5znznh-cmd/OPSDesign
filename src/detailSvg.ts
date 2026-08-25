@@ -73,10 +73,23 @@ function itemBlock(
 ): { markup: string; height: number } {
   const parts: string[] = [mark];
   let iy = y + 11;
-  parts.push(t(x + 18, iy, label, { size: 13, fill: palette.label, weight: 700 }));
+  const labelLines = wrapToWidth(label, textW, 7.2, 10_000);
+  for (let i = 0; i < labelLines.length; i++) {
+    if (i > 0) iy += 14;
+    parts.push(
+      t(x + 18, iy, labelLines[i], {
+        size: 13,
+        fill: palette.label,
+        weight: 700,
+      }),
+    );
+  }
   if (meta) {
-    iy += 14;
-    parts.push(t(x + 18, iy, meta, { size: 11, fill: palette.purpose }));
+    const metaLines = wrapToWidth(meta, textW, 6.2, 10_000);
+    for (const line of metaLines) {
+      iy += 14;
+      parts.push(t(x + 18, iy, line, { size: 11, fill: palette.purpose }));
+    }
   }
   if (desc) {
     const lines = wrapToWidth(desc, textW, DESC_PX, 10_000);
@@ -196,16 +209,19 @@ export function detailFigureSvgMarkup(
     const header: string[] = [];
     const body: string[] = [];
     let cy = 0;
-    header.push(
-      t(x + textInset, 16, stream.name, {
-        size: 13,
-        fill: stream.color,
-        weight: 700,
-      }),
-    );
-    cy = 22;
+    const nameLines = wrapToWidth(stream.name, textW, 7.4, 10_000);
+    for (const line of nameLines) {
+      cy += 16;
+      header.push(
+        t(x + textInset, cy, line, {
+          size: 13,
+          fill: stream.color,
+          weight: 700,
+        }),
+      );
+    }
     if (stream.purpose.trim()) {
-      const lines = wrapToWidth(stream.purpose, textW, META_PX, 4);
+      const lines = wrapToWidth(stream.purpose, textW, META_PX, 10_000);
       for (const line of lines) {
         cy += 14;
         header.push(t(x + textInset, cy, line, { size: 12, fill: palette.purpose }));

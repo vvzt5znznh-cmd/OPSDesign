@@ -4,6 +4,12 @@ import { connectionSites, glueConnectors, buildPptxArrayBuffer, PPTX_SLIDE, pptx
 import { projectTemplate } from "./templates";
 import { DIAGRAM_PALETTES } from "./theme";
 import { layoutDiagram } from "./layout";
+import {
+  END_STATE_DEFAULT_COLOR,
+  LOE_COLORS,
+  type OperationalDesign,
+} from "./types";
+import type { DetailSlideLayout } from "./pptxDetail";
 
 describe("PowerPoint dependency connectors", () => {
   it("glues to the left and right of figures, not the top", () => {
@@ -168,6 +174,9 @@ describe("PowerPoint detail slide", () => {
     }
     expect(laid.streams[0].phases[0].name).toBe("Discover");
     expect(laid.gates[0].desc).toContain("design time");
+    assertReadableStack(
+      layoutDetailSlides({ ...projectTemplate(), showDetail: true }),
+    );
     const allCopy = layoutDetailSlides({
       ...projectTemplate(),
       showDetail: true,
@@ -205,14 +214,16 @@ describe("PowerPoint detail slide", () => {
     const slides = Object.keys(zip.files)
       .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
       .sort();
-    const detail = await zip.file(slides[1])!.async("string");
-    expect(detail).toContain('prst="star5"');
-    expect(detail).toContain('prst="triangle"');
-    expect(detail).toContain('prst="diamond"');
-    expect(detail).toContain("After Discover");
-    expect(detail).toContain("cannot finish an application");
-    expect(detail).not.toContain("▲");
-    expect(detail).not.toContain("◆");
+    const detailXml = (
+      await Promise.all(slides.slice(1).map((p) => zip.file(p)!.async("string")))
+    ).join("\n");
+    expect(detailXml).toContain('prst="star5"');
+    expect(detailXml).toContain('prst="triangle"');
+    expect(detailXml).toContain('prst="diamond"');
+    expect(detailXml).toContain("After Discover");
+    expect(detailXml).toContain("cannot finish an application");
+    expect(detailXml).not.toContain("▲");
+    expect(detailXml).not.toContain("◆");
   });
 
   it("continues long descriptions on extra 16:9 slides instead of shrinking them", async () => {
@@ -265,4 +276,188 @@ describe("PowerPoint detail slide", () => {
     ).join("\n");
     expect(detailXml).toContain("deliberately long");
   });
+
+  it("stacks wrapped labels, names, and notes so a dense six-stream briefing does not overlap", () => {
+    const design = denseBriefing();
+    const pages = layoutDetailSlides(design);
+    expect(pages.length).toBeGreaterThan(3);
+    const spoken = pages
+      .flatMap((page) => [
+        ...page.gates.map((g) => `${g.label} ${g.meta} ${g.desc}`),
+        ...page.streams.flatMap((stream) => [
+          stream.name,
+          ...stream.phases.flatMap((phase) => [
+            phase.name,
+            ...phase.items.flatMap((item) => [
+              item.text,
+              ...item.labelLines,
+              ...item.descLines,
+            ]),
+          ]),
+        ]),
+      ])
+      .join(" ");
+    expect(spoken).toContain("Execute, or continue shaping?");
+    expect(spoken).toContain("After Shape");
+    expect(spoken).toContain("fielded launch capability");
+    expect(spoken).toContain("rollback that has been walked through");
+    expect(spoken).toContain("Monday morning");
+    expect(spoken).not.toContain("walked through…");
+    assertReadableStack(pages);
+    for (const page of pages) {
+      for (const g of page.gates) {
+        expect(g.metaBox).toBeTruthy();
+        expect(g.labelBox.y + g.labelBox.h).toBeLessThanOrEqual(
+          g.metaBox!.y + 0.02,
+        );
+      }
+      for (const stream of page.streams) {
+        if (stream.name.includes("regional protection")) {
+          expect(stream.nameBox.h).toBeGreaterThan(0.24);
+        }
+      }
+    }
+  });
 });
+
+type Box = { x: number; y: number; w: number; h: number };
+
+function overlap(a: Box, b: Box, slack = 0.03): boolean {
+  return (
+    a.x < b.x + b.w - slack &&
+    a.x + a.w > b.x + slack &&
+    a.y < b.y + b.h - slack &&
+    a.y + a.h > b.y + slack
+  );
+}
+
+function assertReadableStack(pages: DetailSlideLayout[]) {
+  for (const page of pages) {
+    for (const g of page.gates) {
+      if (g.metaBox) {
+        expect(overlap(g.labelBox, g.metaBox)).toBe(false);
+      }
+      if (g.descBox) {
+        expect(overlap(g.labelBox, g.descBox)).toBe(false);
+        if (g.metaBox) expect(overlap(g.metaBox, g.descBox)).toBe(false);
+      }
+      const bottom = g.descBox
+        ? g.descBox.y + g.descBox.h
+        : g.metaBox
+          ? g.metaBox.y + g.metaBox.h
+          : g.labelBox.y + g.labelBox.h;
+      expect(bottom).toBeLessThanOrEqual(g.y + g.h + 0.02);
+    }
+    for (const stream of page.streams) {
+      const pieces: Box[] = [stream.nameBox];
+      if (stream.purposeBox) pieces.push(stream.purposeBox);
+      if (stream.empty) pieces.push(stream.empty);
+      for (const phase of stream.phases) {
+        if (phase.name) pieces.push(phase.heading);
+        for (const item of phase.items) {
+          pieces.push(item.label);
+          if (item.desc) pieces.push(item.desc);
+          const bottom = item.desc
+            ? item.desc.y + item.desc.h
+            : item.label.y + item.label.h;
+          expect(bottom).toBeLessThanOrEqual(stream.card.y + stream.card.h);
+        }
+      }
+      for (let i = 0; i < pieces.length; i++) {
+        for (let j = i + 1; j < pieces.length; j++) {
+          expect(overlap(pieces[i], pieces[j])).toBe(false);
+        }
+      }
+    }
+  }
+}
+
+function note(): string {
+  return (
+    "Hold on the conditions that must be true, not on a calendar. " +
+    "The picture has to be current enough to act; a stale picture is treated as no picture. " +
+    "Residual risk is named with an owner. There is a rollback that has been walked through, not just written. " +
+    "What 'done' looks like is agreed before the gate is asked, including who owns it on Monday morning."
+  );
+}
+
+function denseBriefing(): OperationalDesign {
+  const phases = [
+    "Shape",
+    "Seize initiative",
+    "Dominate",
+    "Coerce and terminate",
+    "Prevent reconstitution",
+  ].map((name, i) => ({ id: `ph-${i}`, name }));
+  const streamNames = [
+    "Counter-capability",
+    "Counter-proliferation",
+    "Force and regional protection",
+    "Freedom of navigation",
+    "Regime pressure",
+    "Coalition and termination",
+  ];
+  const streams = streamNames.map((name, i) => ({
+    id: `loe-${i}`,
+    name,
+    color: LOE_COLORS[i],
+    purpose:
+      "Task and purpose for this line of effort — long enough that a six-column slide must wrap it.",
+    endState: "The condition for this line is set and held.",
+  }));
+  const nodes: OperationalDesign["nodes"] = [];
+  streams.forEach((stream, s) => {
+    phases.forEach((phase, p) => {
+      nodes.push({
+        id: `n-${s}-${p}-m`,
+        kind: "milestone",
+        loeId: stream.id,
+        phaseId: phase.id,
+        label: `M${p + 1}: Destroy fielded launch capability in order to deny regeneration of the means`,
+        description: note(),
+        order: 0,
+      });
+      nodes.push({
+        id: `n-${s}-${p}-c`,
+        kind: "condition",
+        loeId: stream.id,
+        phaseId: phase.id,
+        label: `C${p + 1}: Air defences suppressed; freedom of action gained and held`,
+        description: note(),
+        order: 1,
+      });
+    });
+  });
+  const gates: OperationalDesign["decisionPoints"] = [
+    "Execute, or continue shaping?",
+    "Expand the target set to energy and infrastructure?",
+    "Exploit, or hold on the capability task?",
+    "Accept the settlement on offer?",
+    "Declare the campaign complete?",
+    "Re-enter, or enforce by other means?",
+  ].map((label, i) => ({
+    id: `dp-${i}`,
+    label,
+    afterPhaseId: phases[Math.min(i, phases.length - 1)].id,
+    placement: "after" as const,
+    order: 0,
+    description: note(),
+  }));
+  return {
+    id: "op-dense",
+    title: "Dense six-stream operational design (task-purpose)",
+    purpose: "A briefing with six lines of effort and supporting notes of real length.",
+    endState: {
+      name: "END STATE",
+      description: note(),
+      color: END_STATE_DEFAULT_COLOR,
+    },
+    phases,
+    linesOfEffort: streams,
+    nodes,
+    dependencies: [],
+    decisionPoints: gates,
+    showLoeEndStates: true,
+    showDetail: true,
+  };
+}
