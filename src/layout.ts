@@ -11,7 +11,7 @@ export const LAYOUT = {
   /** Gap after the last phase before stream end-state pills. */
   loeEndGap: 16,
   /** Width of the per-workstream end-state column. */
-  loeEndW: 136,
+  loeEndW: 148,
   /** Gap from stream pills to the campaign end-state column. */
   loeEndToPanel: 12,
   outcomeW: 232,

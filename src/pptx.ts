@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_END, LOE_GUTTER, endStateTextBox, loeGutterTextWidth } from "./layout";
+import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_GUTTER, endStateTextBox, loeGutterTextWidth } from "./layout";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
 import {
@@ -192,10 +192,10 @@ function speakerNotes(design: OperationalDesign): string {
   return lines.join("\n");
 }
 
-export async function downloadPptx(
+export async function buildPptxArrayBuffer(
   design: OperationalDesign,
   palette: DiagramPalette,
-): Promise<void> {
+): Promise<ArrayBuffer> {
   const { default: PptxGenJS } = await import("pptxgenjs");
   const laid = layoutDiagram(design);
   const pptx = new PptxGenJS();
@@ -351,12 +351,13 @@ export async function downloadPptx(
 
   for (const loe of laid.loes) {
     const x1 = X(loe.x1);
-    const x2 = X(loe.x2);
     const y = Y(loe.y);
+    // Shaft stops short of the pill so the triangle does not sit on the text.
+    const x2 = Math.max(X(loe.x2) - S(12), x1 + 0.05);
     slide.addShape(pptx.ShapeType.line, {
       x: x1,
       y,
-      w: Math.max(x2 - x1, 0.05),
+      w: x2 - x1,
       h: 0,
       line: {
         color: hex(loe.color),
@@ -399,39 +400,51 @@ export async function downloadPptx(
       h: 0,
       line: {
         color: hex(pill.color),
-        width: lw(3),
+        width: Math.max(lw(3), 1.15),
       },
     });
-    slide.addShape(pptx.ShapeType.roundRect, {
-      x: X(pill.x),
-      y: Y(pill.y),
-      w: S(pill.width),
-      h: S(pill.height),
-      fill: filled
-        ? { color: hex(pill.color), transparency: 84 }
-        : { color: hex(palette.bg), transparency: 100 },
-      line: {
-        color: hex(pill.color),
-        width: 1,
-        ...(filled ? {} : { dashType: "dash" as const }),
-      },
-      rectRadius: 0.08,
-    });
-    if (pill.lines.length) {
-      text(
-        pill.lines.join("\n"),
-        X(pill.x + LOE_END.padX),
-        Y(pill.y + LOE_END.padY),
-        S(pill.width - LOE_END.padX * 2),
-        S(Math.max(pill.lines.length * LOE_END.lh, LOE_END.lh)),
-        {
-          size: fs(9, 8),
-          color: palette.title,
-          align: "center",
-          bold: true,
-          valign: "middle",
-        },
-      );
+    const x = X(pill.x);
+    const y = Y(pill.y);
+    const w = S(pill.width);
+    const h = S(Math.max(pill.height, 28));
+    const fill = filled
+      ? { color: hex(pill.color), transparency: 84 }
+      : { color: hex(palette.bg), transparency: 100 };
+    const line = {
+      color: hex(pill.color),
+      width: 1,
+      ...(filled ? {} : { dashType: "dash" as const }),
+    };
+    if (filled) {
+      slide.addText(pill.text.trim(), {
+        x,
+        y,
+        w,
+        h,
+        shape: pptx.ShapeType.roundRect,
+        rectRadius: 0.1,
+        fill,
+        line,
+        fontFace: FONT,
+        fontSize: fs(9, 7),
+        color: hex(palette.title),
+        align: "center",
+        valign: "middle",
+        bold: true,
+        wrap: true,
+        fit: "shrink",
+        margin: 4,
+      });
+    } else {
+      slide.addShape(pptx.ShapeType.roundRect, {
+        x,
+        y,
+        w,
+        h,
+        fill,
+        line,
+        rectRadius: 0.1,
+      });
     }
   }
 
@@ -637,11 +650,20 @@ export async function downloadPptx(
     bold: true,
   });
 
-  const fileName = `${slug(design.title)}.pptx`;
-  const blob = new Blob([await patchPptxConnectors(pptx, design, laid.nodes)], {
-    type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  });
-  downloadBlob(blob, fileName);
+  return patchPptxConnectors(pptx, design, laid.nodes);
+}
+
+export async function downloadPptx(
+  design: OperationalDesign,
+  palette: DiagramPalette,
+): Promise<void> {
+  const buf = await buildPptxArrayBuffer(design, palette);
+  downloadBlob(
+    new Blob([buf], {
+      type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    }),
+    `${slug(design.title)}.pptx`,
+  );
 }
 
 async function patchPptxConnectors(

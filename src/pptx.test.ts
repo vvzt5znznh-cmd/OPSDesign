@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { connectionSites, glueConnectors } from "./pptx";
+import JSZip from "jszip";
+import { connectionSites, glueConnectors, buildPptxArrayBuffer } from "./pptx";
+import { projectTemplate } from "./templates";
+import { DIAGRAM_PALETTES } from "./theme";
 
 describe("PowerPoint dependency connectors", () => {
   it("glues to the left and right of figures, not the top", () => {
@@ -37,5 +40,27 @@ describe("PowerPoint dependency connectors", () => {
     expect(out).toContain('<a:endCxn id="11" idx="1"/>');
     expect(out).not.toContain("tailEnd");
     expect(out).not.toContain("bentConnector");
+  });
+});
+
+describe("PowerPoint workstream end states", () => {
+  it("puts each stream end state in a wrapping pill, not a clipped text box", async () => {
+    const buf = await buildPptxArrayBuffer(
+      projectTemplate(),
+      DIAGRAM_PALETTES.light,
+    );
+    const zip = await JSZip.loadAsync(buf);
+    const slidePath = Object.keys(zip.files).find((p) =>
+      /^ppt\/slides\/slide\d+\.xml$/.test(p),
+    );
+    expect(slidePath).toBeTruthy();
+    const xml = await zip.file(slidePath!)!.async("string");
+    expect(xml).toContain("Users complete the journey unassisted");
+    expect(xml).toContain("Support is in place");
+    expect(xml).toContain("Benefits are being tracked");
+    expect(xml).toContain("LIVE AND USED");
+    expect(xml).toContain('prst="roundRect"');
+    expect(xml).toContain("normAutofit");
+    expect(xml).toContain('wrap="square"');
   });
 });
