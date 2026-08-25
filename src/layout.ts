@@ -11,7 +11,7 @@ export const LAYOUT = {
   /** Gap after the last phase before stream end-state pills. */
   loeEndGap: 16,
   /** Width of the per-workstream end-state column. */
-  loeEndW: 148,
+  loeEndW: 160,
   /** Gap from stream pills to the campaign end-state column. */
   loeEndToPanel: 12,
   outcomeW: 232,
@@ -81,11 +81,11 @@ export function wrapLoePurpose(purpose: string): string[] {
 /** Stream outcome at the right end of each coloured line. */
 export const LOE_END = {
   h: 52,
-  padX: 7,
-  padY: 6,
-  lh: 11,
-  px: 5.3,
-  max: 4,
+  padX: 8,
+  padY: 8,
+  lh: 12,
+  px: 5.6,
+  max: 8,
 };
 
 export function wrapLoeEndState(text: string): string[] {
@@ -389,7 +389,9 @@ export function loeRowHeight(design: OperationalDesign, loeId: string): number {
     nameLines * LOE_GUTTER.nameLh +
     (purposeLines ? LOE_GUTTER.gap + purposeLines * LOE_GUTTER.purposeLh : 0) +
     20;
-  return Math.max(LAYOUT.loeH, fromNodes, fromGutter);
+  const fromEnd =
+    loeEndHeight(wrapLoeEndState(loe?.endState ?? "")) + 16;
+  return Math.max(LAYOUT.loeH, fromNodes, fromGutter, fromEnd);
 }
 
 export function layoutDiagram(design: OperationalDesign): DiagramLayout {
