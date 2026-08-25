@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { layoutDiagram } from "./layout";
 import { parseImportedDesign } from "./storage";
+import { epicFuryTemplate } from "./templates";
 import { NODE_LABEL, nodeLabelSize } from "./wrap";
 import type { OperationalDesign } from "./types";
 
@@ -90,5 +91,17 @@ describe("File → Open JSON fixtures", () => {
     for (const n of long) {
       expect(nodeLabelSize(n.label).lines.join("")).not.toContain("…");
     }
+  });
+
+  it("lays out Operation Epic Fury without overlapping labels on a stream", () => {
+    const design = epicFuryTemplate();
+    const { laid, hits } = sameStreamOverlaps(design);
+    expect(hits).toEqual([]);
+    expect(design.linesOfEffort).toHaveLength(6);
+    expect(design.decisionPoints).toHaveLength(6);
+    expect(design.nodes.length).toBeGreaterThan(20);
+    expect(design.showDetail).toBe(true);
+    expect(laid.titleLines.join(" ")).toContain("Epic Fury");
+    expect(laid.purposeLines.join("")).not.toContain("…");
   });
 });

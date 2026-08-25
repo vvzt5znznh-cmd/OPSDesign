@@ -1,5 +1,7 @@
 import { uid } from "./id";
+import { parseImportedDesign } from "./storage";
 import { END_STATE_DEFAULT_COLOR, type DesignNode, type NodeKind, type OperationalDesign } from "./types";
+import epicFuryJson from "./samples/epic-fury.json";
 
 function blank(
   partial: Partial<OperationalDesign> & Pick<OperationalDesign, "title">,
@@ -528,6 +530,10 @@ export function militaryTemplate(): OperationalDesign {
   };
 }
 
+export function epicFuryTemplate(): OperationalDesign {
+  return { ...parseImportedDesign(JSON.stringify(epicFuryJson)), id: uid("op") };
+}
+
 export const TEMPLATES = [
   {
     id: "blank",
@@ -551,5 +557,13 @@ export const TEMPLATES = [
       "Shape → Deter → Seize initiative → Dominate, with conditions across workstreams.",
     tag: "Sample",
     create: militaryTemplate,
+  },
+  {
+    id: "epic-fury",
+    name: "Operation Epic Fury",
+    blurb:
+      "Shape → Seize initiative → Dominate → Coerce and terminate → Prevent reconstitution. Six lines of effort, gates, and supporting notes.",
+    tag: "Sample",
+    create: epicFuryTemplate,
   },
 ] as const;

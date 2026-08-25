@@ -1,0 +1,565 @@
+{
+  "id": "op-epic-fury-plan-tp",
+  "title": "Operation Epic Fury — pre-execution operational design (task-purpose)",
+  "purpose": "DESTROY Iran's capacity to project power beyond its borders and NEUTRALIZE the infrastructure of its nuclear programme IOT DENY any route to a weapon, PREVENT coercion of regional partners and RESTORE freedom of navigation.",
+  "endState": {
+    "name": "REACH DESTROYED, ROUTE DENIED",
+    "description": "Iran's means of projecting power beyond its borders are destroyed and cannot be reconstituted unobserved. No route to a weapon remains open and unwatched. Freedom of navigation is restored and held under a settlement with an enforcement mechanism, with the coalition intact and the conflict unwidened. Note what the task words can and cannot take as their object: DESTROY and DEFEAT are both effects on an enemy force. A government is not an enemy force, so no tactical mission task covers regime change — which is why it cannot be the military objective and is not a condition of this end state.",
+    "color": "#1A365D"
+  },
+  "phases": [
+    {
+      "id": "ph-shape",
+      "name": "Shape"
+    },
+    {
+      "id": "ph-seize",
+      "name": "Seize initiative"
+    },
+    {
+      "id": "ph-dominate",
+      "name": "Dominate"
+    },
+    {
+      "id": "ph-coerce",
+      "name": "Coerce and terminate"
+    },
+    {
+      "id": "ph-prevent",
+      "name": "Prevent reconstitution"
+    }
+  ],
+  "linesOfEffort": [
+    {
+      "id": "loe-strike",
+      "name": "Counter-capability",
+      "color": "#E87722",
+      "purpose": "DESTROY the means of power projection IOT DENY regional reach",
+      "endState": "Launch, production and naval capability destroyed. Reconstitution interdicted."
+    },
+    {
+      "id": "loe-nuclear",
+      "name": "Counter-proliferation",
+      "color": "#5B8C2A",
+      "purpose": "NEUTRALIZE the nuclear programme IOT DENY any route to a weapon",
+      "endState": "No route open. Fissile material located and under verified control."
+    },
+    {
+      "id": "loe-protect",
+      "name": "Force and regional protection",
+      "color": "#3D9AD1",
+      "purpose": "SECURE the force and partner infrastructure IOT PREVENT coalition fracture",
+      "endState": "Enemy fires neutralised. Force, partners and coalition intact."
+    },
+    {
+      "id": "loe-maritime",
+      "name": "Freedom of navigation",
+      "color": "#8E4585",
+      "purpose": "SECURE a transit corridor IOT RESTORE energy flow",
+      "endState": "Corridor secured. Commercial transit restored and held."
+    },
+    {
+      "id": "loe-pressure",
+      "name": "Regime pressure",
+      "color": "#C0392B",
+      "purpose": "ISOLATE the regime from its proxies and sources of support IOT DEGRADE its reach",
+      "endState": "Regime isolated and apparatus degraded. Collapse exploitable, not required."
+    },
+    {
+      "id": "loe-terminate",
+      "name": "Coalition and termination",
+      "color": "#2A6F7F",
+      "purpose": "Hold the coalition and the termination mechanism IOT ENABLE termination on terms",
+      "endState": "Coalition holds. Settlement in force and enforceable."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n-target-system",
+      "kind": "condition",
+      "loeId": "loe-strike",
+      "phaseId": "ph-shape",
+      "label": "C1: Launch and naval target system located and current",
+      "description": "Conduct area reconnaissance IOT LOCATE fielded and garrisoned launch capability and hold a current picture at execution. A dispersible target set decays quickly: the refresh cycle and the assessed dispersal timeline together set how long shaping can run before the picture is no longer actionable.",
+      "order": 0
+    },
+    {
+      "id": "n-launchers",
+      "kind": "milestone",
+      "loeId": "loe-strike",
+      "phaseId": "ph-seize",
+      "label": "M1: DESTROY fielded launch capability",
+      "description": "DESTROY launchers, transporter-erector-launchers and associated fire control IOT DENY Iran mass fires in the opening exchange. Degree of damage is DESTROY rather than NEUTRALIZE or SUPPRESS: anything not physically rendered combat-ineffective disperses within hours and must then be attrited at far worse exchange rates.",
+      "order": 0
+    },
+    {
+      "id": "n-freedom-action",
+      "kind": "condition",
+      "loeId": "loe-strike",
+      "phaseId": "ph-seize",
+      "label": "C2: Air defences unable to contest operations over Iran",
+      "description": "SUPPRESS the integrated air defence system and DESTROY fixed strategic sites IOT ENABLE every other line of effort. The two are not interchangeable: suppression is temporary and the target regains effectiveness the moment fires lift or shift, so freedom of action across a six-week campaign has to rest on destruction of the fixed system, with suppression buying the opening packages only.",
+      "order": 2
+    },
+    {
+      "id": "n-salvo-rate",
+      "kind": "condition",
+      "loeId": "loe-strike",
+      "phaseId": "ph-dominate",
+      "label": "C3: Enemy fires below what defence can absorb",
+      "description": "DESTROY launch capability and NEUTRALIZE what disperses IOT DEGRADE the sustained salvo rate and PROTECT partner states. The threshold is set by the protection line rather than by a target count: it is whatever layered defence can engage without burning the magazine faster than it can be replaced.",
+      "order": 0
+    },
+    {
+      "id": "n-production",
+      "kind": "milestone",
+      "loeId": "loe-strike",
+      "phaseId": "ph-dominate",
+      "label": "M2: DESTROY production, storage and repair capacity",
+      "description": "DESTROY the means of manufacture, storage and repair IOT PREVENT regeneration of the fielded force. Destroying launchers without destroying what makes them buys months rather than years; production is fixed, findable, and the part of the system fires can address decisively.",
+      "order": 2
+    },
+    {
+      "id": "n-reconstitution",
+      "kind": "condition",
+      "loeId": "loe-strike",
+      "phaseId": "ph-prevent",
+      "label": "C4: Reconstitution cannot proceed unobserved",
+      "description": "DESTROY reconstituted capability as it appears and INTERDICT the routes and transfers that feed it, with each interdiction tasking stating its duration or the event that lifts it. The task word concedes the problem: destroy is defined as rendering a force combat-ineffective *until it is reconstituted*, so this line has no natural end and must be resourced as a standing commitment.",
+      "order": 0
+    },
+    {
+      "id": "n-stockpile-found",
+      "kind": "condition",
+      "loeId": "loe-nuclear",
+      "phaseId": "ph-shape",
+      "label": "C1: Fissile material located and accounted for",
+      "description": "Conduct area reconnaissance and technical collection IOT LOCATE the enriched stockpile before execution. The route to a weapon runs through material rather than buildings, so this is go/no-go on the counter-proliferation objective and not a task to be worked during the campaign — unlocated material means fires degrade infrastructure while the fastest path stays open.",
+      "order": 0
+    },
+    {
+      "id": "n-radiological",
+      "kind": "condition",
+      "loeId": "loe-nuclear",
+      "phaseId": "ph-shape",
+      "label": "C2: Operating reactors on the no-strike list",
+      "description": "Restrictive targeting on operating reactors and their foreign staff IOT PREVENT radiological release and PROTECT coalition legitimacy. Strikes in proximity are bounded by distance and weapon selection, and the measure is issued before execution rather than adjudicated in the targeting cycle.",
+      "order": 2
+    },
+    {
+      "id": "n-nuclear-nodes",
+      "kind": "milestone",
+      "loeId": "loe-nuclear",
+      "phaseId": "ph-seize",
+      "label": "M1: DESTROY enrichment and weaponisation nodes",
+      "description": "DESTROY enrichment, conversion and weaponisation nodes IOT DENY breakout capacity, struck in the opening cycle before material and specialists disperse. Where a site is too deeply buried to destroy, the task is NEUTRALIZE and the tasking must state a duration in time or event — neutralisation renders a target incapable of interfering with a particular operation, and it lapses when damage is repaired.",
+      "order": 0
+    },
+    {
+      "id": "n-stockpile-controlled",
+      "kind": "condition",
+      "loeId": "loe-nuclear",
+      "phaseId": "ph-coerce",
+      "label": "C3: Material removed, diluted or verifiably held",
+      "description": "The condition that actually closes the route: material out of the country, diluted under supervision, or held where it can be checked. It cannot be achieved by fires — fires only generate the pressure — so it is delivered through the termination line, which is why that line must be running from D-Day.",
+      "order": 0
+    },
+    {
+      "id": "n-verification",
+      "kind": "condition",
+      "loeId": "loe-nuclear",
+      "phaseId": "ph-prevent",
+      "label": "C4: A restart is detectable",
+      "description": "Establish national and international collection against the programme IOT RESTORE the ability to detect a restart. Without it, 'no route to a weapon' is an assertion rather than a condition, and the enforcement mechanism has nothing to trigger on.",
+      "order": 0
+    },
+    {
+      "id": "n-ad-laydown",
+      "kind": "milestone",
+      "loeId": "loe-protect",
+      "phaseId": "ph-shape",
+      "label": "M1: SECURE partner basing and critical infrastructure",
+      "description": "SECURE partner basing, population centres and energy infrastructure IOT PREVENT the coalition breaking under retaliation. Secure, not protect: protect is not a tactical mission task. Secure also sets a higher bar than control — a secured location must not be impacted by enemy direct or observed indirect fires at all, which is what layered air and missile defence is sized against.",
+      "order": 0
+    },
+    {
+      "id": "n-magazine",
+      "kind": "condition",
+      "loeId": "loe-protect",
+      "phaseId": "ph-shape",
+      "label": "C1: Interceptor and munition stocks hold for the duration",
+      "description": "Interceptors are the binding constraint on campaign duration and cannot be replaced at wartime rates. Stock levels set the campaign clock: if six weeks of defence is not held, the plan is for a shorter war than the one being started, and the termination line must be resourced accordingly.",
+      "order": 2
+    },
+    {
+      "id": "n-first-salvo",
+      "kind": "condition",
+      "loeId": "loe-protect",
+      "phaseId": "ph-seize",
+      "label": "C2: Initial counter-strike absorbed within tolerance",
+      "description": "NEUTRALIZE the opening retaliatory salvo IOT PROTECT the force and hold partner confidence through the heaviest exchange. Tolerance — expected leakage, acceptable casualties and damage — is defined before execution, because that figure is what partner governments will judge the coalition by.",
+      "order": 0
+    },
+    {
+      "id": "n-partners-stay",
+      "kind": "condition",
+      "loeId": "loe-protect",
+      "phaseId": "ph-dominate",
+      "label": "C3: Partners remain committed after being struck",
+      "description": "PROTECT partner territory and SUPPORT partner defence IOT PREVENT coalition fracture. Partners are attacked for hosting the campaign, so this is a condition to be maintained by visible defence, rapid resupply and restraint about using their territory in ways they have not agreed to.",
+      "order": 0
+    },
+    {
+      "id": "n-containment",
+      "kind": "condition",
+      "loeId": "loe-protect",
+      "phaseId": "ph-coerce",
+      "label": "C4: Conflict does not widen beyond Iran",
+      "description": "LIMIT the conflict to Iran and its instruments IOT PREVENT third-party entry. Applied as a restriction on target sets and geography: strikes into neighbouring airspace, casualties among third-country nationals and attacks on shipping flagged to major powers are the triggers that convert a bounded campaign into a different war.",
+      "order": 0
+    },
+    {
+      "id": "n-mcm-ready",
+      "kind": "milestone",
+      "loeId": "loe-maritime",
+      "phaseId": "ph-shape",
+      "label": "M1: Mine countermeasure and escort force in theatre",
+      "description": "Move the reopening force into theatre before D-Day IOT ENABLE a timely response to closure. The enemy's counter to this campaign is to BLOCK the Strait and CANALIZE traffic into his own territorial waters where he can CONTROL passage; that counter is assumed, not hoped against, and these hulls take weeks to arrive.",
+      "order": 0
+    },
+    {
+      "id": "n-energy-buffer",
+      "kind": "condition",
+      "loeId": "loe-maritime",
+      "phaseId": "ph-shape",
+      "label": "C1: Consumers insulated against closure",
+      "description": "Reserve releases, alternative routing and prior consultation with Asian and European consumers IOT DENY Iran economic coercion as a counter-stroke. This condition sets how long the campaign has before economic pressure terminates it independently of the fighting.",
+      "order": 2
+    },
+    {
+      "id": "n-navy-neutral",
+      "kind": "condition",
+      "loeId": "loe-maritime",
+      "phaseId": "ph-seize",
+      "label": "C2: Naval and anti-ship forces cannot close the Strait",
+      "description": "DESTROY fast attack craft, anti-ship missile batteries, mining capability and coastal surveillance IOT DENY the means of closure. The navy is struck because it is the instrument of the enemy's BLOCK task — denying access to an area — and of his attempt to CANALIZE traffic into waters he can CONTROL. Destroy rather than neutralise: neutralisation lapses when damage is repaired.",
+      "order": 0
+    },
+    {
+      "id": "n-corridor",
+      "kind": "milestone",
+      "loeId": "loe-maritime",
+      "phaseId": "ph-dominate",
+      "label": "M2: REDUCE mine obstacles and SECURE a transit corridor",
+      "description": "REDUCE the mine obstacle to create and maintain lanes, CLEAR residual enemy forces from the corridor, and SECURE it by escort IOT OPEN commercial transit. Reduce is the obstacle task and clear is the force task — they are not the same job. Secure is the ambition, since a controlled corridor still admits enemy fires and no master or insurer will use it.",
+      "order": 0
+    },
+    {
+      "id": "n-maritime-framework",
+      "kind": "milestone",
+      "loeId": "loe-maritime",
+      "phaseId": "ph-prevent",
+      "label": "M3: Standing maritime security framework in force",
+      "description": "Transition escort to a partnered framework IOT SUPPORT freedom of navigation without a standing task force. A corridor held open by warships is a posture, not a settlement, and the posture ends when attention or hulls move elsewhere.",
+      "order": 0
+    },
+    {
+      "id": "n-c2-severed",
+      "kind": "milestone",
+      "loeId": "loe-pressure",
+      "phaseId": "ph-seize",
+      "label": "M1: DISRUPT regime command, control and communications",
+      "description": "DISRUPT IOT interrupt the enemy's decision timetable, CAUSE premature commitment, and DEGRADE the ability to coordinate external retaliation and internal suppression at the same time. DISRUPT, not DESTROY: total severance removes the interlocutor the termination line needs and leaves nobody able to accept terms.",
+      "order": 0
+    },
+    {
+      "id": "n-apparatus",
+      "kind": "condition",
+      "loeId": "loe-pressure",
+      "phaseId": "ph-dominate",
+      "label": "C1: Coercive apparatus cannot suppress at scale",
+      "description": "DISRUPT the employment of the internal security instruments and NEUTRALIZE those that can be reached IOT DEGRADE the capacity for suppression at scale. This is the only part of the regime problem fires can address; it makes collapse available without making it probable, and the design does not depend on it arriving.",
+      "order": 0
+    },
+    {
+      "id": "n-indicators",
+      "kind": "condition",
+      "loeId": "loe-pressure",
+      "phaseId": "ph-dominate",
+      "label": "C2: Fracture indicators observed and reported",
+      "description": "Conduct reconnaissance and surveillance IOT LOCATE evidence of fracture against named indicators: unit refusals, defections at command level, elite departures, loss of control in identified provinces. Indicators and the collection plan are set before execution so the exploitation decision rests on reporting rather than on how well the strikes are going.",
+      "order": 2
+    },
+    {
+      "id": "n-successor",
+      "kind": "condition",
+      "loeId": "loe-pressure",
+      "phaseId": "ph-coerce",
+      "label": "C3: Viable interlocutor identified",
+      "description": "An actor able to hold territory, secure material and sign an agreement must be identifiable before the branch opens. Collapse without one produces a state that can neither agree to anything nor secure anything, including its own fissile material.",
+      "order": 0
+    },
+    {
+      "id": "n-no-vacuum",
+      "kind": "condition",
+      "loeId": "loe-pressure",
+      "phaseId": "ph-prevent",
+      "label": "C4: No ungoverned space; material accounted for",
+      "description": "SECURE the sites holding fissile material, specialists and munitions stocks IOT PREVENT proliferation to non-state actors and third parties. This is the failure mode of a successful pressure line, and guarding against it is what constrains how far that line is permitted to run.",
+      "order": 0
+    },
+    {
+      "id": "n-objective-set",
+      "kind": "milestone",
+      "loeId": "loe-terminate",
+      "phaseId": "ph-shape",
+      "label": "M1: Single task and purpose issued",
+      "description": "One task, one purpose, written, briefed and unchanged in public. Both candidate words take an enemy force as their object: DESTROY renders a force combat-ineffective until reconstituted, DEFEAT means it has lost the physical means or the will to fight. Neither takes a government as its object, so regime change is a policy aim with no task word behind it — and an objective with no task word has no measurable *what*, no attackable centre of gravity and no termination criterion.",
+      "order": 0
+    },
+    {
+      "id": "n-authority",
+      "kind": "milestone",
+      "loeId": "loe-terminate",
+      "phaseId": "ph-shape",
+      "label": "M2: Legal authority and basing rights obtained",
+      "description": "Legislative notification and consultation, coalition consent for basing and overflight, and the international legal basis settled before execution IOT SUPPORT sustained operations. Host-nation consent is the hardest resource to recover once spent, and it constrains what can be flown from where for the rest of the campaign.",
+      "order": 1
+    },
+    {
+      "id": "n-mediator",
+      "kind": "milestone",
+      "loeId": "loe-terminate",
+      "phaseId": "ph-shape",
+      "label": "M3: Mediator identified; termination terms drafted",
+      "description": "A mediator both sides will accept, and draft terms describing what Iran gets for stopping, exist before the first strike IOT ENABLE coercion toward something. Coercion toward a settlement nobody has written is coercion toward nothing, and the mediator cannot be recruited from a standing start in week six.",
+      "order": 2
+    },
+    {
+      "id": "n-offramp",
+      "kind": "condition",
+      "loeId": "loe-terminate",
+      "phaseId": "ph-dominate",
+      "label": "C1: Off-ramp maintained; survival not threatened by fires",
+      "description": "Restrictive targeting on regime-survival and leadership targets IOT ALLOW the enemy to accept terms. Iran must be able to stop without the regime falling, or it has no reason to stop; strikes that make acceptance indistinguishable from collapse destroy the outcome the campaign exists to produce.",
+      "order": 0
+    },
+    {
+      "id": "n-settlement",
+      "kind": "milestone",
+      "loeId": "loe-terminate",
+      "phaseId": "ph-coerce",
+      "label": "M4: Settlement agreed with verification and enforcement",
+      "description": "The settlement is the objective made durable: freedom of navigation, constraints on missiles and material, and the means to check both. Without an enforcement mechanism agreed at signature, the settlement is a pause and the campaign has bought a ceasefire rather than an end state.",
+      "order": 0
+    },
+    {
+      "id": "n-enforcement",
+      "kind": "condition",
+      "loeId": "loe-terminate",
+      "phaseId": "ph-prevent",
+      "label": "C2: Enforcement credible, proportionate and rehearsed",
+      "description": "Graduated response options are designed and rehearsed before they are needed IOT PREVENT violation. An enforcement posture whose only rung is major combat will not be used, and both sides will work that out quickly.",
+      "order": 0
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "dep-objective-target",
+      "fromId": "n-objective-set",
+      "toId": "n-target-system"
+    },
+    {
+      "id": "dep-objective-mediator",
+      "fromId": "n-objective-set",
+      "toId": "n-mediator"
+    },
+    {
+      "id": "dep-target-launchers",
+      "fromId": "n-target-system",
+      "toId": "n-launchers"
+    },
+    {
+      "id": "dep-authority-launchers",
+      "fromId": "n-authority",
+      "toId": "n-launchers"
+    },
+    {
+      "id": "dep-stockpile-nodes",
+      "fromId": "n-stockpile-found",
+      "toId": "n-nuclear-nodes"
+    },
+    {
+      "id": "dep-radiological-nodes",
+      "fromId": "n-radiological",
+      "toId": "n-nuclear-nodes"
+    },
+    {
+      "id": "dep-laydown-salvo",
+      "fromId": "n-ad-laydown",
+      "toId": "n-first-salvo"
+    },
+    {
+      "id": "dep-magazine-salvo",
+      "fromId": "n-magazine",
+      "toId": "n-first-salvo"
+    },
+    {
+      "id": "dep-launchers-salvo",
+      "fromId": "n-launchers",
+      "toId": "n-first-salvo"
+    },
+    {
+      "id": "dep-freedom-production",
+      "fromId": "n-freedom-action",
+      "toId": "n-production"
+    },
+    {
+      "id": "dep-freedom-navy",
+      "fromId": "n-freedom-action",
+      "toId": "n-navy-neutral"
+    },
+    {
+      "id": "dep-navy-corridor",
+      "fromId": "n-navy-neutral",
+      "toId": "n-corridor"
+    },
+    {
+      "id": "dep-mcm-corridor",
+      "fromId": "n-mcm-ready",
+      "toId": "n-corridor"
+    },
+    {
+      "id": "dep-salvo-rate-partners",
+      "fromId": "n-salvo-rate",
+      "toId": "n-partners-stay"
+    },
+    {
+      "id": "dep-firstsalvo-partners",
+      "fromId": "n-first-salvo",
+      "toId": "n-partners-stay"
+    },
+    {
+      "id": "dep-energy-containment",
+      "fromId": "n-energy-buffer",
+      "toId": "n-containment"
+    },
+    {
+      "id": "dep-c2-apparatus",
+      "fromId": "n-c2-severed",
+      "toId": "n-apparatus"
+    },
+    {
+      "id": "dep-apparatus-indicators",
+      "fromId": "n-apparatus",
+      "toId": "n-indicators"
+    },
+    {
+      "id": "dep-indicators-successor",
+      "fromId": "n-indicators",
+      "toId": "n-successor"
+    },
+    {
+      "id": "dep-successor-vacuum",
+      "fromId": "n-successor",
+      "toId": "n-no-vacuum"
+    },
+    {
+      "id": "dep-mediator-settlement",
+      "fromId": "n-mediator",
+      "toId": "n-settlement"
+    },
+    {
+      "id": "dep-offramp-settlement",
+      "fromId": "n-offramp",
+      "toId": "n-settlement"
+    },
+    {
+      "id": "dep-corridor-settlement",
+      "fromId": "n-corridor",
+      "toId": "n-settlement"
+    },
+    {
+      "id": "dep-successor-settlement",
+      "fromId": "n-successor",
+      "toId": "n-settlement"
+    },
+    {
+      "id": "dep-production-reconstitution",
+      "fromId": "n-production",
+      "toId": "n-reconstitution"
+    },
+    {
+      "id": "dep-stockpile-verification",
+      "fromId": "n-stockpile-controlled",
+      "toId": "n-verification"
+    },
+    {
+      "id": "dep-settlement-verification",
+      "fromId": "n-settlement",
+      "toId": "n-verification"
+    },
+    {
+      "id": "dep-settlement-framework",
+      "fromId": "n-settlement",
+      "toId": "n-maritime-framework"
+    },
+    {
+      "id": "dep-settlement-enforcement",
+      "fromId": "n-settlement",
+      "toId": "n-enforcement"
+    }
+  ],
+  "decisionPoints": [
+    {
+      "id": "dp-execute",
+      "label": "Execute, or continue shaping?",
+      "afterPhaseId": "ph-shape",
+      "placement": "after",
+      "order": 0,
+      "description": "Held on the shaping conditions, not on the calendar or on a window of opportunity. If fissile material has not been located, the counter-proliferation task cannot be achieved by fires, and the choice is to execute on the remaining tasks with that stated openly or to hold and pursue the material by negotiation. Executing while talks are live also spends the diplomatic channel the termination line will then have to rebuild under fire."
+    },
+    {
+      "id": "dp-escalate",
+      "label": "Expand the target set to energy and infrastructure?",
+      "afterPhaseId": "ph-dominate",
+      "placement": "in",
+      "order": 1,
+      "description": "This moves the effect from DESTROY of military capability to HARASS of the population and economy, which costs partner support and legal ground and invites symmetrical attacks on partner energy infrastructure. Decide in advance what the pressure is meant to buy and what reporting would show it working, or the escalation becomes its own justification."
+    },
+    {
+      "id": "dp-branch",
+      "label": "EXPLOIT, or hold on the capability task?",
+      "afterPhaseId": "ph-dominate",
+      "placement": "after",
+      "order": 0,
+      "description": "EXPLOIT is the correct task only if fracture indicators are observed and a viable interlocutor is identified. Exploitation of a regime collapse requires forces and post-conflict resources this plan does not hold, so if either condition is absent the branch stays closed and the campaign terminates on the capability task rather than drifting toward the maximalist one by momentum."
+    },
+    {
+      "id": "dp-accept",
+      "label": "Accept the settlement on offer?",
+      "afterPhaseId": "ph-coerce",
+      "placement": "in",
+      "order": 1,
+      "description": "Weigh what is on the table against what continued operations would add at the current burn rate of interceptors, munitions, partner patience and economic tolerance. The standing temptation is to hold for better terms while consuming the very resources that generated the leverage."
+    },
+    {
+      "id": "dp-stop",
+      "label": "Declare the campaign complete?",
+      "afterPhaseId": "ph-coerce",
+      "placement": "after",
+      "order": 0,
+      "description": "Terminate when the capability conditions are met and the settlement is in force, not when a task that was never the military one has failed to arrive. Declaring completion with the enemy's BLOCK task unbroken hands an unachieved condition to a posture that has no means of achieving it."
+    },
+    {
+      "id": "dp-reenter",
+      "label": "Re-enter, or enforce by other means?",
+      "afterPhaseId": "ph-prevent",
+      "placement": "after",
+      "order": 0,
+      "description": "A violation is not automatically a resumption. Decide beforehand which violations trigger fires, which trigger the enforcement mechanism, and who holds that authority, so the settlement does not collapse on its first test."
+    }
+  ],
+  "showLoeEndStates": true,
+  "showDetail": true
+}
