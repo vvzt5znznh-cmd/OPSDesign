@@ -66,9 +66,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           <strong>Link</strong>, then click A then B — B sits to the right of A.
           The first time, pick a sample. File → New… is that prompt again. File → Ask an LLM… copies a prompt
           and sample JSON; File → Open JSON loads the file it returns. File →
-          Export PowerPoint makes an editable briefing slide that matches the
-          picture. Dependency links are curved PowerPoint connectors glued to
-          the sides of the figures.           Labels are the text on the picture. Each workstream can carry an end
+          Export PowerPoint makes a 16:9 briefing slide. The picture scales to
+          fit; type scales with it. Dependency links are curved PowerPoint
+          connectors glued to the sides of the figures. Labels are the text on
+          the picture. Each workstream can carry an end
           state at the right of its line. Campaign end-state name and the
           conditions that must hold sit on the panel.
         </p>
