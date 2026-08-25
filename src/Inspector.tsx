@@ -69,8 +69,8 @@ function LoeEndStatesToggle() {
       </div>
       <p className="muted">
         {on
-          ? "A pill at the right of each line. Turn off to run the lines into the campaign panel."
-          : "Hidden. Typed text is kept. Turn on to show a pill on each workstream."}
+          ? "A pill at the right of every workstream. Turn off to run the lines into the campaign panel."
+          : "Hidden on every workstream. Typed text is kept. Turn on to show a pill on each line."}
       </p>
     </>
   );
