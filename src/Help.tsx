@@ -19,9 +19,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <p>
               The panel on the right. Every workstream reads into it. Name is
               the heading; what will be true sits under it — not a date. Colour
-              is a wash you can change in the inspector. Each workstream also
-              has its own end state at the right of its line; those stream
-              outcomes build the campaign panel.
+              is a wash you can change in the inspector. Workstream end states
+              (pills at the right of each line) are optional — Off/On in the
+              inspector. Turn them off and the lines run into the campaign
+              panel; the text is kept.
             </p>
           </div>
           <div>
@@ -32,8 +33,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <h3>Workstreams</h3>
             <p>
               Concurrent work organised by purpose. Name the stream, then the
-              one-line job it does. Click the stream (or the pill at the end of
-              the line) to set its end state.
+              one-line job it does. With workstream end states on, click the
+              stream (or the pill at the end of the line) to set its end state.
             </p>
           </div>
           <div>
@@ -69,9 +70,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           Export PowerPoint makes a 16:9 briefing slide. The picture scales to
           fit; type scales with it. Dependency links are curved PowerPoint
           connectors glued to the sides of the figures. Labels are the text on
-          the picture. Each workstream can carry an end
-          state at the right of its line. Campaign end-state name and the
-          conditions that must hold sit on the panel.
+          the picture. Workstream end states are optional (Off/On in the
+          inspector). When on, each workstream can carry an end state at the
+          right of its line. Campaign end-state name and the conditions that
+          must hold sit on the panel.
         </p>
         <p className="help-how">
           The picture stays in this browser when you leave. Undo/Redo cover this

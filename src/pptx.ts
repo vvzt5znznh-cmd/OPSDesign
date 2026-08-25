@@ -189,7 +189,9 @@ function speakerNotes(design: OperationalDesign): string {
   if (design.endState.description.trim()) {
     lines.push(design.endState.description.trim());
   }
-  const streamEnds = design.linesOfEffort.filter((loe) => loe.endState.trim());
+  const streamEnds = design.showLoeEndStates
+    ? design.linesOfEffort.filter((loe) => loe.endState.trim())
+    : [];
   if (streamEnds.length) {
     lines.push("", "Workstream end states");
     for (const loe of streamEnds) {
@@ -356,7 +358,7 @@ export async function buildPptxArrayBuffer(
   for (const loe of laid.loes) {
     const x1 = X(loe.x1);
     const y = Y(loe.y);
-    // Shaft stops short of the pill so the triangle does not sit on the text.
+    // Shaft stops short of the pill or campaign panel so the triangle does not sit on the text.
     const x2 = Math.max(X(loe.x2) - S(12), x1 + 0.05);
     slide.addShape(pptx.ShapeType.line, {
       x: x1,

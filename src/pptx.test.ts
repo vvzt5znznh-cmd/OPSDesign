@@ -64,6 +64,30 @@ describe("PowerPoint workstream end states", () => {
     expect(xml).toContain("normAutofit");
     expect(xml).toContain('wrap="square"');
   });
+
+  it("omits workstream pills when the toggle is off", async () => {
+    const on = projectTemplate();
+    const off = { ...on, showLoeEndStates: false };
+    const onBuf = await buildPptxArrayBuffer(on, DIAGRAM_PALETTES.light);
+    const offBuf = await buildPptxArrayBuffer(off, DIAGRAM_PALETTES.light);
+    const onZip = await JSZip.loadAsync(onBuf);
+    const offZip = await JSZip.loadAsync(offBuf);
+    const slidePath = Object.keys(onZip.files).find((p) =>
+      /^ppt\/slides\/slide\d+\.xml$/.test(p),
+    )!;
+    const onXml = await onZip.file(slidePath)!.async("string");
+    const offXml = await offZip.file(slidePath)!.async("string");
+    const onRects = onXml.match(/prst="roundRect"/g)?.length ?? 0;
+    const offRects = offXml.match(/prst="roundRect"/g)?.length ?? 0;
+    expect(onRects).toBeGreaterThan(offRects);
+    const notesPath = Object.keys(offZip.files).find((p) =>
+      /notesSlide\d+\.xml$/.test(p),
+    );
+    if (notesPath) {
+      const notes = await offZip.file(notesPath)!.async("string");
+      expect(notes).not.toContain("Workstream end states");
+    }
+  });
 });
 
 describe("PowerPoint 16:9 fit", () => {

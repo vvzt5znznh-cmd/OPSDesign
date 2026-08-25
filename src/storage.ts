@@ -1,4 +1,4 @@
-import { LOE_COLORS, endStateColor, type DecisionPoint, type DesignNode, type Dependency, type LineOfEffort, type OperationalDesign } from "./types";
+import { LOE_COLORS, endStateColor, loeEndStatesShown, type DecisionPoint, type DesignNode, type Dependency, type LineOfEffort, type OperationalDesign } from "./types";
 
 const KEY = "opsdesign:current";
 const PREVIOUS_KEY = "opsdesign:previous";
@@ -133,6 +133,7 @@ export function normalizeDesign(value: unknown): OperationalDesign | null {
           return dp ? [dp] : [];
         })
       : [],
+    showLoeEndStates: loeEndStatesShown(value),
   };
 }
 

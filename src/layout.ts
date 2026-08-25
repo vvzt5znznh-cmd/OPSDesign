@@ -1,4 +1,4 @@
-import { endStateColor, type GatePlacement, type NodeKind, type OperationalDesign } from "./types";
+import { endStateColor, loeEndStatesShown, type GatePlacement, type NodeKind, type OperationalDesign } from "./types";
 import { NODE_LABEL, nodeLabelSize, wrapLabel } from "./wrap";
 
 export const LAYOUT = {
@@ -389,8 +389,9 @@ export function loeRowHeight(design: OperationalDesign, loeId: string): number {
     nameLines * LOE_GUTTER.nameLh +
     (purposeLines ? LOE_GUTTER.gap + purposeLines * LOE_GUTTER.purposeLh : 0) +
     20;
-  const fromEnd =
-    loeEndHeight(wrapLoeEndState(loe?.endState ?? "")) + 16;
+  const fromEnd = loeEndStatesShown(design)
+    ? loeEndHeight(wrapLoeEndState(loe?.endState ?? "")) + 16
+    : 0;
   return Math.max(LAYOUT.loeH, fromNodes, fromGutter, fromEnd);
 }
 
@@ -402,14 +403,12 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
 
   const phaseMeta = phases.map((phase) => phaseBand(design, phase.id, columns));
   const phasesWidth = phaseMeta.reduce((a, p) => a + p.width, 0);
+  const showEnds = loeEndStatesShown(design);
+  const endBand = showEnds
+    ? L.loeEndGap + L.loeEndW + L.loeEndToPanel
+    : L.addGap;
   const width =
-    L.padX * 2 +
-    L.leftGutter +
-    phasesWidth +
-    L.loeEndGap +
-    L.loeEndW +
-    L.loeEndToPanel +
-    L.outcomeW;
+    L.padX * 2 + L.leftGutter + phasesWidth + endBand + L.outcomeW;
   const textWidth = Math.max(240, width - L.padX * 2);
   const titleLines = wrapToWidth(
     design.title || "Untitled",
@@ -453,8 +452,10 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   });
 
   const plotX = L.padX + L.leftGutter;
-  const loeEndX = plotX + phasesWidth + L.loeEndGap;
-  const outcomeX = loeEndX + L.loeEndW + L.loeEndToPanel;
+  const loeEndX = plotX + phasesWidth + (showEnds ? L.loeEndGap : L.addGap);
+  const outcomeX = showEnds
+    ? loeEndX + L.loeEndW + L.loeEndToPanel
+    : loeEndX;
   const loeTop = plotY + dpBarH;
   const T = END_STATE_TEXT;
   const panelW = L.outcomeW - T.inset * 2;
@@ -501,24 +502,24 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     y: loeYs[i],
     height: loeHeights[i],
     x1: plotX - 8,
-    x2: loeEndX,
+    x2: showEnds ? loeEndX : panelX,
   }));
-  const loeEndStates: LoeEndStateLayout[] = design.linesOfEffort.map(
-    (loe, i) => {
-      const lines = wrapLoeEndState(loe.endState ?? "");
-      const height = loeEndHeight(lines);
-      return {
-        id: loe.id,
-        text: loe.endState ?? "",
-        lines,
-        color: loe.color,
-        x: loeEndX,
-        y: loeYs[i] - height / 2,
-        width: L.loeEndW,
-        height,
-      };
-    },
-  );
+  const loeEndStates: LoeEndStateLayout[] = showEnds
+    ? design.linesOfEffort.map((loe, i) => {
+        const lines = wrapLoeEndState(loe.endState ?? "");
+        const height = loeEndHeight(lines);
+        return {
+          id: loe.id,
+          text: loe.endState ?? "",
+          lines,
+          color: loe.color,
+          x: loeEndX,
+          y: loeYs[i] - height / 2,
+          width: L.loeEndW,
+          height,
+        };
+      })
+    : [];
   const loeY = new Map(loes.map((l) => [l.id, l.y]));
   const phaseById = new Map(phaseLayouts.map((p) => [p.id, p]));
 
@@ -599,9 +600,9 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     loes,
     loeEndStates,
     loeEndCol: {
-      x: loeEndX,
+      x: showEnds ? loeEndX : outcomeX,
       y: bandY,
-      width: L.loeEndW,
+      width: showEnds ? L.loeEndW : 0,
       height: bandH,
     },
     nodes,

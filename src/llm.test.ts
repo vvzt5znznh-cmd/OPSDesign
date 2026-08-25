@@ -39,6 +39,22 @@ describe("LLM sample design", () => {
     }
   });
 
+  it("keeps workstream end-state pills on when a file omits the toggle", () => {
+    const raw = JSON.parse(sampleDesignJson()) as Record<string, unknown>;
+    delete raw.showLoeEndStates;
+    const parsed = normalizeDesign(raw);
+    expect(parsed?.showLoeEndStates).toBe(true);
+  });
+
+  it("honours workstream end states turned off in a file", () => {
+    const raw = JSON.parse(sampleDesignJson()) as Record<string, unknown>;
+    raw.showLoeEndStates = false;
+    const parsed = normalizeDesign(raw);
+    expect(parsed?.showLoeEndStates).toBe(false);
+    const laid = layoutDiagram(parsed!);
+    expect(laid.loeEndStates).toEqual([]);
+  });
+
   it("uses ids that all resolve", () => {
     const phaseIds = new Set(SAMPLE_DESIGN.phases.map((p) => p.id));
     const loeIds = new Set(SAMPLE_DESIGN.linesOfEffort.map((l) => l.id));
@@ -102,6 +118,7 @@ describe("LLM prompt", () => {
       "condition",
       "placement",
       "op-clinic-booking",
+      "showLoeEndStates",
     ]) {
       expect(text).toContain(token);
     }

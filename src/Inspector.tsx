@@ -41,6 +41,41 @@ function Field({
   );
 }
 
+function LoeEndStatesToggle() {
+  const { design, dispatch } = useDesign();
+  const on = design.showLoeEndStates;
+  return (
+    <>
+      <p className="field-label">Workstream end states</p>
+      <div
+        className="kind-toggle inspector-toggle"
+        role="group"
+        aria-label="Workstream end states"
+      >
+        <button
+          type="button"
+          className={!on ? "on" : ""}
+          onClick={() => dispatch({ type: "setShowLoeEndStates", value: false })}
+        >
+          Off
+        </button>
+        <button
+          type="button"
+          className={on ? "on" : ""}
+          onClick={() => dispatch({ type: "setShowLoeEndStates", value: true })}
+        >
+          On
+        </button>
+      </div>
+      <p className="muted">
+        {on
+          ? "A pill at the right of each line. Turn off to run the lines into the campaign panel."
+          : "Hidden. Typed text is kept. Turn on to show a pill on each workstream."}
+      </p>
+    </>
+  );
+}
+
 export function Inspector() {
   const { design, selection, dispatch, setSelection, setLinkMode, setLinkFrom } =
     useDesign();
@@ -118,6 +153,7 @@ export function Inspector() {
             placeholder="Shown under the name on the panel."
           />
         </Field>
+        <LoeEndStatesToggle />
         <Field label="Colour">
           <div className="palette">
             {END_STATE_COLORS.map((color) => (
@@ -237,26 +273,32 @@ export function Inspector() {
             }
           />
         </Field>
-        <Field label="End state">
-          <textarea
-            key={`${loe.id}-end-state`}
-            rows={3}
-            defaultValue={loe.endState}
-            onBlur={(e) =>
-              commit(loe.endState, e.target.value, () =>
-                dispatch({
-                  type: "updateLoe",
-                  id: loe.id,
-                  endState: e.target.value,
-                }),
-              )
-            }
-            placeholder="What will be true for this stream"
-          />
-        </Field>
-        <p className="muted">
-          This stream's outcome. It feeds the campaign end state on the right.
-        </p>
+        <LoeEndStatesToggle />
+        {design.showLoeEndStates && (
+          <>
+            <Field label="End state">
+              <textarea
+                key={`${loe.id}-end-state`}
+                rows={3}
+                defaultValue={loe.endState}
+                onBlur={(e) =>
+                  commit(loe.endState, e.target.value, () =>
+                    dispatch({
+                      type: "updateLoe",
+                      id: loe.id,
+                      endState: e.target.value,
+                    }),
+                  )
+                }
+                placeholder="What will be true for this stream"
+              />
+            </Field>
+            <p className="muted">
+              This stream's outcome. It feeds the campaign end state on the
+              right.
+            </p>
+          </>
+        )}
         <Field label="Colour">
           <div className="palette">
             {LOE_COLORS.map((color) => (

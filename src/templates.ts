@@ -29,6 +29,7 @@ function blank(
       { id: uid("dp"), label: "Decision 1", afterPhaseId: p1, placement: "after", order: 0, description: "" },
       { id: uid("dp"), label: "Decision 2", afterPhaseId: p2, placement: "after", order: 0, description: "" },
     ],
+    showLoeEndStates: false,
     ...partial,
   };
 }
@@ -163,6 +164,7 @@ export function projectTemplate(): OperationalDesign {
       },
     ],
     nodes: Object.values(n),
+    showLoeEndStates: true,
     dependencies: [
       dep(n.problemFramed, n.needUnderstood),
       dep(n.optionsChosen, n.solutionAgreed),
@@ -299,6 +301,7 @@ export function militaryTemplate(): OperationalDesign {
       dep(man3, intel3),
       dep(inf3, man4),
     ],
+    showLoeEndStates: true,
   };
 }
 

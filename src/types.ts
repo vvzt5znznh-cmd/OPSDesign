@@ -63,6 +63,15 @@ export interface OperationalDesign {
   nodes: DesignNode[];
   dependencies: Dependency[];
   decisionPoints: DecisionPoint[];
+  /** Per-workstream pills at the right of each line. Off runs lines into the campaign panel. */
+  showLoeEndStates: boolean;
+}
+
+/** Missing in older files means on — keep the current look. */
+export function loeEndStatesShown(design: {
+  showLoeEndStates?: unknown;
+}): boolean {
+  return design.showLoeEndStates !== false;
 }
 
 export type Selection =

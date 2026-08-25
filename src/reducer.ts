@@ -13,6 +13,7 @@ export type DesignAction =
   | { type: "setTitle"; title: string }
   | { type: "setPurpose"; purpose: string }
   | { type: "setEndState"; name?: string; description?: string; color?: string }
+  | { type: "setShowLoeEndStates"; value: boolean }
   | { type: "addPhase"; afterId?: string; id?: string }
   | { type: "renamePhase"; id: string; name: string }
   | { type: "removePhase"; id: string }
@@ -97,6 +98,10 @@ export function reduceDesign(
       }
       return { ...design, endState: { name, description, color } };
     }
+    case "setShowLoeEndStates":
+      return action.value === design.showLoeEndStates
+        ? design
+        : { ...design, showLoeEndStates: action.value };
     case "addPhase": {
       const phase = {
         id: action.id ?? uid("ph"),

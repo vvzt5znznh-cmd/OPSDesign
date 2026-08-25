@@ -46,6 +46,7 @@ function design(
         description: "",
       },
     ],
+    showLoeEndStates: true,
     ...partial,
   };
 }
@@ -220,6 +221,46 @@ describe("layoutDiagram", () => {
     expect(pill.y + pill.height).toBeLessThan(neighbour.y - 2);
   });
 
+  it("hides workstream end states when the toggle is off", () => {
+    const long =
+      "Users complete the journey unassisted. Longer text here to visualize what happens when the end state is long.";
+    const on = layoutDiagram(
+      design({
+        linesOfEffort: [
+          {
+            id: "l1",
+            name: "Alpha",
+            color: "#E87722",
+            purpose: "A",
+            endState: long,
+          },
+          { id: "l2", name: "Beta", color: "#5B8C2A", purpose: "B", endState: "" },
+        ],
+      }),
+    );
+    const off = layoutDiagram(
+      design({
+        showLoeEndStates: false,
+        linesOfEffort: [
+          {
+            id: "l1",
+            name: "Alpha",
+            color: "#E87722",
+            purpose: "A",
+            endState: long,
+          },
+          { id: "l2", name: "Beta", color: "#5B8C2A", purpose: "B", endState: "" },
+        ],
+      }),
+    );
+    expect(off.loeEndStates).toEqual([]);
+    expect(off.loeEndCol.width).toBe(0);
+    expect(off.width).toBeLessThan(on.width);
+    for (const loe of off.loes) {
+      expect(loe.x2).toBe(off.endState.x);
+    }
+  });
+
   it("snaps a gate inside a phase or onto the seam after it", () => {
     const laid = layoutDiagram(design());
     const phase = laid.phases[0];
@@ -356,6 +397,30 @@ describe("reduceDesign", () => {
     const loe = next.linesOfEffort.find((l) => l.id === "l1")!;
     expect(loe.name).toBe("Alpha");
     expect(loe.endState).toBe("This stream is complete.");
+  });
+
+  it("toggles workstream end states without dropping the text", () => {
+    const start = design({
+      linesOfEffort: [
+        {
+          id: "l1",
+          name: "Alpha",
+          color: "#E87722",
+          purpose: "A",
+          endState: "This stream is complete.",
+        },
+        { id: "l2", name: "Beta", color: "#5B8C2A", purpose: "B", endState: "" },
+      ],
+    });
+    const off = reduceDesign(start, {
+      type: "setShowLoeEndStates",
+      value: false,
+    });
+    expect(off.showLoeEndStates).toBe(false);
+    expect(off.linesOfEffort[0].endState).toBe("This stream is complete.");
+    const on = reduceDesign(off, { type: "setShowLoeEndStates", value: true });
+    expect(on.showLoeEndStates).toBe(true);
+    expect(on.linesOfEffort[0].endState).toBe("This stream is complete.");
   });
 
   it("adds a gate at the requested snap without moving the others", () => {

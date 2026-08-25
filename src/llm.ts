@@ -218,6 +218,7 @@ export const SAMPLE_DESIGN: OperationalDesign = {
       description: "",
     },
   ],
+  showLoeEndStates: true,
 };
 
 export function sampleDesignJson(): string {
@@ -232,7 +233,7 @@ Operational design asks: what must be true when we are done, what concurrent wor
 ## Vocabulary (use these words in labels)
 - **End state**: the outcome that must hold when the work is done — a set of conditions, not a date. \`name\` is a short heading on the panel (e.g. LIVE AND USED). \`description\` is 1–3 sentences of what will be true.
 - **Phase**: a stage left to right (Discover, Define, Build, Launch — or the user's names).
-- **Workstream / line of effort**: concurrent work organised by purpose. \`name\` is short. \`purpose\` is one line under the name (the job that stream does). \`endState\` is what will be true for that stream — it sits at the right end of the line and feeds the campaign end-state panel.
+- **Workstream / line of effort**: concurrent work organised by purpose. \`name\` is short. \`purpose\` is one line under the name (the job that stream does). \`endState\` is what will be true for that stream. When \`showLoeEndStates\` is true it sits in a pill at the right of the line and feeds the campaign panel; when false the lines run into the campaign panel and the text is kept but not drawn.
 - **Milestone** (\`kind\`: "milestone"): an event or deliverable. It happened, or it did not. \`label\` is the text on the figure, e.g. "M1: Problem framed". \`description\` must be "".
 - **Condition** (\`kind\`: "condition"): a state that must hold. "Funding is committed." "Users are ready." \`label\` is the text on the figure, e.g. "C1: Need is understood". \`description\` must be "".
 - **Gate / decision** (\`decisionPoints\`): a decision to proceed, recycle, or stop. \`label\` is the text under the star — name it as the question or decision, not "Gate 1". \`description\` must be "". \`placement\` is "in" (inside the phase) or "after" (on the seam after that phase). \`afterPhaseId\` is the phase the gate belongs to.
@@ -264,12 +265,13 @@ Root object:
     "placement": "in" | "after",
     "order": number,
     "description": string
-  }]
+  }],
+  "showLoeEndStates": boolean
 }
 
 ## Rules
 1. Output **only** a single JSON object. No markdown, no commentary, no trailing text.
-2. Copy the field names and nesting of the sample exactly. Do not add fields. Do not omit required fields. Node and gate \`description\` must be "". \`endState.description\` is the campaign panel. Each workstream \`endState\` is that stream's outcome on the picture.
+2. Copy the field names and nesting of the sample exactly. Do not add fields. Do not omit required fields. Node and gate \`description\` must be "". \`endState.description\` is the campaign panel. Each workstream \`endState\` is that stream's outcome. \`showLoeEndStates\` is true to draw those as pills (usual); false hides the pills and runs the lines into the campaign panel.
 3. Every \`phaseId\`, \`loeId\`, \`afterPhaseId\`, \`fromId\`, and \`toId\` must match an id you defined.
 4. IDs must be unique strings. Prefer readable kebab-case: \`op-…\`, \`ph-…\`, \`loe-…\`, \`n-…\`, \`dp-…\`, \`dep-…\`.
 5. \`order\` is the left-to-right slot in that workstream+phase, starting at 0. A default phase has three slots (early, middle, late). Two things on the same stream in the same phase cannot share a slot: 0 then 1 then 2. A later slot widens the phase.
