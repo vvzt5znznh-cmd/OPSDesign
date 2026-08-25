@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { uid } from "./id";
-import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, endStateTextBox, END_STATE_TEXT, HEADING, LAYOUT, LOE_GUTTER, type DiagramLayout } from "./layout";
+import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, endStateTextBox, END_STATE_TEXT, HEADING, LAYOUT, LOE_END, LOE_GUTTER, type DiagramLayout } from "./layout";
 import { useDesign } from "./state";
 import { useTheme, type DiagramPalette } from "./theme";
 import {
@@ -55,6 +55,7 @@ function diagramCss(p: DiagramPalette): string {
   .svg-phase { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; fill: ${p.phase}; }
   .svg-loe { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; }
   .svg-loe-purpose { font-family: Arial, Helvetica, sans-serif; font-size: 9px; font-weight: 500; fill: ${p.purpose}; }
+  .svg-loe-end { font-family: Arial, Helvetica, sans-serif; font-size: 9px; font-weight: 600; }
   .svg-end-col { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; fill: ${p.purpose}; letter-spacing: 0.12em; }
   .svg-condition, .svg-dp-label, .svg-legend { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; fill: ${p.label}; }
   .svg-end { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; }
@@ -602,6 +603,78 @@ export function Diagram({
         );
       })}
 
+      {laidOut.loeEndStates.map((pill) => {
+        const selected = isSelected(selection, "loe", pill.id);
+        const filled = pill.text.trim().length > 0;
+        const cx = pill.x + pill.width / 2;
+        const midY = pill.y + pill.height / 2;
+        return (
+          <g
+            key={`loe-end-${pill.id}`}
+            className="loe-end"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelection({ type: "loe", id: pill.id });
+            }}
+          >
+            <line
+              x1={pill.x + pill.width}
+              y1={midY}
+              x2={laidOut.endState.x}
+              y2={midY}
+              stroke={pill.color}
+              strokeWidth={3}
+              strokeLinecap="round"
+            />
+            <rect
+              x={pill.x}
+              y={pill.y}
+              width={pill.width}
+              height={pill.height}
+              rx="8"
+              fill={filled ? pill.color : "transparent"}
+              fillOpacity={filled ? 0.16 : 0}
+              stroke={selected ? "#c4a35a" : pill.color}
+              strokeOpacity={selected ? 1 : filled ? 0.55 : 0.32}
+              strokeWidth={selected ? 2.2 : 1.1}
+              strokeDasharray={filled ? undefined : "4 3"}
+            />
+            {filled
+              ? pill.lines.map((line, i) => (
+                  <text
+                    key={`e-${i}`}
+                    x={cx}
+                    y={
+                      pill.y +
+                      (pill.height - pill.lines.length * LOE_END.lh) / 2 +
+                      i * LOE_END.lh +
+                      LOE_END.lh / 2
+                    }
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="svg-loe-end"
+                    fill={palette.title}
+                  >
+                    {line}
+                  </text>
+                ))
+              : selected && (
+                  <text
+                    x={cx}
+                    y={midY}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="svg-loe-end"
+                    fill={palette.purpose}
+                    fillOpacity={0.7}
+                  >
+                    End state
+                  </text>
+                )}
+          </g>
+        );
+      })}
+
       {laidOut.dependencies.map((dep) => (
         <g key={dep.id} opacity={depOpacity(dep)}>
           <path
@@ -918,7 +991,7 @@ export function Diagram({
               x={
                 (laidOut.phases[laidOut.phases.length - 1].x +
                   laidOut.phases[laidOut.phases.length - 1].width +
-                  laidOut.endCol.x) /
+                  laidOut.loeEndCol.x) /
                 2
               }
               y={laidOut.plot.y - 22}

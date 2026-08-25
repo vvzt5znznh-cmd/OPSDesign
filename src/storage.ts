@@ -39,6 +39,7 @@ function migrateLoe(raw: Record<string, unknown>, index: number): LineOfEffort |
     name: asString(raw.name, `Workstream ${index + 1}`),
     color: asString(raw.color, LOE_COLORS[index % LOE_COLORS.length]),
     purpose: asString(raw.purpose),
+    endState: asString(raw.endState),
   };
 }
 
