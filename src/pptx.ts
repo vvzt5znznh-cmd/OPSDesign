@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, endStateTextBox } from "./layout";
+import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_GUTTER, endStateTextBox, loeGutterTextWidth } from "./layout";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
 import {
@@ -357,19 +357,27 @@ export async function downloadPptx(
         endArrowType: "triangle",
       },
     });
-    text(loe.name, X(16), Y(loe.y - 10), S(LAYOUT.leftGutter - 24), S(18), {
-      size: fs(13, 10),
-      color: loe.color,
-      bold: true,
-      valign: "middle",
-    });
+    const nameH = Math.max(loe.nameLines.length, 1) * LOE_GUTTER.nameLh;
+    text(
+      loe.nameLines.join("\n"),
+      X(LOE_GUTTER.textX),
+      Y(loe.y - nameH / 2),
+      S(loeGutterTextWidth()),
+      S(nameH),
+      {
+        size: fs(13, 10),
+        color: loe.color,
+        bold: true,
+        valign: "middle",
+      },
+    );
     if (loe.purposeLines.length) {
       text(
         loe.purposeLines.join("\n"),
-        X(16),
-        Y(loe.y + 8),
-        S(LAYOUT.leftGutter - 24),
-        S(loe.purposeLines.length * 11),
+        X(LOE_GUTTER.textX),
+        Y(loe.y + nameH / 2 + 2),
+        S(loeGutterTextWidth()),
+        S(loe.purposeLines.length * LOE_GUTTER.purposeLh),
         { size: fs(9, 8), color: palette.purpose, valign: "top" },
       );
     }

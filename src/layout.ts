@@ -40,6 +40,38 @@ export function wrapToWidth(
   return wrapLabel(text.trim(), chars, maxLines);
 }
 
+/** Workstream name and purpose in the left gutter, kept off the coloured line. */
+export const LOE_GUTTER = {
+  textX: 28,
+  namePx: 7.6,
+  purposePx: 5.2,
+  nameLh: 16,
+  purposeLh: 11,
+  nameMax: 5,
+  purposeMax: 6,
+  gap: 4,
+};
+
+export function loeGutterTextWidth(): number {
+  const lineStart = LAYOUT.padX + LAYOUT.leftGutter - 8;
+  return Math.max(72, lineStart - LOE_GUTTER.textX - 12);
+}
+
+export function wrapLoeName(name: string): string[] {
+  const text = name.trim() || "Workstream";
+  return wrapToWidth(text, loeGutterTextWidth(), LOE_GUTTER.namePx, LOE_GUTTER.nameMax);
+}
+
+export function wrapLoePurpose(purpose: string): string[] {
+  if (!purpose.trim()) return [];
+  return wrapToWidth(
+    purpose,
+    loeGutterTextWidth(),
+    LOE_GUTTER.purposePx,
+    LOE_GUTTER.purposeMax,
+  );
+}
+
 export const END_STATE_TEXT = {
   nameMax: 6,
   descMax: 14,
@@ -112,6 +144,7 @@ export interface LoeLayout {
   name: string;
   color: string;
   purpose: string;
+  nameLines: string[];
   purposeLines: string[];
   y: number;
   height: number;
@@ -304,12 +337,14 @@ export function loeRowHeight(design: OperationalDesign, loeId: string): number {
     if (n.loeId !== loeId) continue;
     labelH = Math.max(labelH, nodeLabelSize(n.label).height);
   }
-  const purposeLines = loe?.purpose.trim()
-    ? wrapLabel(loe.purpose.trim(), 28, 6).length
-    : 0;
+  const purposeLines = wrapLoePurpose(loe?.purpose ?? "").length;
+  const nameLines = wrapLoeName(loe?.name ?? "").length;
   const fromNodes = 20 + NODE_LABEL.markToLabel + labelH + 16;
-  const fromPurpose = purposeLines ? 24 + purposeLines * 11 + 10 : 0;
-  return Math.max(LAYOUT.loeH, fromNodes, fromPurpose);
+  const fromGutter =
+    nameLines * LOE_GUTTER.nameLh +
+    (purposeLines ? LOE_GUTTER.gap + purposeLines * LOE_GUTTER.purposeLh : 0) +
+    20;
+  return Math.max(LAYOUT.loeH, fromNodes, fromGutter);
 }
 
 export function layoutDiagram(design: OperationalDesign): DiagramLayout {
@@ -406,9 +441,8 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     name: loe.name,
     color: loe.color,
     purpose: loe.purpose ?? "",
-    purposeLines: loe.purpose.trim()
-      ? wrapLabel(loe.purpose.trim(), 28, 6)
-      : [],
+    nameLines: wrapLoeName(loe.name),
+    purposeLines: wrapLoePurpose(loe.purpose ?? ""),
     y: loeYs[i],
     height: loeHeights[i],
     x1: plotX - 8,

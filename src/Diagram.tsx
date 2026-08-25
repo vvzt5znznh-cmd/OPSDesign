@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { uid } from "./id";
-import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, endStateTextBox, END_STATE_TEXT, HEADING, LAYOUT, type DiagramLayout } from "./layout";
+import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, endStateTextBox, END_STATE_TEXT, HEADING, LAYOUT, LOE_GUTTER, type DiagramLayout } from "./layout";
 import { useDesign } from "./state";
 import { useTheme, type DiagramPalette } from "./theme";
 import {
@@ -545,7 +545,16 @@ export function Diagram({
         )}
       </g>
 
-      {laidOut.loes.map((loe) => (
+      {laidOut.loes.map((loe) => {
+        const nameY0 =
+          loe.y -
+          ((Math.max(loe.nameLines.length, 1) - 1) * LOE_GUTTER.nameLh) / 2;
+        const purposeY0 =
+          nameY0 +
+          (Math.max(loe.nameLines.length, 1) - 1) * LOE_GUTTER.nameLh +
+          LOE_GUTTER.nameLh / 2 +
+          8;
+        return (
         <g key={loe.id}>
           <line
             x1={loe.x1}
@@ -557,26 +566,29 @@ export function Diagram({
             strokeLinecap="round"
             markerEnd={`url(#arrow-${loe.id})`}
           />
-          <text
-            x={28}
-            y={loe.y + 1}
-            dominantBaseline="middle"
-            className={
-              isSelected(selection, "loe", loe.id) ? "svg-loe selected" : "svg-loe"
-            }
-            fill={loe.color}
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelection({ type: "loe", id: loe.id });
-            }}
-          >
-            {loe.name}
-          </text>
+          {loe.nameLines.map((line, i) => (
+            <text
+              key={`n-${i}`}
+              x={LOE_GUTTER.textX}
+              y={nameY0 + i * LOE_GUTTER.nameLh + 1}
+              dominantBaseline="middle"
+              className={
+                isSelected(selection, "loe", loe.id) ? "svg-loe selected" : "svg-loe"
+              }
+              fill={loe.color}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelection({ type: "loe", id: loe.id });
+              }}
+            >
+              {line}
+            </text>
+          ))}
           {loe.purposeLines.map((line, i) => (
             <text
-              key={i}
-              x={28}
-              y={loe.y + 16 + i * 11}
+              key={`p-${i}`}
+              x={LOE_GUTTER.textX}
+              y={purposeY0 + i * LOE_GUTTER.purposeLh}
               className="svg-loe-purpose"
               onClick={(e) => {
                 e.stopPropagation();
@@ -587,7 +599,8 @@ export function Diagram({
             </text>
           ))}
         </g>
-      ))}
+        );
+      })}
 
       {laidOut.dependencies.map((dep) => (
         <g key={dep.id} opacity={depOpacity(dep)}>

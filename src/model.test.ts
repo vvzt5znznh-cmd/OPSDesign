@@ -3,13 +3,16 @@ import { wrapLabel, wrapNodeLabel, nodeLabelSize, NODE_LABEL } from "./wrap";
 import { wouldCreateCycle, nextOrder, hasDependency } from "./design";
 import {
   LAYOUT,
+  LOE_GUTTER,
   columnAtX,
   endStateTextBox,
   layoutDiagram,
+  loeGutterTextWidth,
   minPhaseSlots,
   nodeColumns,
   phaseMetrics,
   snapGateAtX,
+  wrapLoeName,
 } from "./layout";
 import { reduceDesign, selectionAfter } from "./reducer";
 import type { OperationalDesign } from "./types";
@@ -109,6 +112,29 @@ describe("layoutDiagram", () => {
     const placed = laid.nodes.find((n) => n.id === "n1")!;
     expect(phase.width).toBe(LAYOUT.phaseMin);
     expect(placed.x).toBeCloseTo(phase.x + phase.width / 2, 0);
+  });
+
+  it("wraps a long workstream name so it stays off the coloured line", () => {
+    const laid = layoutDiagram(
+      design({
+        linesOfEffort: [
+          {
+            id: "l1",
+            name: "Service. Here is an example of a very long workstream name",
+            color: "#E87722",
+            purpose: "Build the right service",
+          },
+          { id: "l2", name: "Beta", color: "#5B8C2A", purpose: "B" },
+        ],
+      }),
+    );
+    const loe = laid.loes.find((l) => l.id === "l1")!;
+    expect(loe.nameLines.length).toBeGreaterThan(1);
+    const maxPx = loeGutterTextWidth();
+    for (const line of loe.nameLines) {
+      expect(line.length * LOE_GUTTER.namePx).toBeLessThanOrEqual(maxPx + 8);
+    }
+    expect(wrapLoeName("Service").length).toBe(1);
   });
 
   it("expands only when a later column is required", () => {
