@@ -1,14 +1,9 @@
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import { connectionSites, glueConnectors, buildPptxArrayBuffer, PPTX_SLIDE, pptxFitScale, pptxFontPt, layoutDetailSlide, layoutDetailSlides } from "./pptx";
-import { projectTemplate } from "./templates";
+import { epicFuryTemplate, projectTemplate } from "./templates";
 import { DIAGRAM_PALETTES } from "./theme";
 import { layoutDiagram } from "./layout";
-import {
-  END_STATE_DEFAULT_COLOR,
-  LOE_COLORS,
-  type OperationalDesign,
-} from "./types";
 import type { DetailSlideLayout } from "./pptxDetail";
 
 describe("PowerPoint dependency connectors", () => {
@@ -277,8 +272,8 @@ describe("PowerPoint detail slide", () => {
     expect(detailXml).toContain("deliberately long");
   });
 
-  it("stacks wrapped labels, names, and notes so a dense six-stream briefing does not overlap", () => {
-    const design = denseBriefing();
+  it("stacks wrapped labels, names, and notes so Operation Epic Fury does not overlap", () => {
+    const design = epicFuryTemplate();
     const pages = layoutDetailSlides(design);
     expect(pages.length).toBeGreaterThan(3);
     const spoken = pages
@@ -300,8 +295,8 @@ describe("PowerPoint detail slide", () => {
     expect(spoken).toContain("Execute, or continue shaping?");
     expect(spoken).toContain("After Shape");
     expect(spoken).toContain("fielded launch capability");
-    expect(spoken).toContain("rollback that has been walked through");
-    expect(spoken).toContain("Monday morning");
+    expect(spoken).toContain("fissile material");
+    expect(spoken).toContain("Force and regional protection");
     expect(spoken).not.toContain("walked through…");
     assertReadableStack(pages);
     for (const page of pages) {
@@ -370,94 +365,4 @@ function assertReadableStack(pages: DetailSlideLayout[]) {
       }
     }
   }
-}
-
-function note(): string {
-  return (
-    "Hold on the conditions that must be true, not on a calendar. " +
-    "The picture has to be current enough to act; a stale picture is treated as no picture. " +
-    "Residual risk is named with an owner. There is a rollback that has been walked through, not just written. " +
-    "What 'done' looks like is agreed before the gate is asked, including who owns it on Monday morning."
-  );
-}
-
-function denseBriefing(): OperationalDesign {
-  const phases = [
-    "Shape",
-    "Seize initiative",
-    "Dominate",
-    "Coerce and terminate",
-    "Prevent reconstitution",
-  ].map((name, i) => ({ id: `ph-${i}`, name }));
-  const streamNames = [
-    "Counter-capability",
-    "Counter-proliferation",
-    "Force and regional protection",
-    "Freedom of navigation",
-    "Regime pressure",
-    "Coalition and termination",
-  ];
-  const streams = streamNames.map((name, i) => ({
-    id: `loe-${i}`,
-    name,
-    color: LOE_COLORS[i],
-    purpose:
-      "Task and purpose for this line of effort — long enough that a six-column slide must wrap it.",
-    endState: "The condition for this line is set and held.",
-  }));
-  const nodes: OperationalDesign["nodes"] = [];
-  streams.forEach((stream, s) => {
-    phases.forEach((phase, p) => {
-      nodes.push({
-        id: `n-${s}-${p}-m`,
-        kind: "milestone",
-        loeId: stream.id,
-        phaseId: phase.id,
-        label: `M${p + 1}: Destroy fielded launch capability in order to deny regeneration of the means`,
-        description: note(),
-        order: 0,
-      });
-      nodes.push({
-        id: `n-${s}-${p}-c`,
-        kind: "condition",
-        loeId: stream.id,
-        phaseId: phase.id,
-        label: `C${p + 1}: Air defences suppressed; freedom of action gained and held`,
-        description: note(),
-        order: 1,
-      });
-    });
-  });
-  const gates: OperationalDesign["decisionPoints"] = [
-    "Execute, or continue shaping?",
-    "Expand the target set to energy and infrastructure?",
-    "Exploit, or hold on the capability task?",
-    "Accept the settlement on offer?",
-    "Declare the campaign complete?",
-    "Re-enter, or enforce by other means?",
-  ].map((label, i) => ({
-    id: `dp-${i}`,
-    label,
-    afterPhaseId: phases[Math.min(i, phases.length - 1)].id,
-    placement: "after" as const,
-    order: 0,
-    description: note(),
-  }));
-  return {
-    id: "op-dense",
-    title: "Dense six-stream operational design (task-purpose)",
-    purpose: "A briefing with six lines of effort and supporting notes of real length.",
-    endState: {
-      name: "END STATE",
-      description: note(),
-      color: END_STATE_DEFAULT_COLOR,
-    },
-    phases,
-    linesOfEffort: streams,
-    nodes,
-    dependencies: [],
-    decisionPoints: gates,
-    showLoeEndStates: true,
-    showDetail: true,
-  };
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { detailFigureSvgMarkup, xmlEscape } from "./detailSvg";
-import { blankDesign, militaryTemplate, projectTemplate } from "./templates";
+import { blankDesign, epicFuryTemplate, militaryTemplate, projectTemplate } from "./templates";
 import { DIAGRAM_PALETTES } from "./theme";
 
 describe("detail figure SVG export", () => {
@@ -25,7 +25,7 @@ describe("detail figure SVG export", () => {
   });
 
   it("gives starter samples supporting descriptions, and leaves blank empty", () => {
-    for (const make of [projectTemplate, militaryTemplate]) {
+    for (const make of [projectTemplate, militaryTemplate, epicFuryTemplate]) {
       const d = make();
       expect(d.nodes.every((n) => n.description.trim().length > 0)).toBe(true);
       expect(
