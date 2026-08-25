@@ -77,7 +77,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           and sample JSON; File → Open JSON loads the file it returns. File →
           Export PowerPoint makes a 16:9 briefing slide. The picture scales to
           fit; type scales with it. If the detail figure is on, a second 16:9
-          slide lists gates and each workstream. Dependency links are curved PowerPoint
+          slide lists gates and each workstream. PNG and SVG follow the same
+          toggle: the list sits under the picture. Dependency links are curved PowerPoint
           connectors glued to the sides of the figures. Labels are the text on
           the picture. Workstream end states are optional (Off/On in the
           inspector). When on, each workstream can carry an end state at the

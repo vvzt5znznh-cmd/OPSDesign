@@ -46,12 +46,12 @@ export function Toolbar({
 
   async function exportPng() {
     if (!svgRef.current) return;
-    await downloadPng(svgRef.current, design.title, 2, diagram.bg);
+    await downloadPng(svgRef.current, design, diagram, 2);
   }
 
   function exportSvg() {
     if (!svgRef.current) return;
-    downloadSvg(svgRef.current, design.title);
+    downloadSvg(svgRef.current, design, diagram);
   }
 
   function replaceDesign(next: OperationalDesign) {

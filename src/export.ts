@@ -1,33 +1,33 @@
+import { composeExportSvgMarkup } from "./detailSvg";
 import { slug, triggerDownload } from "./storage";
+import type { DiagramPalette } from "./theme";
 import type { OperationalDesign } from "./types";
 
-function inlineClone(svg: SVGSVGElement): SVGSVGElement {
-  const clone = svg.cloneNode(true) as SVGSVGElement;
-  clone.querySelectorAll("[data-ui='true']").forEach((el) => el.remove());
-  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-  return clone;
+function exportMarkup(
+  svg: SVGSVGElement,
+  design: OperationalDesign,
+  palette: DiagramPalette,
+): { xml: string; width: number; height: number } {
+  return composeExportSvgMarkup(svg, design, palette);
 }
 
-export function downloadSvg(svg: SVGSVGElement, title: string): void {
-  const clone = inlineClone(svg);
-  const xml = new XMLSerializer().serializeToString(clone);
+export function downloadSvg(
+  svg: SVGSVGElement,
+  design: OperationalDesign,
+  palette: DiagramPalette,
+): void {
+  const { xml } = exportMarkup(svg, design, palette);
   const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
-  triggerDownload(blob, slug(title) + ".svg");
+  triggerDownload(blob, slug(design.title) + ".svg");
 }
 
 export async function downloadPng(
   svg: SVGSVGElement,
-  title: string,
+  design: OperationalDesign,
+  palette: DiagramPalette,
   scale = 2,
-  backdrop = "#ffffff",
 ): Promise<void> {
-  const clone = inlineClone(svg);
-  const width = Number(clone.getAttribute("width")) || 1200;
-  const height = Number(clone.getAttribute("height")) || 700;
-  clone.setAttribute("width", String(width));
-  clone.setAttribute("height", String(height));
-  const xml = new XMLSerializer().serializeToString(clone);
+  const { xml, width, height } = exportMarkup(svg, design, palette);
   const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   try {
@@ -37,11 +37,11 @@ export async function downloadPng(
     canvas.height = Math.round(height * scale);
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Could not create canvas.");
-    ctx.fillStyle = backdrop;
+    ctx.fillStyle = palette.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     const png = await canvasToBlob(canvas);
-    triggerDownload(png, slug(title) + ".png");
+    triggerDownload(png, slug(design.title) + ".png");
   } finally {
     URL.revokeObjectURL(url);
   }
