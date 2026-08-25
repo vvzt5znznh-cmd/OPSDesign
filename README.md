@@ -56,7 +56,7 @@ npm run preview
 3. Hover a workstream in a phase: **+** then Milestone or Condition. Hover the gate bar and click **+** to add a decision. Use the **+** marks to add a phase or workstream.
 4. Drag a node along its arrow to move it earlier or later — early, middle, or late in a phase, or into another phase. Drop at the right edge of a phase to widen it. A node that depends on another sits to the right of it, including across workstreams. Drag a gate along the bar to sit in a phase or after it.
 5. **Link**: click what must happen first, then what depends on it.
-6. **File**: New… (layout), Restore previous, Open / Save JSON, Ask an LLM…, Export PNG, SVG, or PowerPoint.
+6. **File**: New… (layout), Restore previous, Open / Save JSON, Ask an LLM…, Export PNG, SVG, or PowerPoint (16:9 slide).
 
 The current picture is saved in this browser (`localStorage`). Leave and come back and it is still there. Undo/Redo are for this tab (they survive refresh). File → New or Open JSON keeps the displaced picture as Restore previous. Older files still open; missing fields pick up quiet defaults.
 

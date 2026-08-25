@@ -15,6 +15,25 @@ const FONT = "Arial";
 const GATE = "#2E7D32";
 const GATE_LINE = "#1B5E20";
 
+/** Widescreen 16:9 — same as PowerPoint LAYOUT_WIDE. */
+export const PPTX_SLIDE = {
+  width: 13.333,
+  height: 7.5,
+  margin: 0.32,
+} as const;
+
+export function pptxFitScale(picture: { width: number; height: number }): number {
+  return Math.min(
+    (PPTX_SLIDE.width - PPTX_SLIDE.margin * 2) / Math.max(picture.width, 1),
+    (PPTX_SLIDE.height - PPTX_SLIDE.margin * 2) / Math.max(picture.height, 1),
+  );
+}
+
+/** Type scales with the picture. No 8pt floor — that overflowed a busy slide. */
+export function pptxFontPt(px: number, scale: number): number {
+  return Math.round(Math.max(4, px * scale * 72) * 10) / 10;
+}
+
 function hex(css: string): string {
   const rgba = css.match(
     /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/,
@@ -203,37 +222,22 @@ export async function buildPptxArrayBuffer(
   pptx.author = "OPSDesign";
   pptx.subject = design.purpose.trim() || "Operational design";
 
-  const aspect = laid.width / Math.max(laid.height, 1);
-  let slideW = 13.333;
-  let slideH = slideW / aspect;
-  if (slideH > 7.5) {
-    slideH = 7.5;
-    slideW = Math.min(20, slideH * aspect);
-  }
-  if (slideH < 5.4) {
-    slideH = 5.4;
-    slideW = Math.max(slideW, slideH * aspect);
-  }
-
+  const slideW = PPTX_SLIDE.width;
+  const slideH = PPTX_SLIDE.height;
   pptx.defineLayout({ name: "OPSDesign", width: slideW, height: slideH });
   pptx.layout = "OPSDesign";
   const slide = pptx.addSlide();
   slide.background = { color: hex(palette.bg) };
   slide.addNotes(speakerNotes(design));
 
-  const margin = 0.28;
-  const scale = Math.min(
-    (slideW - margin * 2) / laid.width,
-    (slideH - margin * 2) / laid.height,
-  );
+  const scale = pptxFitScale(laid);
   const ox = (slideW - laid.width * scale) / 2;
   const oy = (slideH - laid.height * scale) / 2;
   const X = (px: number) => ox + px * scale;
   const Y = (px: number) => oy + px * scale;
-  const S = (px: number) => Math.max(px * scale, 0.04);
-  const fs = (px: number, min = 8) =>
-    Math.max(min, Math.round(px * scale * 72 * 10) / 10);
-  const lw = (px: number) => Math.max(0.75, px * scale * 72);
+  const S = (px: number) => Math.max(px * scale, 0.02);
+  const fs = (px: number) => pptxFontPt(px, scale);
+  const lw = (px: number) => Math.max(0.5, px * scale * 72);
 
   const noLine = { color: hex(palette.bg), transparency: 100 };
 
@@ -284,7 +288,7 @@ export async function buildPptxArrayBuffer(
       S(phase.width),
       S(28),
       {
-        size: fs(14, 10),
+        size: fs(14),
         color: palette.phase,
         align: "center",
         bold: true,
@@ -306,7 +310,7 @@ export async function buildPptxArrayBuffer(
     Y(laid.plot.y - 42),
     S(laid.endCol.width),
     S(28),
-    { size: fs(11, 9), color: palette.purpose, align: "center", bold: true },
+    { size: fs(11), color: palette.purpose, align: "center", bold: true },
   );
 
   slide.addShape(pptx.ShapeType.rect, {
@@ -326,7 +330,7 @@ export async function buildPptxArrayBuffer(
     S(laid.width),
     S(laid.titleLines.length * HEADING.titleLh),
     {
-      size: fs(22, 14),
+      size: fs(22),
       color: palette.title,
       align: "center",
       bold: true,
@@ -342,7 +346,7 @@ export async function buildPptxArrayBuffer(
       S(laid.width - 80),
       S(laid.purposeLines.length * HEADING.purposeLh),
       {
-        size: fs(11, 9),
+        size: fs(11),
         color: palette.purpose,
         align: "center",
       },
@@ -373,7 +377,7 @@ export async function buildPptxArrayBuffer(
       S(loeGutterTextWidth()),
       S(nameH),
       {
-        size: fs(13, 10),
+        size: fs(13),
         color: loe.color,
         bold: true,
         valign: "middle",
@@ -386,7 +390,7 @@ export async function buildPptxArrayBuffer(
         Y(loe.y + nameH / 2 + 2),
         S(loeGutterTextWidth()),
         S(loe.purposeLines.length * LOE_GUTTER.purposeLh),
-        { size: fs(9, 8), color: palette.purpose, valign: "top" },
+        { size: fs(9), color: palette.purpose, valign: "top" },
       );
     }
   }
@@ -426,7 +430,7 @@ export async function buildPptxArrayBuffer(
         fill,
         line,
         fontFace: FONT,
-        fontSize: fs(9, 7),
+        fontSize: fs(9),
         color: hex(palette.title),
         align: "center",
         valign: "middle",
@@ -512,7 +516,7 @@ export async function buildPptxArrayBuffer(
       S(boxW),
       S(boxH),
       {
-        size: fs(10, 8),
+        size: fs(10),
         color: palette.label,
         align: "center",
         bold: true,
@@ -537,7 +541,7 @@ export async function buildPptxArrayBuffer(
       S(140),
       S(glines.length * 14 + 4),
       {
-        size: fs(10, 8),
+        size: fs(10),
         color: palette.label,
         align: "center",
         bold: true,
@@ -567,7 +571,7 @@ export async function buildPptxArrayBuffer(
         S(end.width - T.padX * 2),
         S(Math.max(box.nameH, T.nameLh)),
         {
-          size: fs(13, 11),
+          size: fs(13),
           color: palette.title,
           align: "center",
           bold: true,
@@ -583,7 +587,7 @@ export async function buildPptxArrayBuffer(
         S(box.descW),
         S(Math.max(box.descH, T.descLh)),
         {
-          size: fs(11, 9),
+          size: fs(11),
           color: palette.purpose,
           align: "center",
           valign: "top",
@@ -603,7 +607,7 @@ export async function buildPptxArrayBuffer(
     line: noLine,
   });
   text("Milestone", legendX + S(18), legendY - S(2), S(70), S(16), {
-    size: fs(10, 8),
+        size: fs(10),
     color: palette.label,
     bold: true,
   });
@@ -616,7 +620,7 @@ export async function buildPptxArrayBuffer(
     line: noLine,
   });
   text("Condition", legendX + S(110), legendY - S(2), S(70), S(16), {
-    size: fs(10, 8),
+        size: fs(10),
     color: palette.label,
     bold: true,
   });
@@ -629,7 +633,7 @@ export async function buildPptxArrayBuffer(
     line: { color: hex(GATE_LINE), width: 0.6 },
   });
   text("Gate", legendX + S(206), legendY - S(2), S(40), S(16), {
-    size: fs(10, 8),
+        size: fs(10),
     color: palette.label,
     bold: true,
   });
@@ -645,7 +649,7 @@ export async function buildPptxArrayBuffer(
     },
   });
   text("Dependency", legendX + S(288), legendY - S(2), S(80), S(16), {
-    size: fs(10, 8),
+        size: fs(10),
     color: palette.label,
     bold: true,
   });

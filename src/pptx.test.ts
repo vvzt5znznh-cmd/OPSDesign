@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
-import { connectionSites, glueConnectors, buildPptxArrayBuffer } from "./pptx";
+import { connectionSites, glueConnectors, buildPptxArrayBuffer, PPTX_SLIDE, pptxFitScale, pptxFontPt } from "./pptx";
 import { projectTemplate } from "./templates";
 import { DIAGRAM_PALETTES } from "./theme";
+import { layoutDiagram } from "./layout";
 
 describe("PowerPoint dependency connectors", () => {
   it("glues to the left and right of figures, not the top", () => {
@@ -62,5 +63,36 @@ describe("PowerPoint workstream end states", () => {
     expect(xml).toContain('prst="roundRect"');
     expect(xml).toContain("normAutofit");
     expect(xml).toContain('wrap="square"');
+  });
+});
+
+describe("PowerPoint 16:9 fit", () => {
+  it("is a 16:9 slide", () => {
+    expect(PPTX_SLIDE.width / PPTX_SLIDE.height).toBeCloseTo(16 / 9, 3);
+  });
+
+  it("shrinks type when the picture grows instead of keeping an 8pt floor", () => {
+    const compact = pptxFitScale({ width: 1400, height: 720 });
+    const wide = pptxFitScale({ width: 3200, height: 900 });
+    expect(wide).toBeLessThan(compact);
+    expect(pptxFontPt(13, wide)).toBeLessThan(pptxFontPt(13, compact));
+    expect(pptxFontPt(13, wide)).toBeLessThan(8);
+  });
+
+  it("writes a 16:9 presentation even for a wide picture", async () => {
+    const design = projectTemplate();
+    const laid = layoutDiagram(design);
+    expect(pptxFitScale(laid) * laid.width).toBeLessThanOrEqual(
+      PPTX_SLIDE.width - PPTX_SLIDE.margin * 2 + 0.01,
+    );
+    expect(pptxFitScale(laid) * laid.height).toBeLessThanOrEqual(
+      PPTX_SLIDE.height - PPTX_SLIDE.margin * 2 + 0.01,
+    );
+    const buf = await buildPptxArrayBuffer(design, DIAGRAM_PALETTES.light);
+    const zip = await JSZip.loadAsync(buf);
+    const pres = await zip.file("ppt/presentation.xml")!.async("string");
+    const cx = Number(pres.match(/sldSz[^>]*cx="(\d+)"/)?.[1]);
+    const cy = Number(pres.match(/sldSz[^>]*cy="(\d+)"/)?.[1]);
+    expect(cx / cy).toBeCloseTo(16 / 9, 2);
   });
 });
