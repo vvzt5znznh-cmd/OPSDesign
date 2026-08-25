@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
-import { connectionSites, glueConnectors, buildPptxArrayBuffer, PPTX_SLIDE, pptxFitScale, pptxFontPt, layoutDetailSlide } from "./pptx";
+import { connectionSites, glueConnectors, buildPptxArrayBuffer, PPTX_SLIDE, pptxFitScale, pptxFontPt, layoutDetailSlide, layoutDetailSlides } from "./pptx";
 import { projectTemplate } from "./templates";
 import { DIAGRAM_PALETTES } from "./theme";
 import { layoutDiagram } from "./layout";
@@ -134,18 +134,20 @@ describe("PowerPoint detail slide", () => {
     expect(slides).toHaveLength(1);
   });
 
-  it("adds a second 16:9 slide of the list when the detail figure is on", async () => {
+  it("adds 16:9 detail slides when the detail figure is on", async () => {
     const design = { ...projectTemplate(), showDetail: true };
     const buf = await buildPptxArrayBuffer(design, DIAGRAM_PALETTES.light);
     const zip = await JSZip.loadAsync(buf);
     const slides = Object.keys(zip.files)
       .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
       .sort();
-    expect(slides).toHaveLength(2);
-    const detail = await zip.file(slides[1])!.async("string");
-    expect(detail).toContain("M1: Problem framed");
-    expect(detail).toContain("Worth defining?");
-    expect(detail).toContain("Service");
+    expect(slides.length).toBeGreaterThanOrEqual(2);
+    const detailXml = (
+      await Promise.all(slides.slice(1).map((p) => zip.file(p)!.async("string")))
+    ).join("\n");
+    expect(detailXml).toContain("M1: Problem framed");
+    expect(detailXml).toContain("Worth defining?");
+    expect(detailXml).toContain("Service");
     const picture = await zip.file(slides[0])!.async("string");
     expect(picture).toContain("LIVE AND USED");
     const pres = await zip.file("ppt/presentation.xml")!.async("string");
@@ -196,5 +198,58 @@ describe("PowerPoint detail slide", () => {
     expect(detail).toContain("cannot finish an application");
     expect(detail).not.toContain("▲");
     expect(detail).not.toContain("◆");
+  });
+
+  it("continues long descriptions on extra 16:9 slides instead of shrinking them", async () => {
+    const base = projectTemplate();
+    const long =
+      "The receiving owner accepts the service as ready to run. " +
+      "This supporting note is deliberately long so the briefing cannot keep every line on one 16:9 card. ".repeat(
+        12,
+      );
+    const design = {
+      ...base,
+      showDetail: true,
+      nodes: base.nodes.map((n, i) =>
+        i === 0 ? { ...n, description: long } : n,
+      ),
+    };
+    const pages = layoutDetailSlides(design);
+    expect(pages.length).toBeGreaterThan(1);
+    const spoken = pages
+      .flatMap((page) =>
+        page.streams.flatMap((stream) =>
+          stream.phases.flatMap((phase) =>
+            phase.items.flatMap((item) => item.descLines),
+          ),
+        ),
+      )
+      .join(" ");
+    expect(spoken).toContain("deliberately long");
+    expect(spoken).toContain("16:9 card");
+    for (const page of pages) {
+      for (const stream of page.streams) {
+        for (const phase of stream.phases) {
+          for (const item of phase.items) {
+            const bottom = item.desc
+              ? item.desc.y + item.desc.h
+              : item.label.y + item.label.h;
+            expect(bottom).toBeLessThanOrEqual(
+              stream.card.y + stream.card.h - 0.04,
+            );
+          }
+        }
+      }
+    }
+    const buf = await buildPptxArrayBuffer(design, DIAGRAM_PALETTES.light);
+    const zip = await JSZip.loadAsync(buf);
+    const slides = Object.keys(zip.files)
+      .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
+      .sort();
+    expect(slides.length).toBeGreaterThan(2);
+    const detailXml = (
+      await Promise.all(slides.slice(1).map((p) => zip.file(p)!.async("string")))
+    ).join("\n");
+    expect(detailXml).toContain("deliberately long");
   });
 });
