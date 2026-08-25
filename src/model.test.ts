@@ -192,6 +192,34 @@ describe("layoutDiagram", () => {
     expect(pill.x).toBe(laid.loes.find((l) => l.id === "l1")!.x2);
   });
 
+  it("grows the workstream row when the stream end state is long", () => {
+    const long =
+      "Users complete the journey unassisted. Longer text here to visualize what happens when the end state is long.";
+    const laid = layoutDiagram(
+      design({
+        linesOfEffort: [
+          {
+            id: "l1",
+            name: "Alpha",
+            color: "#E87722",
+            purpose: "A",
+            endState: long,
+          },
+          { id: "l2", name: "Beta", color: "#5B8C2A", purpose: "B", endState: "" },
+        ],
+      }),
+    );
+    const pill = laid.loeEndStates.find((p) => p.id === "l1")!;
+    const loe = laid.loes.find((l) => l.id === "l1")!;
+    const neighbour = laid.loeEndStates.find((p) => p.id === "l2")!;
+    expect(pill.lines.join("")).not.toContain("…");
+    expect(pill.lines.join(" ")).toContain("when the end state is long");
+    expect(pill.lines.length).toBeGreaterThan(4);
+    expect(pill.height).toBeGreaterThan(52);
+    expect(loe.height).toBeGreaterThanOrEqual(pill.height);
+    expect(pill.y + pill.height).toBeLessThan(neighbour.y - 2);
+  });
+
   it("snaps a gate inside a phase or onto the seam after it", () => {
     const laid = layoutDiagram(design());
     const phase = laid.phases[0];
