@@ -1,4 +1,4 @@
-import { detailFigureModel } from "./design";
+import { detailFigureModel, streamPhaseGroups } from "./design";
 import { wrapToWidth } from "./layout";
 import type { DiagramPalette } from "./theme";
 import {
@@ -10,7 +10,8 @@ import {
 const GATE = "#2E7D32";
 const PAD = 24;
 const GAP = 16;
-const COL_MIN = 200;
+const CARD_PAD = 14;
+const RAIL = 5;
 const DESC_PX = 6.4;
 const META_PX = 5.8;
 
@@ -50,6 +51,16 @@ function gateMark(x: number, y: number): string {
   return `<path transform="translate(${x},${y})" d="M6 1.1 L7.4 4.4 L11 4.7 L8.3 7.1 L9.1 10.7 L6 8.8 L2.9 10.7 L3.7 7.1 L1 4.7 L4.6 4.4 Z" fill="${GATE}"/>`;
 }
 
+function cardRect(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  fill: string,
+): string {
+  return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="8" fill="${fill}"/>`;
+}
+
 function itemBlock(
   x: number,
   y: number,
@@ -63,7 +74,6 @@ function itemBlock(
   const parts: string[] = [mark];
   let iy = y + 11;
   parts.push(t(x + 18, iy, label, { size: 13, fill: palette.label, weight: 700 }));
-  iy += 4;
   if (meta) {
     iy += 14;
     parts.push(t(x + 18, iy, meta, { size: 11, fill: palette.purpose }));
@@ -74,8 +84,10 @@ function itemBlock(
       iy += 15;
       parts.push(t(x + 18, iy, line, { size: 12, fill: palette.label }));
     }
+  } else if (!meta) {
+    iy += 10;
   }
-  return { markup: parts.join(""), height: iy - y + 10 };
+  return { markup: parts.join(""), height: iy - y + 8 };
 }
 
 /** SVG markup for the detail list, same grouping as the on-screen figure. */
@@ -120,94 +132,143 @@ export function detailFigureSvgMarkup(
     };
   }
 
+  const nCols = Math.max(1, model.streams.length);
+  const colW = (w - PAD * 2 - GAP * (nCols - 1)) / nCols;
+  const colX = (i: number) => PAD + (i % nCols) * (colW + GAP);
+  const phaseNames = design.phases.map((p) => p.name);
+  const textInset = CARD_PAD + RAIL + 8;
+  const textW = colW - textInset - CARD_PAD;
+
   if (model.gates.length) {
     parts.push(t(PAD, y + 14, "Gates", { size: 13, fill: palette.phase, weight: 700 }));
     y += 22;
-    const cols = Math.max(1, Math.min(4, Math.floor((w - PAD * 2) / COL_MIN)));
-    const colW = (w - PAD * 2 - GAP * (cols - 1)) / cols;
-    const textW = colW - 22;
     let rowY = y;
     let rowH = 0;
+    const gateBlocks: Array<{
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+      markup: string;
+    }> = [];
     model.gates.forEach((g, i) => {
-      const col = i % cols;
+      const col = i % nCols;
       if (col === 0 && i > 0) {
-        y += rowH;
+        y += rowH + 10;
         rowY = y;
         rowH = 0;
       }
-      const x = PAD + col * (colW + GAP);
+      const x = colX(i);
       const meta = `${g.placement === "in" ? "In" : "After"} ${g.phaseName}`.trim();
       const block = itemBlock(
-        x,
-        rowY,
-        gateMark(x, rowY),
+        x + CARD_PAD,
+        rowY + CARD_PAD,
+        gateMark(x + CARD_PAD, rowY + CARD_PAD),
         g.label,
         meta,
         g.description.trim(),
-        textW,
+        colW - CARD_PAD * 2 - 18,
         palette,
       );
-      parts.push(block.markup);
-      rowH = Math.max(rowH, block.height);
+      const h = block.height + CARD_PAD;
+      gateBlocks.push({ x, y: rowY, w: colW, h, markup: block.markup });
+      rowH = Math.max(rowH, h);
     });
-    y += rowH + 10;
+    for (const g of gateBlocks) {
+      const rowMax = Math.max(
+        ...gateBlocks.filter((other) => other.y === g.y).map((other) => other.h),
+      );
+      parts.push(cardRect(g.x, g.y, g.w, rowMax, palette.phaseA));
+      parts.push(g.markup);
+    }
+    y += rowH + 16;
   }
 
-  const n = Math.max(1, model.streams.length);
-  const colW = (w - PAD * 2 - GAP * (n - 1)) / n;
-  let streamsH = 0;
-  model.streams.forEach((stream, i) => {
-    const x = PAD + i * (colW + GAP);
-    let cy = y;
-    parts.push(
-      `<rect x="${x}" y="${cy + 3}" width="8" height="8" rx="2" fill="${stream.color}"/>`,
-    );
-    parts.push(
-      t(x + 14, cy + 12, stream.name, {
+  type StreamPaint = {
+    x: number;
+    color: string;
+    header: string;
+    body: string;
+    height: number;
+  };
+  const paints: StreamPaint[] = model.streams.map((stream, i) => {
+    const x = colX(i);
+    const header: string[] = [];
+    const body: string[] = [];
+    let cy = 0;
+    header.push(
+      t(x + textInset, 16, stream.name, {
         size: 13,
         fill: stream.color,
         weight: 700,
       }),
     );
-    cy += 18;
+    cy = 22;
     if (stream.purpose.trim()) {
-      const lines = wrapToWidth(stream.purpose, colW - 8, META_PX, 4);
+      const lines = wrapToWidth(stream.purpose, textW, META_PX, 4);
       for (const line of lines) {
         cy += 14;
-        parts.push(t(x, cy, line, { size: 12, fill: palette.purpose }));
+        header.push(t(x + textInset, cy, line, { size: 12, fill: palette.purpose }));
       }
+      cy += 8;
+    } else {
       cy += 6;
     }
     if (stream.nodes.length === 0) {
       cy += 16;
-      parts.push(
-        t(x, cy, "No milestones or conditions.", {
+      body.push(
+        t(x + textInset, cy, "No milestones or conditions.", {
           size: 12,
           fill: palette.purpose,
         }),
       );
+    } else {
+      for (const group of streamPhaseGroups(stream.nodes, phaseNames)) {
+        if (group.name) {
+          cy += 16;
+          body.push(
+            t(x + textInset, cy, group.name.toUpperCase(), {
+              size: 10,
+              fill: palette.purpose,
+              weight: 700,
+            }),
+          );
+          cy += 4;
+        }
+        for (const node of group.nodes) {
+          const mark =
+            node.kind === "milestone"
+              ? milestoneMark(x + textInset - 2, cy + 6)
+              : conditionMark(x + textInset - 2, cy + 6);
+          const block = itemBlock(
+            x + textInset - 2,
+            cy + 4,
+            mark,
+            node.label,
+            "",
+            node.description.trim(),
+            textW - 16,
+            palette,
+          );
+          body.push(block.markup);
+          cy += block.height;
+        }
+      }
     }
-    for (const node of stream.nodes) {
-      const mark =
-        node.kind === "milestone"
-          ? milestoneMark(x, cy + 2)
-          : conditionMark(x, cy + 2);
-      const block = itemBlock(
-        x,
-        cy,
-        mark,
-        node.label,
-        node.phaseName,
-        node.description.trim(),
-        colW - 22,
-        palette,
-      );
-      parts.push(block.markup);
-      cy += block.height;
-    }
-    streamsH = Math.max(streamsH, cy - y);
+    cy += CARD_PAD;
+    return { x, color: stream.color, header: header.join(""), body: body.join(""), height: cy };
   });
-  y += streamsH + PAD;
+
+  const cardH = Math.max(...paints.map((p) => p.height), 72);
+  for (const paint of paints) {
+    parts.push(cardRect(paint.x, y, colW, cardH, palette.phaseA));
+    parts.push(
+      `<rect x="${(paint.x + 8).toFixed(1)}" y="${(y + 12).toFixed(1)}" width="${RAIL}" height="${(cardH - 24).toFixed(1)}" rx="2" fill="${paint.color}"/>`,
+    );
+    parts.push(`<g transform="translate(0,${y})">${paint.header}${paint.body}</g>`);
+  }
+
+  y += cardH + PAD;
   return {
     markup: parts.join("").replace("__DETAIL_H__", String(y)),
     height: y,

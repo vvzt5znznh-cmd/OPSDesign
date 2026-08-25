@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { wrapLabel, wrapNodeLabel, nodeLabelSize, NODE_LABEL } from "./wrap";
-import { wouldCreateCycle, nextOrder, hasDependency, detailFigureModel } from "./design";
+import { wouldCreateCycle, nextOrder, hasDependency, detailFigureModel, streamPhaseGroups } from "./design";
 import {
   LAYOUT,
   LOE_GUTTER,
@@ -475,6 +475,13 @@ describe("reduceDesign", () => {
     expect(model.streams[0].nodes.map((n) => n.id)).toEqual(["a0", "a"]);
     expect(model.streams[1].nodes.map((n) => n.id)).toEqual(["b"]);
     expect(model.gates[1].description).toBe("Go or stop.");
+    const grouped = streamPhaseGroups(
+      model.streams[0].nodes,
+      ["One", "Two"],
+    );
+    expect(grouped.map((g) => g.name)).toEqual(["One", "Two"]);
+    expect(grouped[0].nodes.map((n) => n.id)).toEqual(["a0"]);
+    expect(grouped[1].nodes.map((n) => n.id)).toEqual(["a"]);
   });
 
   it("adds a gate at the requested snap without moving the others", () => {

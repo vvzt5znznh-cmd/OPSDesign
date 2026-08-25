@@ -167,3 +167,29 @@ export function detailFigureModel(design: OperationalDesign): {
   }));
   return { gates, streams };
 }
+
+/** Keep workstream items in phase order for the list and exports. */
+export function streamPhaseGroups(
+  nodes: DetailNodeRow[],
+  phaseNames: string[],
+): Array<{ name: string; nodes: DetailNodeRow[] }> {
+  const by = new Map<string, DetailNodeRow[]>();
+  for (const n of nodes) {
+    const key = n.phaseName || "";
+    const list = by.get(key) ?? [];
+    list.push(n);
+    by.set(key, list);
+  }
+  const groups: Array<{ name: string; nodes: DetailNodeRow[] }> = [];
+  for (const name of phaseNames) {
+    const list = by.get(name);
+    if (list?.length) {
+      groups.push({ name, nodes: list });
+      by.delete(name);
+    }
+  }
+  for (const [name, list] of by) {
+    if (list.length) groups.push({ name, nodes: list });
+  }
+  return groups;
+}

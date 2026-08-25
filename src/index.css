@@ -430,57 +430,82 @@ textarea:focus-visible {
 }
 
 .detail-gates {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .detail-gates h3,
 .detail-stream h3 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-size: 13px;
   font-weight: 700;
 }
 
-.detail-gates ul,
+.detail-cols {
+  display: grid;
+  gap: 12px 16px;
+  align-items: stretch;
+}
+
+.detail-gates ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.detail-gates li {
+  display: flex;
+}
+
+.detail-streams {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.detail-stream {
+  position: relative;
+  background: var(--elev);
+  border-radius: 8px;
+  padding: 12px 14px 14px 20px;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.detail-stream-rail {
+  position: absolute;
+  left: 8px;
+  top: 12px;
+  bottom: 12px;
+  width: 5px;
+  border-radius: 2px;
+}
+
+.detail-stream-purpose {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.detail-phase-group + .detail-phase-group {
+  margin-top: 8px;
+}
+
+.detail-phase {
+  margin: 0 0 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .detail-stream ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 12px;
-}
-
-.detail-gates ul {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 6px 16px;
-}
-
-.detail-streams {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px 24px;
-}
-
-.detail-stream-swatch {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-.detail-stream-purpose {
-  margin: -4px 0 8px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.detail-stream ul {
-  display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .detail-item {
@@ -493,14 +518,22 @@ textarea:focus-visible {
   border: 1px solid transparent;
   border-radius: 8px;
   color: inherit;
-  padding: 6px 8px;
+  padding: 4px 6px;
   cursor: pointer;
 }
 
-.detail-item:hover {
+.detail-item.card {
   background: var(--elev);
+  padding: 10px 12px;
+  height: 100%;
+  box-sizing: border-box;
 }
 
+.detail-item:hover {
+  background: var(--panel);
+}
+
+.detail-item.card:hover,
 .detail-item.on {
   border-color: var(--gold);
   background: var(--accent-on);

@@ -1,4 +1,4 @@
-import { detailFigureModel } from "./design";
+import { detailFigureModel, streamPhaseGroups } from "./design";
 import { useDesign } from "./state";
 import { CONDITION_FILL, MILESTONE_FILL } from "./types";
 
@@ -60,6 +60,11 @@ export function DetailFigure() {
   const model = detailFigureModel(design);
   const empty =
     model.gates.length === 0 && model.streams.every((s) => s.nodes.length === 0);
+  const cols = Math.max(1, model.streams.length);
+  const colStyle = {
+    gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+  };
+  const phaseNames = design.phases.map((p) => p.name);
 
   return (
     <section className="detail-figure" aria-label="Detail">
@@ -80,15 +85,15 @@ export function DetailFigure() {
           {model.gates.length > 0 && (
             <div className="detail-gates">
               <h3>Gates</h3>
-              <ul>
+              <ul className="detail-cols" style={colStyle}>
                 {model.gates.map((g) => (
                   <li key={g.id}>
                     <button
                       type="button"
                       className={
                         selection?.type === "dp" && selection.id === g.id
-                          ? "detail-item on"
-                          : "detail-item"
+                          ? "detail-item card on"
+                          : "detail-item card"
                       }
                       onClick={() => setSelection({ type: "dp", id: g.id })}
                     >
@@ -110,58 +115,58 @@ export function DetailFigure() {
               </ul>
             </div>
           )}
-          <div className="detail-streams">
+          <div className="detail-streams detail-cols" style={colStyle}>
             {model.streams.map((stream) => (
               <div key={stream.id} className="detail-stream">
-                <h3 style={{ color: stream.color }}>
-                  <span
-                    className="detail-stream-swatch"
-                    style={{ background: stream.color }}
-                  />
-                  {stream.name}
-                </h3>
+                <span
+                  className="detail-stream-rail"
+                  style={{ background: stream.color }}
+                />
+                <h3 style={{ color: stream.color }}>{stream.name}</h3>
                 {stream.purpose.trim() ? (
                   <p className="detail-stream-purpose">{stream.purpose}</p>
                 ) : null}
                 {stream.nodes.length === 0 ? (
                   <p className="detail-empty quiet">No milestones or conditions.</p>
                 ) : (
-                  <ul>
-                    {stream.nodes.map((n) => (
-                      <li key={n.id}>
-                        <button
-                          type="button"
-                          className={
-                            selection?.type === "node" && selection.id === n.id
-                              ? "detail-item on"
-                              : "detail-item"
-                          }
-                          onClick={() =>
-                            setSelection({ type: "node", id: n.id })
-                          }
-                        >
-                          {n.kind === "milestone" ? (
-                            <MilestoneMark />
-                          ) : (
-                            <ConditionMark />
-                          )}
-                          <span className="detail-item-body">
-                            <span className="detail-item-label">{n.label}</span>
-                            {n.phaseName ? (
-                              <span className="detail-item-meta">
-                                {n.phaseName}
+                  streamPhaseGroups(stream.nodes, phaseNames).map((group) => (
+                    <div key={group.name || stream.id} className="detail-phase-group">
+                      {group.name ? (
+                        <h4 className="detail-phase">{group.name}</h4>
+                      ) : null}
+                      <ul>
+                        {group.nodes.map((n) => (
+                          <li key={n.id}>
+                            <button
+                              type="button"
+                              className={
+                                selection?.type === "node" && selection.id === n.id
+                                  ? "detail-item on"
+                                  : "detail-item"
+                              }
+                              onClick={() =>
+                                setSelection({ type: "node", id: n.id })
+                              }
+                            >
+                              {n.kind === "milestone" ? (
+                                <MilestoneMark />
+                              ) : (
+                                <ConditionMark />
+                              )}
+                              <span className="detail-item-body">
+                                <span className="detail-item-label">{n.label}</span>
+                                {n.description.trim() ? (
+                                  <span className="detail-item-desc">
+                                    {n.description.trim()}
+                                  </span>
+                                ) : null}
                               </span>
-                            ) : null}
-                            {n.description.trim() ? (
-                              <span className="detail-item-desc">
-                                {n.description.trim()}
-                              </span>
-                            ) : null}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))
                 )}
               </div>
             ))}

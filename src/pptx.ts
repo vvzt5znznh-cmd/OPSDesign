@@ -1,6 +1,6 @@
 import JSZip from "jszip";
 import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_GUTTER, endStateTextBox, loeGutterTextWidth } from "./layout";
-import { detailFigureModel } from "./design";
+import { detailFigureModel, streamPhaseGroups } from "./design";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
 import {
@@ -264,31 +264,6 @@ function wrapInches(text: string, widthIn: number, maxLines: number): string[] {
   if (!trimmed) return [];
   const chars = Math.max(10, Math.floor(widthIn / 0.072));
   return wrapLabel(trimmed, chars, maxLines);
-}
-
-function streamPhaseGroups(
-  nodes: Array<{ id: string; kind: NodeKind; label: string; description: string; phaseName: string }>,
-  phaseNames: string[],
-) {
-  const by = new Map<string, typeof nodes>();
-  for (const n of nodes) {
-    const key = n.phaseName || "";
-    const list = by.get(key) ?? [];
-    list.push(n);
-    by.set(key, list);
-  }
-  const groups: Array<{ name: string; nodes: typeof nodes }> = [];
-  for (const name of phaseNames) {
-    const list = by.get(name);
-    if (list?.length) {
-      groups.push({ name, nodes: list });
-      by.delete(name);
-    }
-  }
-  for (const [name, list] of by) {
-    if (list.length) groups.push({ name, nodes: list });
-  }
-  return groups;
 }
 
 /** Positions for the 16:9 detail slide — gates in a row, workstreams as equal cards. */

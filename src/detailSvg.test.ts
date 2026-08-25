@@ -15,6 +15,9 @@ describe("detail figure SVG export", () => {
     expect(markup).toContain("Service");
     expect(markup).toContain("Assurance");
     expect(markup).toContain("Adoption");
+    expect(markup).toContain("DISCOVER");
+    expect(markup).toContain("After Discover");
+    expect(markup).toContain('rx="8"');
     expect(height).toBeGreaterThan(200);
   });
 
