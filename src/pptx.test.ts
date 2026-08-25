@@ -120,3 +120,37 @@ describe("PowerPoint 16:9 fit", () => {
     expect(cx / cy).toBeCloseTo(16 / 9, 2);
   });
 });
+
+describe("PowerPoint detail slide", () => {
+  it("is one 16:9 slide when the detail figure is off", async () => {
+    const buf = await buildPptxArrayBuffer(
+      projectTemplate(),
+      DIAGRAM_PALETTES.light,
+    );
+    const zip = await JSZip.loadAsync(buf);
+    const slides = Object.keys(zip.files).filter((p) =>
+      /^ppt\/slides\/slide\d+\.xml$/.test(p),
+    );
+    expect(slides).toHaveLength(1);
+  });
+
+  it("adds a second 16:9 slide of the list when the detail figure is on", async () => {
+    const design = { ...projectTemplate(), showDetail: true };
+    const buf = await buildPptxArrayBuffer(design, DIAGRAM_PALETTES.light);
+    const zip = await JSZip.loadAsync(buf);
+    const slides = Object.keys(zip.files)
+      .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
+      .sort();
+    expect(slides).toHaveLength(2);
+    const detail = await zip.file(slides[1])!.async("string");
+    expect(detail).toContain("M1: Problem framed");
+    expect(detail).toContain("Worth defining?");
+    expect(detail).toContain("Service");
+    const picture = await zip.file(slides[0])!.async("string");
+    expect(picture).toContain("LIVE AND USED");
+    const pres = await zip.file("ppt/presentation.xml")!.async("string");
+    const cx = Number(pres.match(/sldSz[^>]*cx="(\d+)"/)?.[1]);
+    const cy = Number(pres.match(/sldSz[^>]*cy="(\d+)"/)?.[1]);
+    expect(cx / cy).toBeCloseTo(16 / 9, 2);
+  });
+});

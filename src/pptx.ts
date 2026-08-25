@@ -209,26 +209,210 @@ function speakerNotes(design: OperationalDesign): string {
       lines.push(
         `- ${dp.label}${phase ? ` (${where} ${phase})` : ""}`,
       );
-      if (design.showDetail && dp.description.trim()) {
-        lines.push(`  ${dp.description.trim()}`);
-      }
     }
   }
   if (design.showDetail) {
-    const detail = detailFigureModel(design);
-    for (const stream of detail.streams) {
-      lines.push("", stream.name);
-      for (const n of stream.nodes) {
-        lines.push(
-          `- ${n.label}${n.phaseName ? ` (${n.phaseName})` : ""}`,
-        );
-        if (n.description.trim()) {
-          lines.push(`  ${n.description.trim()}`);
-        }
-      }
-    }
+    lines.push("", "Detail is on slide 2.");
   }
   return lines.join("\n");
+}
+
+type PptxSlide = {
+  background?: { color?: string };
+  addText: (
+    text: string | Array<{ text: string; options?: object }>,
+    opts?: object,
+  ) => unknown;
+};
+
+function addDetailSlide(
+  pptx: { addSlide: () => PptxSlide },
+  design: OperationalDesign,
+  palette: DiagramPalette,
+) {
+  const slide = pptx.addSlide();
+  slide.background = { color: hex(palette.bg) };
+  const m = PPTX_SLIDE.margin;
+  const innerW = PPTX_SLIDE.width - m * 2;
+  const model = detailFigureModel(design);
+
+  slide.addText(design.title.trim() || "Detail", {
+    x: m,
+    y: m,
+    w: innerW,
+    h: 0.3,
+    fontFace: FONT,
+    fontSize: 16,
+    bold: true,
+    color: hex(palette.title),
+    margin: 0,
+    valign: "middle",
+  });
+  slide.addText("Gates, milestones, and conditions", {
+    x: m,
+    y: m + 0.28,
+    w: innerW,
+    h: 0.24,
+    fontFace: FONT,
+    fontSize: 11,
+    color: hex(palette.purpose),
+    margin: 0,
+    valign: "middle",
+  });
+
+  let y = m + 0.56;
+  if (model.gates.length) {
+    slide.addText("Gates", {
+      x: m,
+      y,
+      w: innerW,
+      h: 0.22,
+      fontFace: FONT,
+      fontSize: 12,
+      bold: true,
+      color: hex(palette.phase),
+      margin: 0,
+    });
+    y += 0.22;
+    const gateRuns = model.gates.flatMap((g, i) => {
+      const where = g.placement === "in" ? "in" : "after";
+      const head = `★  ${g.label}${g.phaseName ? `  (${where} ${g.phaseName})` : ""}`;
+      const runs: Array<{ text: string; options: Record<string, unknown> }> = [
+        {
+          text: head,
+          options: {
+            fontFace: FONT,
+            fontSize: 11,
+            bold: true,
+            color: hex(palette.label),
+            breakLine: true,
+          },
+        },
+      ];
+      if (g.description.trim()) {
+        runs.push({
+          text: g.description.trim(),
+          options: {
+            fontFace: FONT,
+            fontSize: 10,
+            color: hex(palette.purpose),
+            breakLine: true,
+          },
+        });
+      }
+      if (i < model.gates.length - 1) {
+        runs.push({
+          text: "",
+          options: { breakLine: true },
+        });
+      }
+      return runs;
+    });
+    const gateH = Math.min(
+      1.6,
+      0.2 * model.gates.length +
+        0.16 * model.gates.filter((g) => g.description.trim()).length +
+        0.08,
+    );
+    slide.addText(gateRuns, {
+      x: m,
+      y,
+      w: innerW,
+      h: gateH,
+      valign: "top",
+      margin: 0,
+    });
+    y += gateH + 0.14;
+  }
+
+  const n = Math.max(1, model.streams.length);
+  const gap = 0.16;
+  const colW = (innerW - gap * (n - 1)) / n;
+  const colH = Math.max(1.2, PPTX_SLIDE.height - m - y);
+  model.streams.forEach((stream, i) => {
+    const x = m + i * (colW + gap);
+    const runs: Array<{ text: string; options: Record<string, unknown> }> = [
+      {
+        text: stream.name,
+        options: {
+          fontFace: FONT,
+          fontSize: 13,
+          bold: true,
+          color: hex(stream.color),
+          breakLine: true,
+        },
+      },
+    ];
+    if (stream.purpose.trim()) {
+      runs.push({
+        text: stream.purpose.trim(),
+        options: {
+          fontFace: FONT,
+          fontSize: 10,
+          color: hex(palette.purpose),
+          breakLine: true,
+        },
+      });
+    }
+    if (stream.nodes.length === 0) {
+      runs.push({
+        text: "No milestones or conditions.",
+        options: {
+          fontFace: FONT,
+          fontSize: 10,
+          color: hex(palette.purpose),
+          breakLine: true,
+        },
+      });
+    }
+    for (const node of stream.nodes) {
+      const mark = node.kind === "milestone" ? "▲" : "◆";
+      runs.push({
+        text: "",
+        options: { breakLine: true },
+      });
+      runs.push({
+        text: `${mark}  ${node.label}`,
+        options: {
+          fontFace: FONT,
+          fontSize: 11,
+          bold: true,
+          color: hex(palette.label),
+          breakLine: true,
+        },
+      });
+      if (node.phaseName) {
+        runs.push({
+          text: node.phaseName,
+          options: {
+            fontFace: FONT,
+            fontSize: 9,
+            color: hex(palette.purpose),
+            breakLine: true,
+          },
+        });
+      }
+      if (node.description.trim()) {
+        runs.push({
+          text: node.description.trim(),
+          options: {
+            fontFace: FONT,
+            fontSize: 10,
+            color: hex(palette.label),
+            breakLine: true,
+          },
+        });
+      }
+    }
+    slide.addText(runs, {
+      x,
+      y,
+      w: colW,
+      h: colH,
+      valign: "top",
+      margin: 0,
+    });
+  });
 }
 
 export async function buildPptxArrayBuffer(
@@ -674,6 +858,10 @@ export async function buildPptxArrayBuffer(
     bold: true,
   });
 
+  if (design.showDetail) {
+    addDetailSlide(pptx as { addSlide: () => PptxSlide }, design, palette);
+  }
+
   return patchPptxConnectors(pptx, design, laid.nodes);
 }
 
@@ -697,9 +885,9 @@ async function patchPptxConnectors(
 ): Promise<ArrayBuffer> {
   const raw = await pptx.write({ outputType: "arraybuffer" });
   const zip = await JSZip.loadAsync(raw as ArrayBuffer);
-  const slidePath = Object.keys(zip.files).find((p) =>
-    /^ppt\/slides\/slide\d+\.xml$/.test(p),
-  );
+  const slidePath =
+    Object.keys(zip.files).find((p) => /ppt\/slides\/slide1\.xml$/.test(p)) ??
+    Object.keys(zip.files).find((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p));
   if (slidePath) {
     const xml = await zip.file(slidePath)!.async("string");
     zip.file(
