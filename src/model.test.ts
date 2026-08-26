@@ -783,6 +783,23 @@ describe("phase view design", () => {
     expect(without.width).toBeLessThan(withPanel.width);
   });
 
+  it("hides the heading and workstream names without changing the wall default", () => {
+    const wall = epicFuryTemplate();
+    const shape = wall.phases.find((p) => p.name === "Shape")!;
+    const picture = phaseViewDesign(wall, shape.id)!;
+    const full = layoutDiagram(picture);
+    const noHead = layoutDiagram(picture, { showHeading: false });
+    const noLoe = layoutDiagram(picture, { showLoeText: false });
+    expect(layoutDiagram(wall).width).toBe(layoutDiagram(wall, {}).width);
+    expect(full.titleLines.length).toBeGreaterThan(0);
+    expect(noHead.titleLines).toEqual([]);
+    expect(noHead.purposeLines).toEqual([]);
+    expect(noHead.height).toBeLessThan(full.height);
+    expect(noLoe.loes.every((l) => l.nameLines.length === 0)).toBe(true);
+    expect(noLoe.plot.x).toBeLessThan(full.plot.x);
+    expect(noLoe.width).toBeLessThan(full.width);
+  });
+
   it("lets empty workstreams be turned back on", () => {
     const wall = epicFuryTemplate();
     const shape = wall.phases.find((p) => p.name === "Shape")!;

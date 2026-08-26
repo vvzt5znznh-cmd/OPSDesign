@@ -437,6 +437,7 @@ export function Diagram({
 
       <rect width={laidOut.width} height={laidOut.height} fill={palette.bg} />
 
+      {(laidOut.titleLines.length > 0 || laidOut.purposeLines.length > 0) && (
       <g
         onClick={(e) => {
           e.stopPropagation();
@@ -475,6 +476,7 @@ export function Diagram({
           </text>
         ))}
       </g>
+      )}
 
       {laidOut.phases.map((phase, i) => (
         <g key={phase.id}>

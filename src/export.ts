@@ -15,10 +15,11 @@ export function downloadSvg(
   svg: SVGSVGElement,
   design: OperationalDesign,
   palette: DiagramPalette,
+  fileBase?: string,
 ): void {
   const { xml } = exportMarkup(svg, design, palette);
   const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
-  triggerDownload(blob, slug(design.title) + ".svg");
+  triggerDownload(blob, `${fileBase ?? slug(design.title)}.svg`);
 }
 
 export async function rasteriseSvg(
@@ -51,10 +52,11 @@ export async function downloadPng(
   design: OperationalDesign,
   palette: DiagramPalette,
   scale = 2,
+  fileBase?: string,
 ): Promise<void> {
   const { xml, width, height } = exportMarkup(svg, design, palette);
   const png = await rasteriseSvg(xml, width, height, palette.bg, scale);
-  triggerDownload(png, slug(design.title) + ".png");
+  triggerDownload(png, `${fileBase ?? slug(design.title)}.png`);
 }
 
 function loadImage(url: string): Promise<HTMLImageElement> {

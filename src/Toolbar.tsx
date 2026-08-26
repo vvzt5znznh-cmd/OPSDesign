@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { downloadPng, downloadSvg } from "./export";
-import { downloadPages } from "./exportPages";
+import { downloadPages, downloadPaperPng } from "./exportPages";
 import { LayoutPicker } from "./LayoutPicker";
-import { downloadPptx } from "./pptx";
+import { downloadPhasePptx, downloadPptx } from "./pptx";
 import { Menu } from "./Menu";
+import type { EditorView } from "./PhaseFigure";
 import {
   downloadJson,
   loadPrevious,
   parseImportedDesign,
+  slug,
   stashPrevious,
 } from "./storage";
 import { LlmModal } from "./LlmModal";
@@ -18,9 +20,15 @@ import type { OperationalDesign } from "./types";
 
 export function Toolbar({
   svgRef,
+  view,
+  onView,
+  phaseName,
   onHelp,
 }: {
   svgRef: RefObject<SVGSVGElement | null>;
+  view: EditorView;
+  onView: (view: EditorView) => void;
+  phaseName?: string;
   onHelp: () => void;
 }) {
   const {
@@ -47,14 +55,52 @@ export function Toolbar({
     setTitle(design.title);
   }, [design.title]);
 
+  const onPhase = view === "phase";
+  const exportBase =
+    onPhase && phaseName
+      ? `${slug(design.title)}-${slug(phaseName)}`
+      : slug(design.title);
+  const exportDesign = onPhase ? { ...design, showDetail: false } : design;
+
   async function exportPng() {
     if (!svgRef.current) return;
-    await downloadPng(svgRef.current, design, diagram, 2);
+    await downloadPng(svgRef.current, exportDesign, diagram, 2, exportBase);
   }
 
   function exportSvg() {
     if (!svgRef.current) return;
-    downloadSvg(svgRef.current, design, diagram);
+    downloadSvg(svgRef.current, exportDesign, diagram, exportBase);
+  }
+
+  function exportPages() {
+    if (!svgRef.current) return;
+    if (onPhase) {
+      void downloadPaperPng(svgRef.current, exportBase, diagram).catch((err) => {
+        window.alert(err instanceof Error ? err.message : t.pagesFailed);
+      });
+      return;
+    }
+    void downloadPages(svgRef.current, design, diagram).catch((err) => {
+      window.alert(err instanceof Error ? err.message : t.pagesFailed);
+    });
+  }
+
+  function exportPptx() {
+    if (onPhase) {
+      if (!svgRef.current || !phaseName) return;
+      void downloadPhasePptx(
+        svgRef.current,
+        design,
+        phaseName,
+        diagram,
+      ).catch((err) => {
+        window.alert(err instanceof Error ? err.message : t.pptxFailed);
+      });
+      return;
+    }
+    void downloadPptx(design, diagram).catch((err) => {
+      window.alert(err instanceof Error ? err.message : t.pptxFailed);
+    });
   }
 
   function replaceDesign(next: OperationalDesign) {
@@ -90,6 +136,30 @@ export function Toolbar({
           <span className="logo" aria-hidden />
           <span>OPSDesign</span>
         </div>
+        <div
+          className="kind-toggle view-toggle"
+          role="tablist"
+          aria-label={t.view}
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "picture"}
+            className={view === "picture" ? "on" : ""}
+            onClick={() => onView("picture")}
+          >
+            {t.pictureView}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "phase"}
+            className={view === "phase" ? "on" : ""}
+            onClick={() => onView("phase")}
+          >
+            {t.phaseView}
+          </button>
+        </div>
         <input
           className="title-input"
           value={title}
@@ -110,13 +180,15 @@ export function Toolbar({
 
       <div className="toolbar-right">
         <div className="tool-group hide-present">
-          <button
-            type="button"
-            className={linkMode ? "tool primary on" : "tool primary"}
-            onClick={() => setLinkMode(!linkMode)}
-          >
-            {linkMode ? t.linking : t.link}
-          </button>
+          {!onPhase && (
+            <button
+              type="button"
+              className={linkMode ? "tool primary on" : "tool primary"}
+              onClick={() => setLinkMode(!linkMode)}
+            >
+              {linkMode ? t.linking : t.link}
+            </button>
+          )}
           <button type="button" className="tool" onClick={undo} disabled={!canUndo}>
             {t.undo}
           </button>
@@ -149,35 +221,10 @@ export function Toolbar({
             <button type="button" role="menuitem" onClick={exportSvg}>
               {t.exportSvg}
             </button>
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                if (!svgRef.current) return;
-                void downloadPages(svgRef.current, design, diagram).catch((err) => {
-                  window.alert(
-                    err instanceof Error
-                      ? err.message
-                      : t.pagesFailed,
-                  );
-                });
-              }}
-            >
+            <button type="button" role="menuitem" onClick={exportPages}>
               {t.exportPages}
             </button>
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                void downloadPptx(design, diagram).catch((err) => {
-                  window.alert(
-                    err instanceof Error
-                      ? err.message
-                      : t.pptxFailed,
-                  );
-                });
-              }}
-            >
+            <button type="button" role="menuitem" onClick={exportPptx}>
               {t.exportPptx}
             </button>
           </Menu>

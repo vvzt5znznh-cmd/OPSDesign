@@ -4,38 +4,9 @@ import { defaultVisibleLoeIds, phaseViewDesign } from "./design";
 import { useLang } from "./i18n";
 import { useDesign } from "./state";
 
-export function PhaseFigureToggle({
-  on,
-  onChange,
-}: {
-  on: boolean;
-  onChange: (on: boolean) => void;
-}) {
-  const { t } = useLang();
-  return (
-    <div className="detail-toggle hide-present">
-      <span className="detail-toggle-label">{t.phaseFigure}</span>
-      <div className="kind-toggle" role="group" aria-label={t.phaseFigure}>
-        <button
-          type="button"
-          className={!on ? "on" : ""}
-          onClick={() => onChange(false)}
-        >
-          {t.off}
-        </button>
-        <button
-          type="button"
-          className={on ? "on" : ""}
-          onClick={() => onChange(true)}
-        >
-          {t.on}
-        </button>
-      </div>
-    </div>
-  );
-}
+export type EditorView = "picture" | "phase";
 
-export function PhaseFigure({
+export function PhasePage({
   svgRef,
   phaseIndex,
   onPhaseIndex,
@@ -45,6 +16,10 @@ export function PhaseFigure({
   onShowLoeEnds,
   showCampaignEnd,
   onShowCampaignEnd,
+  showHeading,
+  onShowHeading,
+  showLoeText,
+  onShowLoeText,
 }: {
   svgRef: RefObject<SVGSVGElement | null>;
   phaseIndex: number;
@@ -55,13 +30,17 @@ export function PhaseFigure({
   onShowLoeEnds: (on: boolean) => void;
   showCampaignEnd: boolean;
   onShowCampaignEnd: (on: boolean) => void;
+  showHeading: boolean;
+  onShowHeading: (on: boolean) => void;
+  showLoeText: boolean;
+  onShowLoeText: (on: boolean) => void;
 }) {
   const { design } = useDesign();
   const { t } = useLang();
   const phase = design.phases[phaseIndex] ?? design.phases[0];
   const layoutOptions = useMemo(
-    () => ({ showCampaignEnd }),
-    [showCampaignEnd],
+    () => ({ showCampaignEnd, showHeading, showLoeText }),
+    [showCampaignEnd, showHeading, showLoeText],
   );
   const picture = useMemo(
     () =>
@@ -88,7 +67,7 @@ export function PhaseFigure({
   }
 
   return (
-    <section className="phase-figure" aria-label={t.phaseFigure}>
+    <section className="phase-page" aria-label={t.phaseView}>
       <div className="phase-figure-chrome hide-present">
         <div className="phase-stepper">
           <button
@@ -132,6 +111,22 @@ export function PhaseFigure({
         <label className="phase-switch">
           <input
             type="checkbox"
+            checked={showLoeText}
+            onChange={(e) => onShowLoeText(e.target.checked)}
+          />
+          {t.loeLabels}
+        </label>
+        <label className="phase-switch">
+          <input
+            type="checkbox"
+            checked={showHeading}
+            onChange={(e) => onShowHeading(e.target.checked)}
+          />
+          {t.pictureHeading}
+        </label>
+        <label className="phase-switch">
+          <input
+            type="checkbox"
             checked={showLoeEnds}
             onChange={(e) => onShowLoeEnds(e.target.checked)}
           />
@@ -158,7 +153,7 @@ export function PhaseFigure({
 
 export function usePhaseViewState(designId: string, phaseCount: number) {
   const { design } = useDesign();
-  const [on, setOn] = useState(false);
+  const [view, setView] = useState<EditorView>("picture");
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [visibleLoeIds, setVisibleLoeIds] = useState<string[]>(() =>
     design.phases[0]
@@ -167,12 +162,15 @@ export function usePhaseViewState(designId: string, phaseCount: number) {
   );
   const [showLoeEnds, setShowLoeEnds] = useState(design.showLoeEndStates);
   const [showCampaignEnd, setShowCampaignEnd] = useState(true);
+  const [showHeading, setShowHeading] = useState(true);
+  const [showLoeText, setShowLoeText] = useState(true);
   const prevDesign = useRef(designId);
   const prevPhase = useRef(phaseIndex);
 
   useEffect(() => {
     if (prevDesign.current !== designId) {
       prevDesign.current = designId;
+      setView("picture");
       setPhaseIndex(0);
       const first = design.phases[0];
       setVisibleLoeIds(
@@ -182,6 +180,8 @@ export function usePhaseViewState(designId: string, phaseCount: number) {
       );
       setShowLoeEnds(design.showLoeEndStates);
       setShowCampaignEnd(true);
+      setShowHeading(true);
+      setShowLoeText(true);
     }
   }, [design, designId]);
 
@@ -196,9 +196,17 @@ export function usePhaseViewState(designId: string, phaseCount: number) {
     if (phase) setVisibleLoeIds(defaultVisibleLoeIds(design, phase.id));
   }, [design, phaseIndex]);
 
+  function openPhase(index?: number) {
+    if (index !== undefined && index >= 0 && index < phaseCount) {
+      setPhaseIndex(index);
+    }
+    setView("phase");
+  }
+
   return {
-    on,
-    setOn,
+    view,
+    setView,
+    openPhase,
     phaseIndex,
     setPhaseIndex,
     visibleLoeIds,
@@ -207,5 +215,9 @@ export function usePhaseViewState(designId: string, phaseCount: number) {
     setShowLoeEnds,
     showCampaignEnd,
     setShowCampaignEnd,
+    showHeading,
+    setShowHeading,
+    showLoeText,
+    setShowLoeText,
   };
 }

@@ -184,3 +184,22 @@ export async function downloadPages(
   const blob = await zip.generateAsync({ type: "blob" });
   triggerDownload(blob, `${base}-pages.zip`);
 }
+
+/** Paper PNG of the picture currently on screen — used from the phase page. */
+export async function downloadPaperPng(
+  picture: SVGSVGElement,
+  fileBase: string,
+  palette: DiagramPalette,
+  scale = 2,
+): Promise<void> {
+  const paper = PAPER_PALETTE;
+  const shot = serializePictureSvg(picture);
+  const png = await rasteriseSvg(
+    recolorDiagramMarkup(shot.xml, palette, paper),
+    shot.width,
+    shot.height,
+    paper.bg,
+    scale,
+  );
+  triggerDownload(png, `${fileBase}.png`);
+}

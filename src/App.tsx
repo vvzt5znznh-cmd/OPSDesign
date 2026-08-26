@@ -4,7 +4,7 @@ import { Diagram } from "./Diagram";
 import { HelpModal } from "./Help";
 import { Inspector } from "./Inspector";
 import { LayoutPicker } from "./LayoutPicker";
-import { PhaseFigure, PhaseFigureToggle, usePhaseViewState } from "./PhaseFigure";
+import { PhasePage, usePhaseViewState } from "./PhaseFigure";
 import { useLang } from "./i18n";
 import { DesignProvider, useDesign } from "./state";
 import { saveDesign } from "./storage";
@@ -19,6 +19,11 @@ function Editor() {
     useDesign();
   const { t } = useLang();
   const phaseView = usePhaseViewState(design.id, design.phases.length);
+  const onPhase = phaseView.view === "phase";
+  const pictureRef = onPhase ? phaseSvgRef : svgRef;
+  const phaseName = onPhase
+    ? (design.phases[phaseView.phaseIndex] ?? design.phases[0])?.name
+    : undefined;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -40,12 +45,31 @@ function Editor() {
     return () => window.removeEventListener("keydown", onKey);
   }, [undo, redo]);
 
+  function openPhaseView() {
+    setLinkMode(false);
+    if (selection?.type === "phase") {
+      const i = design.phases.findIndex((p) => p.id === selection.id);
+      phaseView.openPhase(i >= 0 ? i : undefined);
+      return;
+    }
+    phaseView.openPhase();
+  }
+
   return (
     <div className={present ? "app present" : "app"}>
-      <Toolbar svgRef={svgRef} onHelp={() => setHelp(true)} />
+      <Toolbar
+        svgRef={pictureRef}
+        view={phaseView.view}
+        onView={(next) => {
+          if (next === "phase") openPhaseView();
+          else phaseView.setView("picture");
+        }}
+        phaseName={phaseName}
+        onHelp={() => setHelp(true)}
+      />
       <div className="workspace">
         <main className={selection && !present ? "canvas with-panel" : "canvas"}>
-          {linkMode && (
+          {linkMode && !onPhase && (
             <div className="link-banner">
               {t.linkBanner}
               <button type="button" onClick={() => setLinkMode(false)}>
@@ -55,10 +79,8 @@ function Editor() {
           )}
           <div className="canvas-scroll">
             <div className="figures">
-              <Diagram svgRef={svgRef} />
-              <PhaseFigureToggle on={phaseView.on} onChange={phaseView.setOn} />
-              {phaseView.on && (
-                <PhaseFigure
+              {onPhase ? (
+                <PhasePage
                   svgRef={phaseSvgRef}
                   phaseIndex={phaseView.phaseIndex}
                   onPhaseIndex={phaseView.setPhaseIndex}
@@ -68,10 +90,18 @@ function Editor() {
                   onShowLoeEnds={phaseView.setShowLoeEnds}
                   showCampaignEnd={phaseView.showCampaignEnd}
                   onShowCampaignEnd={phaseView.setShowCampaignEnd}
+                  showHeading={phaseView.showHeading}
+                  onShowHeading={phaseView.setShowHeading}
+                  showLoeText={phaseView.showLoeText}
+                  onShowLoeText={phaseView.setShowLoeText}
                 />
+              ) : (
+                <>
+                  <Diagram svgRef={svgRef} />
+                  <DetailFigureToggle />
+                  {design.showDetail && <DetailFigure />}
+                </>
               )}
-              <DetailFigureToggle />
-              {design.showDetail && <DetailFigure />}
             </div>
           </div>
         </main>

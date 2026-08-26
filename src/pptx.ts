@@ -3,7 +3,7 @@ import { designForDetailPhase, phaseViewDesign } from "./design";
 import { rasteriseSvg } from "./export";
 import { copy } from "./i18n";
 import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_GUTTER, endStateTextBox, loeGutterTextWidth } from "./layout";
-import { renderPhaseViewSvg } from "./phaseViewRender";
+import { renderPhaseViewSvg, serializePictureSvg } from "./phaseViewRender";
 import { addDetailSlides } from "./pptxDetail";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
@@ -745,6 +745,66 @@ export async function downloadPptx(
       type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     }),
     `${slug(design.title)}.pptx`,
+  );
+}
+
+/** One 16:9 slide of the phase picture currently on screen. */
+export async function downloadPhasePptx(
+  picture: SVGSVGElement,
+  design: OperationalDesign,
+  phaseName: string,
+  palette: DiagramPalette,
+): Promise<void> {
+  const { default: PptxGenJS } = await import("pptxgenjs");
+  const pptx = new PptxGenJS();
+  pptx.title = `${design.title} — ${phaseName}`;
+  pptx.author = "OPSDesign";
+  pptx.subject = design.purpose.trim() || "Operational design";
+  pptx.defineLayout({
+    name: "OPSDesign",
+    width: PPTX_SLIDE.width,
+    height: PPTX_SLIDE.height,
+  });
+  pptx.layout = "OPSDesign";
+  const slide = pptx.addSlide();
+  slide.background = { color: hex(palette.bg) };
+  if (typeof document !== "undefined") {
+    const page = serializePictureSvg(picture);
+    const png = await rasteriseSvg(
+      page.xml,
+      page.width,
+      page.height,
+      palette.bg,
+      2,
+    );
+    const scale = pptxFitScale(page);
+    const w = page.width * scale;
+    const h = page.height * scale;
+    slide.addImage({
+      data: await blobToPptxImageData(png),
+      x: (PPTX_SLIDE.width - w) / 2,
+      y: (PPTX_SLIDE.height - h) / 2,
+      w,
+      h,
+    });
+  } else {
+    slide.addText(phaseName, {
+      x: PPTX_SLIDE.margin,
+      y: PPTX_SLIDE.margin,
+      w: PPTX_SLIDE.width - PPTX_SLIDE.margin * 2,
+      h: 0.5,
+      fontSize: 18,
+      fontFace: FONT,
+      color: hex(palette.title),
+      bold: true,
+    });
+  }
+  const raw = await pptx.write({ outputType: "arraybuffer" });
+  downloadBlob(
+    new Blob([raw as ArrayBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    }),
+    `${slug(design.title)}-${slug(phaseName)}.pptx`,
   );
 }
 

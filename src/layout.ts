@@ -376,20 +376,28 @@ export function slotCenterX(phase: PhaseLayout, column: number): number {
   return x + widths[col] / 2;
 }
 
-export function loeRowHeight(design: OperationalDesign, loeId: string): number {
+export function loeRowHeight(
+  design: OperationalDesign,
+  loeId: string,
+  options: { showLoeText?: boolean } = {},
+): number {
   const loe = design.linesOfEffort.find((item) => item.id === loeId);
   let labelH = 0;
   for (const n of design.nodes) {
     if (n.loeId !== loeId) continue;
     labelH = Math.max(labelH, nodeLabelSize(n.label).height);
   }
-  const purposeLines = wrapLoePurpose(loe?.purpose ?? "").length;
-  const nameLines = wrapLoeName(loe?.name ?? "").length;
+  const showLoeText = options.showLoeText !== false;
+  const purposeLines = showLoeText
+    ? wrapLoePurpose(loe?.purpose ?? "").length
+    : 0;
+  const nameLines = showLoeText ? wrapLoeName(loe?.name ?? "").length : 0;
   const fromNodes = 20 + NODE_LABEL.markToLabel + labelH + 16;
-  const fromGutter =
-    nameLines * LOE_GUTTER.nameLh +
-    (purposeLines ? LOE_GUTTER.gap + purposeLines * LOE_GUTTER.purposeLh : 0) +
-    20;
+  const fromGutter = showLoeText
+    ? nameLines * LOE_GUTTER.nameLh +
+      (purposeLines ? LOE_GUTTER.gap + purposeLines * LOE_GUTTER.purposeLh : 0) +
+      20
+    : 0;
   const fromEnd = loeEndStatesShown(design)
     ? loeEndHeight(wrapLoeEndState(loe?.endState ?? "")) + 16
     : 0;
@@ -399,6 +407,10 @@ export function loeRowHeight(design: OperationalDesign, loeId: string): number {
 export type LayoutOptions = {
   /** Wall default is on. Phase view can hide the campaign panel. */
   showCampaignEnd?: boolean;
+  /** Wall default is on. Phase view can hide title and purpose. */
+  showHeading?: boolean;
+  /** Wall default is on. Phase view can hide workstream names on the left. */
+  showLoeText?: boolean;
 };
 
 export function layoutDiagram(
@@ -410,6 +422,9 @@ export function layoutDiagram(
   const phases = design.phases;
   const columns = nodeColumns(design);
   const showCampaign = options.showCampaignEnd !== false;
+  const showHeading = options.showHeading !== false;
+  const showLoeText = options.showLoeText !== false;
+  const leftGutter = showLoeText ? L.leftGutter : 0;
 
   const phaseMeta = phases.map((phase) => phaseBand(design, phase.id, columns));
   const phasesWidth = phaseMeta.reduce((a, p) => a + p.width, 0);
@@ -421,25 +436,29 @@ export function layoutDiagram(
       : L.padX;
   const width =
     L.padX * 2 +
-    L.leftGutter +
+    leftGutter +
     phasesWidth +
     endBand +
     (showCampaign ? L.outcomeW : 0);
   const textWidth = Math.max(240, width - L.padX * 2);
-  const titleLines = wrapToWidth(
-    design.title || copy().untitled,
-    textWidth,
-    H.titlePx,
-    H.titleMax,
-  );
-  const purposeLines = design.purpose.trim()
-    ? wrapToWidth(design.purpose, textWidth - 40, H.purposePx, H.purposeMax)
+  const titleLines = showHeading
+    ? wrapToWidth(
+        design.title || copy().untitled,
+        textWidth,
+        H.titlePx,
+        H.titleMax,
+      )
     : [];
-  const headingH =
-    H.top +
-    titleLines.length * H.titleLh +
-    (purposeLines.length ? H.gap + purposeLines.length * H.purposeLh : 0) +
-    H.bottom;
+  const purposeLines =
+    showHeading && design.purpose.trim()
+      ? wrapToWidth(design.purpose, textWidth - 40, H.purposePx, H.purposeMax)
+      : [];
+  const headingH = showHeading
+    ? H.top +
+      titleLines.length * H.titleLh +
+      (purposeLines.length ? H.gap + purposeLines.length * H.purposeLh : 0) +
+      H.bottom
+    : 0;
 
   const maxGateLines = design.decisionPoints.reduce(
     (max, dp) => Math.max(max, wrapLabel(dp.label, 16, 4).length),
@@ -447,13 +466,13 @@ export function layoutDiagram(
   );
   const dpBarH = Math.max(L.dpBarH, 32 + maxGateLines * 12 + 10);
   const loeHeights = design.linesOfEffort.map((loe) =>
-    loeRowHeight(design, loe.id),
+    loeRowHeight(design, loe.id, { showLoeText }),
   );
   const loesH = loeHeights.reduce((a, h) => a + h, 0);
   const plotY = L.padY + headingH + L.phaseHeaderH;
   const plotH = dpBarH + loesH;
 
-  let x = L.padX + L.leftGutter;
+  let x = L.padX + leftGutter;
   const phaseLayouts: PhaseLayout[] = phases.map((phase, i) => {
     const layout = {
       id: phase.id,
@@ -467,7 +486,7 @@ export function layoutDiagram(
     return layout;
   });
 
-  const plotX = L.padX + L.leftGutter;
+  const plotX = L.padX + leftGutter;
   const loeEndX = plotX + phasesWidth + (showEnds ? L.loeEndGap : L.addGap);
   const outcomeX = showEnds
     ? loeEndX + L.loeEndW + (showCampaign ? L.loeEndToPanel : 0)
@@ -520,11 +539,11 @@ export function layoutDiagram(
     color: loe.color,
     purpose: loe.purpose ?? "",
     endState: loe.endState ?? "",
-    nameLines: wrapLoeName(loe.name),
-    purposeLines: wrapLoePurpose(loe.purpose ?? ""),
+    nameLines: showLoeText ? wrapLoeName(loe.name) : [],
+    purposeLines: showLoeText ? wrapLoePurpose(loe.purpose ?? "") : [],
     y: loeYs[i],
     height: loeHeights[i],
-    x1: plotX - 8,
+    x1: showLoeText ? plotX - 8 : plotX,
     x2: lineEnd,
   }));
   const loeEndStates: LoeEndStateLayout[] = showEnds

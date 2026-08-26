@@ -127,6 +127,10 @@ textarea:focus-visible {
   flex: 1;
 }
 
+.view-toggle {
+  flex-shrink: 0;
+}
+
 .toolbar-right {
   display: flex;
   align-items: center;
@@ -392,6 +396,7 @@ textarea:focus-visible {
   margin-bottom: 0;
 }
 
+.phase-page,
 .phase-figure {
   display: flex;
   flex-direction: column;
