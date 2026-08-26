@@ -794,4 +794,21 @@ describe("phase view design", () => {
     const on = phaseViewDesign(wall, shape.id, { visibleLoeIds: all })!;
     expect(on.linesOfEffort.some((l) => l.name === "Regime pressure")).toBe(true);
   });
+
+  it("omits the after-gate on Prevent reconstitution", () => {
+    const wall = epicFuryTemplate();
+    const phase = wall.phases.find((p) => p.name === "Prevent reconstitution")!;
+    expect(
+      wall.decisionPoints.some(
+        (dp) => /Re-enter/i.test(dp.label) && dp.placement === "after",
+      ),
+    ).toBe(true);
+    const picture = phaseViewDesign(wall, phase.id)!;
+    expect(picture.decisionPoints.some((dp) => /Re-enter/i.test(dp.label))).toBe(
+      false,
+    );
+    expect(
+      layoutDiagram(picture).dps.some((dp) => /Re-enter/i.test(dp.label)),
+    ).toBe(false);
+  });
 });
