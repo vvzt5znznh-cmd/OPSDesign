@@ -411,6 +411,8 @@ export type LayoutOptions = {
   showHeading?: boolean;
   /** Wall default is on. Phase view can hide workstream names on the left. */
   showLoeText?: boolean;
+  /** Wall default is on. Phase view can hide the decision-gate row. */
+  showGates?: boolean;
 };
 
 export function layoutDiagram(
@@ -424,6 +426,7 @@ export function layoutDiagram(
   const showCampaign = options.showCampaignEnd !== false;
   const showHeading = options.showHeading !== false;
   const showLoeText = options.showLoeText !== false;
+  const showGates = options.showGates !== false;
   const leftGutter = showLoeText ? L.leftGutter : 0;
 
   const phaseMeta = phases.map((phase) => phaseBand(design, phase.id, columns));
@@ -460,11 +463,15 @@ export function layoutDiagram(
       H.bottom
     : 0;
 
-  const maxGateLines = design.decisionPoints.reduce(
-    (max, dp) => Math.max(max, wrapLabel(dp.label, 16, 4).length),
-    1,
-  );
-  const dpBarH = Math.max(L.dpBarH, 32 + maxGateLines * 12 + 10);
+  const maxGateLines = showGates
+    ? design.decisionPoints.reduce(
+        (max, dp) => Math.max(max, wrapLabel(dp.label, 16, 4).length),
+        1,
+      )
+    : 0;
+  const dpBarH = showGates
+    ? Math.max(L.dpBarH, 32 + maxGateLines * 12 + 10)
+    : 0;
   const loeHeights = design.linesOfEffort.map((loe) =>
     loeRowHeight(design, loe.id, { showLoeText }),
   );
@@ -596,35 +603,37 @@ export function layoutDiagram(
 
   const dpY = plotY + dpBarH / 2;
   const dps: DpLayout[] = [];
-  for (const phase of phaseLayouts) {
-    const inPhase = design.decisionPoints
-      .filter((dp) => dp.afterPhaseId === phase.id && dp.placement === "in")
-      .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
-    inPhase.forEach((dp, i) => {
-      const xPos =
-        phase.x + ((i + 1) / (inPhase.length + 1)) * phase.width;
-      dps.push({ id: dp.id, label: dp.label, x: xPos, y: dpY });
-    });
-    const afterPhase = design.decisionPoints.filter(
-      (dp) => dp.afterPhaseId === phase.id && dp.placement !== "in",
-    );
-    afterPhase.forEach((dp, i) => {
+  if (showGates) {
+    for (const phase of phaseLayouts) {
+      const inPhase = design.decisionPoints
+        .filter((dp) => dp.afterPhaseId === phase.id && dp.placement === "in")
+        .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+      inPhase.forEach((dp, i) => {
+        const xPos =
+          phase.x + ((i + 1) / (inPhase.length + 1)) * phase.width;
+        dps.push({ id: dp.id, label: dp.label, x: xPos, y: dpY });
+      });
+      const afterPhase = design.decisionPoints.filter(
+        (dp) => dp.afterPhaseId === phase.id && dp.placement !== "in",
+      );
+      afterPhase.forEach((dp, i) => {
+        dps.push({
+          id: dp.id,
+          label: dp.label,
+          x: phase.x + phase.width + i * 18,
+          y: dpY,
+        });
+      });
+    }
+    for (const dp of design.decisionPoints) {
+      if (dps.some((d) => d.id === dp.id)) continue;
       dps.push({
         id: dp.id,
         label: dp.label,
-        x: phase.x + phase.width + i * 18,
+        x: plotX + phasesWidth,
         y: dpY,
       });
-    });
-  }
-  for (const dp of design.decisionPoints) {
-    if (dps.some((d) => d.id === dp.id)) continue;
-    dps.push({
-      id: dp.id,
-      label: dp.label,
-      x: plotX + phasesWidth,
-      y: dpY,
-    });
+    }
   }
 
   const bandY = plotY - 42;

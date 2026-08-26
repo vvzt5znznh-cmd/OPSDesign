@@ -403,6 +403,58 @@ textarea:focus-visible {
   gap: 10px;
 }
 
+.phase-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.phase-loe-rail {
+  flex: 0 0 196px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.phase-loe-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.phase-loe-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 4px;
+  border-radius: 6px;
+  opacity: 0.38;
+}
+
+.phase-loe-btn.on {
+  opacity: 1;
+}
+
+.phase-loe-btn:hover {
+  background: var(--elev);
+}
+
+.phase-loe-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--chip, var(--gold));
+  flex-shrink: 0;
+}
+
 .phase-figure-chrome {
   display: flex;
   flex-wrap: wrap;

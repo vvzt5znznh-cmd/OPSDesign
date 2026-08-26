@@ -94,6 +94,8 @@ function Editor() {
                   onShowHeading={phaseView.setShowHeading}
                   showLoeText={phaseView.showLoeText}
                   onShowLoeText={phaseView.setShowLoeText}
+                  showGates={phaseView.showGates}
+                  onShowGates={phaseView.setShowGates}
                 />
               ) : (
                 <>

@@ -532,6 +532,7 @@ export function Diagram({
       </g>
       )}
 
+      {laidOut.dpBar.height > 1 && (
       <g
         className="gate-rail"
         onPointerLeave={() => setHoverGate(null)}
@@ -578,6 +579,7 @@ export function Diagram({
           />
         )}
       </g>
+      )}
 
       {laidOut.loes.map((loe) => {
         const nameY0 =

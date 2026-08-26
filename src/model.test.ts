@@ -757,7 +757,7 @@ describe("phase view design", () => {
       picture.dependencies.every((d) => ids.has(d.fromId) && ids.has(d.toId)),
     ).toBe(true);
     expect(picture.linesOfEffort.some((l) => l.name === "Regime pressure")).toBe(
-      false,
+      true,
     );
     expect(
       picture.linesOfEffort.some((l) => l.name === "Counter-capability"),
@@ -800,16 +800,34 @@ describe("phase view design", () => {
     expect(noLoe.width).toBeLessThan(full.width);
   });
 
-  it("lets empty workstreams be turned back on", () => {
+  it("keeps empty workstreams unless the user hides them", () => {
     const wall = epicFuryTemplate();
     const shape = wall.phases.find((p) => p.name === "Shape")!;
-    const defaults = defaultVisibleLoeIds(wall, shape.id);
-    expect(defaults.includes(wall.linesOfEffort.find((l) => l.name === "Regime pressure")!.id)).toBe(
+    const regime = wall.linesOfEffort.find((l) => l.name === "Regime pressure")!;
+    expect(defaultVisibleLoeIds(wall, shape.id).includes(regime.id)).toBe(false);
+    const all = phaseViewDesign(wall, shape.id)!;
+    expect(all.linesOfEffort.some((l) => l.name === "Regime pressure")).toBe(true);
+    const hidden = phaseViewDesign(wall, shape.id, {
+      visibleLoeIds: wall.linesOfEffort.filter((l) => l.id !== regime.id).map((l) => l.id),
+    })!;
+    expect(hidden.linesOfEffort.some((l) => l.name === "Regime pressure")).toBe(
       false,
     );
-    const all = wall.linesOfEffort.map((l) => l.id);
-    const on = phaseViewDesign(wall, shape.id, { visibleLoeIds: all })!;
-    expect(on.linesOfEffort.some((l) => l.name === "Regime pressure")).toBe(true);
+  });
+
+  it("hides the gate row when asked", () => {
+    const wall = epicFuryTemplate();
+    const dominate = wall.phases.find((p) => p.name === "Dominate")!;
+    const picture = phaseViewDesign(wall, dominate.id)!;
+    const withGates = layoutDiagram(picture);
+    const without = layoutDiagram(picture, { showGates: false });
+    expect(withGates.dps.length).toBeGreaterThan(0);
+    expect(without.dps).toHaveLength(0);
+    expect(without.dpBar.height).toBe(0);
+    expect(without.height).toBeLessThan(withGates.height);
+    expect(layoutDiagram(wall).dpBar.height).toBe(
+      layoutDiagram(wall, {}).dpBar.height,
+    );
   });
 
   it("omits the after-gate on Prevent reconstitution", () => {

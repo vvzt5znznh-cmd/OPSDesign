@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { Diagram } from "./Diagram";
-import { defaultVisibleLoeIds, phaseViewDesign } from "./design";
+import { phaseViewDesign } from "./design";
 import { useLang } from "./i18n";
 import { useDesign } from "./state";
 
@@ -20,6 +20,8 @@ export function PhasePage({
   onShowHeading,
   showLoeText,
   onShowLoeText,
+  showGates,
+  onShowGates,
 }: {
   svgRef: RefObject<SVGSVGElement | null>;
   phaseIndex: number;
@@ -34,13 +36,15 @@ export function PhasePage({
   onShowHeading: (on: boolean) => void;
   showLoeText: boolean;
   onShowLoeText: (on: boolean) => void;
+  showGates: boolean;
+  onShowGates: (on: boolean) => void;
 }) {
   const { design } = useDesign();
   const { t } = useLang();
   const phase = design.phases[phaseIndex] ?? design.phases[0];
   const layoutOptions = useMemo(
-    () => ({ showCampaignEnd, showHeading, showLoeText }),
-    [showCampaignEnd, showHeading, showLoeText],
+    () => ({ showCampaignEnd, showHeading, showLoeText, showGates }),
+    [showCampaignEnd, showHeading, showLoeText, showGates],
   );
   const picture = useMemo(
     () =>
@@ -92,30 +96,6 @@ export function PhasePage({
             →
           </button>
         </div>
-        <div className="phase-chips" role="group" aria-label={t.workstreams}>
-          {design.linesOfEffort.map((loe) => {
-            const on = visibleLoeIds.includes(loe.id);
-            return (
-              <button
-                key={loe.id}
-                type="button"
-                className={on ? "phase-chip on" : "phase-chip"}
-                style={{ ["--chip" as string]: loe.color }}
-                onClick={() => toggleLoe(loe.id)}
-              >
-                {loe.name}
-              </button>
-            );
-          })}
-        </div>
-        <label className="phase-switch">
-          <input
-            type="checkbox"
-            checked={showLoeText}
-            onChange={(e) => onShowLoeText(e.target.checked)}
-          />
-          {t.loeLabels}
-        </label>
         <label className="phase-switch">
           <input
             type="checkbox"
@@ -127,10 +107,10 @@ export function PhasePage({
         <label className="phase-switch">
           <input
             type="checkbox"
-            checked={showLoeEnds}
-            onChange={(e) => onShowLoeEnds(e.target.checked)}
+            checked={showGates}
+            onChange={(e) => onShowGates(e.target.checked)}
           />
-          {t.workstreamEndStates}
+          {t.gates}
         </label>
         <label className="phase-switch">
           <input
@@ -141,12 +121,50 @@ export function PhasePage({
           {t.campaignEndPanel}
         </label>
       </div>
-      <Diagram
-        svgRef={svgRef}
-        picture={picture}
-        readOnly
-        layoutOptions={layoutOptions}
-      />
+      <div className="phase-stage">
+        <aside className="phase-loe-rail hide-present" aria-label={t.workstreams}>
+          <label className="phase-switch">
+            <input
+              type="checkbox"
+              checked={showLoeText}
+              onChange={(e) => onShowLoeText(e.target.checked)}
+            />
+            {t.loeLabels}
+          </label>
+          <label className="phase-switch">
+            <input
+              type="checkbox"
+              checked={showLoeEnds}
+              onChange={(e) => onShowLoeEnds(e.target.checked)}
+            />
+            {t.workstreamEndStates}
+          </label>
+          <div className="phase-loe-list" role="group" aria-label={t.workstreams}>
+            {design.linesOfEffort.map((loe) => {
+              const on = visibleLoeIds.includes(loe.id);
+              return (
+                <button
+                  key={loe.id}
+                  type="button"
+                  className={on ? "phase-loe-btn on" : "phase-loe-btn"}
+                  style={{ ["--chip" as string]: loe.color }}
+                  onClick={() => toggleLoe(loe.id)}
+                  aria-pressed={on}
+                >
+                  <span className="phase-loe-swatch" aria-hidden />
+                  {loe.name}
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+        <Diagram
+          svgRef={svgRef}
+          picture={picture}
+          readOnly
+          layoutOptions={layoutOptions}
+        />
+      </div>
     </section>
   );
 }
@@ -156,32 +174,28 @@ export function usePhaseViewState(designId: string, phaseCount: number) {
   const [view, setView] = useState<EditorView>("picture");
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [visibleLoeIds, setVisibleLoeIds] = useState<string[]>(() =>
-    design.phases[0]
-      ? defaultVisibleLoeIds(design, design.phases[0].id)
-      : design.linesOfEffort.map((l) => l.id),
+    design.linesOfEffort.map((l) => l.id),
   );
   const [showLoeEnds, setShowLoeEnds] = useState(design.showLoeEndStates);
   const [showCampaignEnd, setShowCampaignEnd] = useState(true);
   const [showHeading, setShowHeading] = useState(true);
   const [showLoeText, setShowLoeText] = useState(true);
+  const [showGates, setShowGates] = useState(true);
   const prevDesign = useRef(designId);
-  const prevPhase = useRef(phaseIndex);
+  const prevLoeIds = useRef(design.linesOfEffort.map((l) => l.id).join(","));
 
   useEffect(() => {
     if (prevDesign.current !== designId) {
       prevDesign.current = designId;
       setView("picture");
       setPhaseIndex(0);
-      const first = design.phases[0];
-      setVisibleLoeIds(
-        first
-          ? defaultVisibleLoeIds(design, first.id)
-          : design.linesOfEffort.map((l) => l.id),
-      );
+      setVisibleLoeIds(design.linesOfEffort.map((l) => l.id));
       setShowLoeEnds(design.showLoeEndStates);
       setShowCampaignEnd(true);
       setShowHeading(true);
       setShowLoeText(true);
+      setShowGates(true);
+      prevLoeIds.current = design.linesOfEffort.map((l) => l.id).join(",");
     }
   }, [design, designId]);
 
@@ -190,11 +204,18 @@ export function usePhaseViewState(designId: string, phaseCount: number) {
   }, [phaseCount, phaseIndex]);
 
   useEffect(() => {
-    if (prevPhase.current === phaseIndex) return;
-    prevPhase.current = phaseIndex;
-    const phase = design.phases[phaseIndex];
-    if (phase) setVisibleLoeIds(defaultVisibleLoeIds(design, phase.id));
-  }, [design, phaseIndex]);
+    const ids = design.linesOfEffort.map((l) => l.id);
+    const key = ids.join(",");
+    if (key === prevLoeIds.current) return;
+    const prev = prevLoeIds.current.split(",").filter(Boolean);
+    prevLoeIds.current = key;
+    const newcomers = ids.filter((id) => !prev.includes(id));
+    setVisibleLoeIds((current) => {
+      const kept = current.filter((id) => ids.includes(id));
+      const next = [...kept, ...newcomers.filter((id) => !kept.includes(id))];
+      return next.length ? next : ids;
+    });
+  }, [design.linesOfEffort]);
 
   function openPhase(index?: number) {
     if (index !== undefined && index >= 0 && index < phaseCount) {
@@ -219,5 +240,7 @@ export function usePhaseViewState(designId: string, phaseCount: number) {
     setShowHeading,
     showLoeText,
     setShowLoeText,
+    showGates,
+    setShowGates,
   };
 }

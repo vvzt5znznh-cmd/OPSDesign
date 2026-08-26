@@ -233,7 +233,7 @@ export function phaseViewDesign(
     (d) => nodeIds.has(d.fromId) && nodeIds.has(d.toId),
   );
   const visible = new Set(
-    opts.visibleLoeIds ?? defaultVisibleLoeIds(design, phaseId),
+    opts.visibleLoeIds ?? design.linesOfEffort.map((l) => l.id),
   );
   const linesOfEffort = design.linesOfEffort.filter((loe) => visible.has(loe.id));
   const keptLoe = new Set(linesOfEffort.map((l) => l.id));
