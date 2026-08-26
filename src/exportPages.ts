@@ -167,16 +167,24 @@ export function composePhasePageSvg(
   return { xml, width, height };
 }
 
-export function wrapSvgDocument(
-  inner: string,
+export function composeDetailPageSvg(
+  design: OperationalDesign,
+  phaseName: string,
+  palette: DiagramPalette,
+  title: string,
+  purpose: string,
   width: number,
-  height: number,
-): string {
-  return (
+): { xml: string; width: number; height: number } {
+  const heading = pageHeading(title, purpose, `${phaseName} — notes`, width);
+  const detail = detailFigureSvgMarkup(design, width, palette);
+  const height = heading.height + detail.height;
+  const xml =
     `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
-    inner +
-    `</svg>`
-  );
+    `<rect width="${width}" height="${height}" fill="${palette.bg}"/>` +
+    headingMarkup(heading, width, palette) +
+    `<g transform="translate(0,${heading.height})">${detail.markup}</g>` +
+    `</svg>`;
+  return { xml, width, height };
 }
 
 export function exportPageList(design: OperationalDesign): ExportPageSpec[] {
@@ -239,11 +247,17 @@ export async function downloadPages(
     const slice = designForDetailPhase(design, phase.id);
     if (!slice) continue;
     const width = Math.max(page.width, 900);
-    const detail = detailFigureSvgMarkup(slice, width, palette);
-    const xml = wrapSvgDocument(detail.markup, width, detail.height);
+    const detail = composeDetailPageSvg(
+      slice,
+      phase.name,
+      palette,
+      design.title,
+      design.purpose,
+      width,
+    );
     zip.file(
       `${base}-detail-${slug(phase.name)}.png`,
-      await rasteriseSvg(xml, width, detail.height, palette.bg, scale),
+      await rasteriseSvg(detail.xml, width, detail.height, palette.bg, scale),
     );
   }
 

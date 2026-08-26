@@ -1,4 +1,4 @@
-import { detailFigureModel, streamPhaseGroups } from "./design";
+import { detailFigureModel, detailGateColumns, streamPhaseGroups } from "./design";
 import { wrapLabel } from "./wrap";
 import type { DiagramPalette } from "./theme";
 import {
@@ -507,10 +507,13 @@ export function layoutDetailSlides(
   const gap = 0.18;
   const colW = (innerW - gap * (nCols - 1)) / nCols;
   const colX = (i: number) => m + (i % nCols) * (colW + gap);
+  const gateCols = detailGateColumns(model.gates.length);
+  const gateColW = (innerW - gap * (gateCols - 1)) / gateCols;
+  const gateColX = (i: number) => m + (i % gateCols) * (gateColW + gap);
   const phaseNames = design.phases.map((p) => p.name);
   const pad = 0.16;
   const textW = colW - pad * 2 - 0.08 - 0.2;
-  const gateTextW = colW - 0.12 * 2 - 0.22;
+  const gateTextW = gateColW - 0.12 * 2 - 0.22;
 
   const gateDrafts: GateDraft[] = model.gates.map((g) => {
     const meta = `${g.placement === "in" ? "In" : "After"} ${g.phaseName}`.trim();
@@ -584,7 +587,7 @@ export function layoutDetailSlides(
     let y = m + 0.58;
     const heading: Box = { x: m, y, w: innerW, h: 0.2 };
     y += 0.22;
-    const placed = placeGates(gateDrafts, colX, colW, y, nCols);
+    const placed = placeGates(gateDrafts, gateColX, gateColW, y, gateCols);
     const gatesH = placed.length
       ? Math.max(...placed.map((g) => g.y + g.h)) - y
       : 0;
@@ -674,14 +677,14 @@ function paintDetailPage(
   });
   label(
     laid.continued
-      ? "Gates, milestones, and conditions (continued)"
-      : "Gates, milestones, and conditions",
+      ? "Decision gates, milestones, and conditions (continued)"
+      : "Decision gates, milestones, and conditions",
     laid.subtitle,
     { size: 11, color: muted, valign: "middle" },
   );
 
   if (laid.gatesHeading) {
-    label("Gates", laid.gatesHeading, {
+    label("Decision gates", laid.gatesHeading, {
       size: 11,
       color: hex(palette.phase),
       bold: true,

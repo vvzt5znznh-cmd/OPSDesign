@@ -168,6 +168,13 @@ export function detailFigureModel(design: OperationalDesign): {
   return { gates, streams };
 }
 
+/** Decision gates sit on the campaign, not on a workstream. */
+export const DETAIL_GATE_MAX_COLS = 3;
+
+export function detailGateColumns(gateCount: number): number {
+  return Math.min(DETAIL_GATE_MAX_COLS, Math.max(1, gateCount));
+}
+
 /** Nodes and gates that belong to one phase, for a Word/A4 detail page. */
 export function designForDetailPhase(
   design: OperationalDesign,
@@ -178,7 +185,10 @@ export function designForDetailPhase(
     (dp) => dp.afterPhaseId === phaseId,
   );
   if (nodes.length === 0 && decisionPoints.length === 0) return null;
-  return { ...design, nodes, decisionPoints };
+  const linesOfEffort = design.linesOfEffort.filter((loe) =>
+    nodes.some((n) => n.loeId === loe.id),
+  );
+  return { ...design, nodes, decisionPoints, linesOfEffort };
 }
 
 /** Keep workstream items in phase order for the list and exports. */

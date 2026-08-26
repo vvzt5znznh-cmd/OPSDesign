@@ -412,9 +412,19 @@ textarea:focus-visible {
 
 .detail-gates {
   margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
 }
 
-.detail-gates h3,
+.detail-section-label {
+  margin: 0 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .detail-stream h3 {
   margin: 0 0 6px;
   font-size: 13px;
@@ -427,7 +437,9 @@ textarea:focus-visible {
   align-items: stretch;
 }
 
-.detail-gates ul {
+.detail-gates-list {
+  display: grid;
+  gap: 10px 12px;
   list-style: none;
   margin: 0;
   padding: 0;

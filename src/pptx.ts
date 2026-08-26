@@ -201,7 +201,7 @@ function speakerNotes(design: OperationalDesign): string {
   }
   lines.push("");
   if (design.decisionPoints.length) {
-    lines.push("Gates");
+    lines.push("Decision gates");
     for (const dp of design.decisionPoints) {
       const phase =
         design.phases.find((p) => p.id === dp.afterPhaseId)?.name ?? "";

@@ -1,4 +1,4 @@
-import { detailFigureModel, streamPhaseGroups } from "./design";
+import { detailFigureModel, detailGateColumns, streamPhaseGroups } from "./design";
 import { wrapToWidth } from "./layout";
 import type { DiagramPalette } from "./theme";
 import {
@@ -142,8 +142,17 @@ export function detailFigureSvgMarkup(
   const textW = colW - textInset - CARD_PAD;
 
   if (model.gates.length) {
-    parts.push(t(PAD, y + 14, "Gates", { size: 13, fill: palette.phase, weight: 700 }));
-    y += 22;
+    parts.push(
+      t(PAD, y + 12, "DECISION GATES", {
+        size: 10,
+        fill: palette.purpose,
+        weight: 700,
+      }),
+    );
+    y += 20;
+    const gateCols = detailGateColumns(model.gates.length);
+    const gateW = (w - PAD * 2 - GAP * (gateCols - 1)) / gateCols;
+    const gateX = (i: number) => PAD + (i % gateCols) * (gateW + GAP);
     let rowY = y;
     let rowH = 0;
     const gateBlocks: Array<{
@@ -154,13 +163,13 @@ export function detailFigureSvgMarkup(
       markup: string;
     }> = [];
     model.gates.forEach((g, i) => {
-      const col = i % nCols;
+      const col = i % gateCols;
       if (col === 0 && i > 0) {
         y += rowH + 10;
         rowY = y;
         rowH = 0;
       }
-      const x = colX(i);
+      const x = gateX(i);
       const meta = `${g.placement === "in" ? "In" : "After"} ${g.phaseName}`.trim();
       const block = itemBlock(
         x + CARD_PAD,
@@ -169,11 +178,11 @@ export function detailFigureSvgMarkup(
         g.label,
         meta,
         g.description.trim(),
-        colW - CARD_PAD * 2 - 18,
+        gateW - CARD_PAD * 2 - 18,
         palette,
       );
       const h = block.height + CARD_PAD;
-      gateBlocks.push({ x, y: rowY, w: colW, h, markup: block.markup });
+      gateBlocks.push({ x, y: rowY, w: gateW, h, markup: block.markup });
       rowH = Math.max(rowH, h);
     });
     for (const g of gateBlocks) {
@@ -183,7 +192,15 @@ export function detailFigureSvgMarkup(
       parts.push(cardRect(g.x, g.y, g.w, rowMax, palette.phaseA));
       parts.push(g.markup);
     }
-    y += rowH + 16;
+    y += rowH + 18;
+  }
+
+  if (model.streams.length === 0) {
+    y += PAD;
+    return {
+      markup: parts.join("").replace("__DETAIL_H__", String(y)),
+      height: y,
+    };
   }
 
   type StreamPaint = {

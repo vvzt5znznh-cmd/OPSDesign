@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { designForDetailPhase } from "./design";
 import { detailFigureSvgMarkup } from "./detailSvg";
 import {
+  composeDetailPageSvg,
   composePhasePageSvg,
   exportPageList,
   pageHeading,
@@ -90,13 +91,38 @@ describe("detail phase pages", () => {
       DIAGRAM_PALETTES.light,
     );
     expect(markup).toContain("C1: Launch and");
-    expect(markup).toContain("naval target");
+    expect(markup).toContain("target system");
+    expect(markup).toContain("DECISION GATES");
+    expect(markup).not.toContain("Regime pressure");
     expect(markup).not.toContain("fielded launch");
     expect(markup).not.toContain("Labels match the picture");
     expect(markup).not.toContain(">DETAIL<");
     expect(designForDetailPhase(design, seize.id)?.nodes.some((n) =>
       n.label.includes("DESTROY fielded launch"),
     )).toBe(true);
+  });
+
+  it("drops empty workstreams and titles the notes page", () => {
+    const design = { ...epicFuryTemplate(), showDetail: true };
+    const shape = design.phases.find((p) => p.name === "Shape")!;
+    const slice = designForDetailPhase(design, shape.id)!;
+    expect(slice.linesOfEffort.some((l) => l.name === "Regime pressure")).toBe(
+      false,
+    );
+    expect(
+      slice.linesOfEffort.some((l) => l.name === "Counter-capability"),
+    ).toBe(true);
+    const page = composeDetailPageSvg(
+      slice,
+      shape.name,
+      DIAGRAM_PALETTES.light,
+      design.title,
+      design.purpose,
+      1200,
+    );
+    expect(page.xml).toContain("Shape — notes");
+    expect(page.xml).toContain("DECISION GATES");
+    expect(page.xml).not.toContain("Regime pressure");
   });
 
   it("omits the explainer from a full detail export too", () => {
