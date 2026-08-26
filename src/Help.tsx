@@ -83,13 +83,14 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           toggle: the list sits under the picture. File → Export pages… makes a
           zip of PNGs for Word/A4 — the full picture, then one image per phase
           (workstream names, that phase, and the end-state panel). If the detail
-          figure is on, matching notes pages go in the same zip. Dependency links are curved PowerPoint
+          figure is on, matching notes pages go in the same zip. Decision gates
+          list as a campaign band, not as a workstream. Dependency links are curved PowerPoint
           connectors glued to the sides of the figures. Labels are the text on
           the picture. Workstream end states are optional (Off/On in the
           inspector). When on, each workstream can carry an end state at the
           right of its line. Campaign end-state name and the conditions that
-          must hold sit on the panel. A second figure under the picture can list
-          gates and each workstream's milestones and conditions, with optional
+          must hold sit on the panel.           A second figure under the picture can list
+          decision gates (campaign-level) and each workstream's milestones and conditions, with optional
           descriptions. Off/On sits under the left of the picture.
         </p>
         <p className="help-how">

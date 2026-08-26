@@ -1,4 +1,4 @@
-import { detailFigureModel, streamPhaseGroups } from "./design";
+import { detailFigureModel, detailGateColumns, streamPhaseGroups } from "./design";
 import { useDesign } from "./state";
 import { CONDITION_FILL, MILESTONE_FILL } from "./types";
 
@@ -77,8 +77,13 @@ export function DetailFigure() {
         <>
           {model.gates.length > 0 && (
             <div className="detail-gates">
-              <h3>Gates</h3>
-              <ul className="detail-cols" style={colStyle}>
+              <h3 className="detail-section-label">Decision gates</h3>
+              <ul
+                className="detail-gates-list"
+                style={{
+                  gridTemplateColumns: `repeat(${detailGateColumns(model.gates.length)}, minmax(0, 1fr))`,
+                }}
+              >
                 {model.gates.map((g) => (
                   <li key={g.id}>
                     <button
