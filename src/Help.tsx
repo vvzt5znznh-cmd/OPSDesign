@@ -38,6 +38,12 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <p>{t.helpGate}</p>
           </div>
         </div>
+        <div className="help-products">
+          <h3>{t.helpFromTitle}</h3>
+          <p>{t.helpFromWall}</p>
+          <p>{t.helpFromWalk}</p>
+          <p>{t.helpFromAnnex}</p>
+        </div>
         <p className="help-how">{t.helpHow}</p>
         <p className="help-how">{t.helpPersist}</p>
         <button type="button" className="modal-close" onClick={onClose}>

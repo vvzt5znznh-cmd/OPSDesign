@@ -827,6 +827,23 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.help-products {
+  margin: 0 0 16px;
+}
+
+.help-products h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--gold);
+}
+
+.help-products p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .llm-steps {
   color: var(--muted);
   font-size: 13px;

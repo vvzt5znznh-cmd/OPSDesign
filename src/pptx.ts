@@ -1,6 +1,10 @@
 import JSZip from "jszip";
+import { designForDetailPhase } from "./design";
+import { rasteriseSvg } from "./export";
+import { clonePictureInner, composePhasePageSvg } from "./exportPages";
 import { copy } from "./i18n";
-import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_GUTTER, endStateTextBox, loeGutterTextWidth } from "./layout";
+import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_GUTTER, endStateTextBox, loeGutterTextWidth, type DiagramLayout } from "./layout";
+import { addDetailSlides, layoutDetailSlide, layoutDetailSlides } from "./pptxDetail";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
 import {
@@ -11,7 +15,6 @@ import {
   type OperationalDesign,
 } from "./types";
 import { wrapLabel, nodeLabelSize } from "./wrap";
-import { addDetailSlides } from "./pptxDetail";
 
 const FONT = "Arial";
 const GATE = "#2E7D32";
@@ -219,12 +222,115 @@ function speakerNotes(design: OperationalDesign): string {
   return lines.join("\n");
 }
 
-export { addDetailSlides, layoutDetailSlide, layoutDetailSlides } from "./pptxDetail";
+export { addDetailSlides, layoutDetailSlide, layoutDetailSlides };
 export type { DetailSlideLayout } from "./pptxDetail";
+
+export type BriefingSlide = {
+  kind: "overview" | "phase" | "notes";
+  phaseId?: string;
+  phaseName?: string;
+};
+
+/** Overview, then each phase picture, then that phase's notes when Detail is on. */
+export function briefingOutline(design: OperationalDesign): BriefingSlide[] {
+  const slides: BriefingSlide[] = [{ kind: "overview" }];
+  for (const phase of design.phases) {
+    slides.push({
+      kind: "phase",
+      phaseId: phase.id,
+      phaseName: phase.name,
+    });
+    if (!design.showDetail) continue;
+    const slice = designForDetailPhase(design, phase.id);
+    if (!slice) continue;
+    const notes = layoutDetailSlides(slice);
+    for (let i = 0; i < notes.length; i++) {
+      slides.push({
+        kind: "notes",
+        phaseId: phase.id,
+        phaseName: phase.name,
+      });
+    }
+  }
+  return slides;
+}
+
+async function blobToPptxImageData(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return `image/png;base64,${btoa(bin)}`;
+}
+
+type PptxDeck = {
+  addSlide: () => {
+    background?: { color?: string };
+    addText: (text: string, opts: object) => unknown;
+    addImage: (opts: object) => unknown;
+  };
+};
+
+async function addPhaseWalk(
+  pptx: PptxDeck,
+  design: OperationalDesign,
+  palette: DiagramPalette,
+  laid: DiagramLayout,
+  picture: SVGSVGElement | null | undefined,
+): Promise<void> {
+  const inner = picture ? clonePictureInner(picture) : "";
+  for (const phase of design.phases) {
+    const slide = pptx.addSlide();
+    slide.background = { color: hex(palette.bg) };
+    const page =
+      inner &&
+      composePhasePageSvg(
+        laid,
+        phase.id,
+        inner,
+        palette,
+        design.title,
+        design.purpose,
+      );
+    if (page) {
+      const png = await rasteriseSvg(
+        page.xml,
+        page.width,
+        page.height,
+        palette.bg,
+        2,
+      );
+      const scale = pptxFitScale(page);
+      const w = page.width * scale;
+      const h = page.height * scale;
+      slide.addImage({
+        data: await blobToPptxImageData(png),
+        x: (PPTX_SLIDE.width - w) / 2,
+        y: (PPTX_SLIDE.height - h) / 2,
+        w,
+        h,
+      });
+    } else {
+      slide.addText(phase.name, {
+        x: PPTX_SLIDE.margin,
+        y: PPTX_SLIDE.margin,
+        w: PPTX_SLIDE.width - PPTX_SLIDE.margin * 2,
+        h: 0.5,
+        fontSize: 18,
+        fontFace: FONT,
+        color: hex(palette.title),
+        bold: true,
+      });
+    }
+    if (!design.showDetail) continue;
+    const slice = designForDetailPhase(design, phase.id);
+    if (slice) addDetailSlides(pptx, slice, palette);
+  }
+}
 
 export async function buildPptxArrayBuffer(
   design: OperationalDesign,
   palette: DiagramPalette,
+  picture?: SVGSVGElement | null,
 ): Promise<ArrayBuffer> {
   const { default: PptxGenJS } = await import("pptxgenjs");
   const laid = layoutDiagram(design);
@@ -665,9 +771,7 @@ export async function buildPptxArrayBuffer(
     bold: true,
   });
 
-  if (design.showDetail) {
-    addDetailSlides(pptx, design, palette);
-  }
+  await addPhaseWalk(pptx, design, palette, laid, picture);
 
   return patchPptxConnectors(pptx, design, laid.nodes);
 }
@@ -675,8 +779,9 @@ export async function buildPptxArrayBuffer(
 export async function downloadPptx(
   design: OperationalDesign,
   palette: DiagramPalette,
+  picture?: SVGSVGElement | null,
 ): Promise<void> {
-  const buf = await buildPptxArrayBuffer(design, palette);
+  const buf = await buildPptxArrayBuffer(design, palette, picture);
   downloadBlob(
     new Blob([buf], {
       type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",

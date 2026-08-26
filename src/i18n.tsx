@@ -143,6 +143,10 @@ export type Copy = {
   helpCondition: string;
   helpGate: string;
   helpHow: string;
+  helpFromTitle: string;
+  helpFromWall: string;
+  helpFromWalk: string;
+  helpFromAnnex: string;
   helpPersist: string;
   notesBriefing: string;
   notesDelete: string;
@@ -187,8 +191,8 @@ const en: Copy = {
   saveJson: "Save JSON",
   exportPng: "Export PNG",
   exportSvg: "Export SVG",
-  exportPages: "Export pages…",
-  exportPptx: "Export PowerPoint…",
+  exportPages: "Export pages (Word/A4)…",
+  exportPptx: "Export PowerPoint briefing…",
   restorePrevious: "Restore previous",
   undo: "Undo",
   redo: "Redo",
@@ -311,7 +315,14 @@ const en: Copy = {
   helpGate:
     'A decision: proceed, recycle, or stop. Sit inside a phase, or on the seam after it. Name it as the decision, not "Gate 1". Optional description sits in the detail list under the picture.',
   helpHow:
-    "Hover a workstream in a phase and click the +, or click an empty cell, to add a milestone or condition — it lands where you click (early, middle, or late). On a busy cell the + sits at the right so it does not cover the figures. The Milestone / Condition pills sit in front of existing marks; click anywhere else or press Escape to close them. Hover the gate bar and click the + to add a decision. Drag nodes along a workstream to sit early, in the middle, or late in a phase; drop at the right edge to widen the phase. Drag a gate along the bar to place it in a phase or after it. Use the + marks to add a phase or workstream. Click a milestone or condition to see its links. Title, purpose, and labels wrap — the picture grows instead of clipping. Link, then click A then B — B sits to the right of A. The first time, pick a sample. File → New… is that prompt again. File → Ask an LLM… copies a prompt and sample JSON; File → Open JSON loads the file it returns. File → Export PowerPoint makes a 16:9 briefing slide. The picture scales to fit; type scales with it. If the detail figure is on, further 16:9 slides list gates and each workstream. Long descriptions continue on extra slides rather than shrinking. PNG and SVG follow the same toggle: the list sits under the picture. File → Export pages… makes a zip of PNGs for Word/A4 — the full picture, then one image per phase (workstream names, that phase, and the end-state panel). If the detail figure is on, matching notes pages go in the same zip. Decision gates list as a campaign band, not as a workstream. Dependency links are curved PowerPoint connectors glued to the sides of the figures. Labels are the text on the picture. Workstream end states are optional (Off/On in the inspector). When on, each workstream can carry an end state at the right of its line. Campaign end-state name and the conditions that must hold sit on the panel. A second figure under the picture can list decision gates (campaign-level) and each workstream's milestones and conditions, with optional descriptions. Off/On sits under the left of the picture.",
+    "Hover a workstream in a phase and click the +, or click an empty cell, to add a milestone or condition — it lands where you click (early, middle, or late). On a busy cell the + sits at the right so it does not cover the figures. The Milestone / Condition pills sit in front of existing marks; click anywhere else or press Escape to close them. Hover the gate bar and click the + to add a decision. Drag nodes along a workstream to sit early, in the middle, or late in a phase; drop at the right edge to widen the phase. Drag a gate along the bar to place it in a phase or after it. Use the + marks to add a phase or workstream. Click a milestone or condition to see its links. Title, purpose, and labels wrap — the picture grows instead of clipping. Link, then click A then B — B sits to the right of A. The first time, pick a sample. File → New… is that prompt again. File → Ask an LLM… copies a prompt and sample JSON; File → Open JSON loads the file it returns. PNG and SVG are the wall picture — if Detail is on, the list sits under it. File → Export PowerPoint briefing and File → Export pages are the briefing and the Word figures (see From this picture). Decision gates list as a campaign band, not as a workstream. Dependency links are curved PowerPoint connectors glued to the sides of the figures. Labels are the text on the picture. Workstream end states are optional (Off/On in the inspector). When on, each workstream can carry an end state at the right of its line. Campaign end-state name and the conditions that must hold sit on the panel. A second figure under the picture can list decision gates (campaign-level) and each workstream's milestones and conditions, with optional descriptions. Off/On sits under the left of the picture.",
+  helpFromTitle: "From this picture",
+  helpFromWall:
+    "The wall is PNG, SVG, Present, and the first PowerPoint slide: the whole campaign, workstreams into the end state.",
+  helpFromWalk:
+    "A briefing walks phases. Export PowerPoint briefing adds one 16:9 slide per phase after the overview (workstream names, that phase, and the end-state panel). Export pages (Word/A4) makes the same figures as a zip of PNGs for Word — always on a light ground, for paper.",
+  helpFromAnnex:
+    "Turn Detail on for the notes annex: gates, milestones, and conditions after each phase in PowerPoint, and matching pages in the zip. Long notes continue on extra slides rather than shrinking.",
   helpPersist:
     "The picture stays in this browser when you leave. Undo/Redo cover this tab, including refresh. File → Restore previous brings back what New or Open JSON replaced.",
   notesBriefing: "OPSDesign briefing notes — not drawn on the slide.",
@@ -319,7 +330,8 @@ const en: Copy = {
     "Delete these notes before you share the file if they should stay off the deck.",
   notesPurpose: "Purpose",
   notesLoeEnds: "Workstream end states",
-  notesDetailFollows: "Detail follows on the next 16:9 slides.",
+  notesDetailFollows:
+    "Phase slides follow this overview. If Detail is on, notes sit after each phase.",
   notesSubtitle: "Decision gates, milestones, and conditions",
   notesSubtitleCont: "Decision gates, milestones, and conditions (continued)",
   phaseN: (n) => `Phase ${n}`,
@@ -358,8 +370,8 @@ const nb: Copy = {
   saveJson: "Lagre JSON",
   exportPng: "Eksporter PNG",
   exportSvg: "Eksporter SVG",
-  exportPages: "Eksporter sider…",
-  exportPptx: "Eksporter PowerPoint…",
+  exportPages: "Eksporter sider (Word/A4)…",
+  exportPptx: "Eksporter PowerPoint-briefing…",
   restorePrevious: "Gjenopprett forrige",
   undo: "Angre",
   redo: "Gjør om",
@@ -482,7 +494,14 @@ const nb: Copy = {
   helpGate:
     "En beslutning: fortsett, gå om, eller stopp. Plasser den i en fase, eller i sømmen etter. Navngi den som beslutningen, ikke «Port 1». Valgfri beskrivelse sitter i detaljlisten under bildet.",
   helpHow:
-    "Hold over en arbeidsstrøm i en fase og klikk +, eller klikk en tom celle, for å legge til en milepæl eller betingelse — den lander der du klikker (tidlig, midt eller sent). I en travel celle sitter + til høyre så den ikke dekker figurene. Milepæl-/betingelse-brikkene sitter foran eksisterende merker; klikk et annet sted eller trykk Escape for å lukke dem. Hold over portfeltet og klikk + for å legge til en beslutning. Dra noder langs en arbeidsstrøm for å sitte tidlig, midt eller sent i en fase; slipp i høyre kant for å utvide fasen. Dra en port langs feltet for å plassere den i en fase eller etter den. Bruk + for å legge til en fase eller arbeidsstrøm. Klikk en milepæl eller betingelse for å se koblingene. Tittel, formål og etiketter brytes — bildet vokser i stedet for å klippes. Koble, deretter klikk A så B — B sitter til høyre for A. Første gang velger du et eksempel. Fil → Ny… er den dialogen på nytt. Fil → Spør en LLM… kopierer en ledetekst og eksempel-JSON; Fil → Åpne JSON laster filen den returnerer. Fil → Eksporter PowerPoint lager en 16:9-brief. Bildet skalerer til å passe; typen skalerer med. Hvis detaljfiguren er på, lister flere 16:9-lys porter og hver arbeidsstrøm. Lange beskrivelser fortsetter på ekstra lys i stedet for å krympes. PNG og SVG følger samme bryter: listen sitter under bildet. Fil → Eksporter sider… lager en zip med PNG-er til Word/A4 — hele bildet, deretter ett bilde per fase (arbeidsstrømnavn, den fasen og sluttilstandspanelet). Hvis detaljfiguren er på, følger notatsider i samme zip. Beslutningsporter listes som et kampanjebånd, ikke som en arbeidsstrøm. Avhengighetskoblinger er bøyde PowerPoint-koblinger limt til sidene av figurene. Etikettene er teksten på bildet. Sluttilstand per arbeidsstrøm er valgfritt (Av/På i inspektøren). Når de er på, kan hver arbeidsstrøm bære en sluttilstand til høyre på linjen. Kampanjens sluttilstandsnavn og vilkårene som må holde sitter på panelet. En annen figur under bildet kan liste beslutningsporter (kampanjenivå) og hver arbeidsstrøms milepæler og betingelser, med valgfrie beskrivelser. Av/På sitter under venstre del av bildet.",
+    "Hold over en arbeidsstrøm i en fase og klikk +, eller klikk en tom celle, for å legge til en milepæl eller betingelse — den lander der du klikker (tidlig, midt eller sent). I en travel celle sitter + til høyre så den ikke dekker figurene. Milepæl-/betingelse-brikkene sitter foran eksisterende merker; klikk et annet sted eller trykk Escape for å lukke dem. Hold over portfeltet og klikk + for å legge til en beslutning. Dra noder langs en arbeidsstrøm for å sitte tidlig, midt eller sent i en fase; slipp i høyre kant for å utvide fasen. Dra en port langs feltet for å plassere den i en fase eller etter den. Bruk + for å legge til en fase eller arbeidsstrøm. Klikk en milepæl eller betingelse for å se koblingene. Tittel, formål og etiketter brytes — bildet vokser i stedet for å klippes. Koble, deretter klikk A så B — B sitter til høyre for A. Første gang velger du et eksempel. Fil → Ny… er den dialogen på nytt. Fil → Spør en LLM… kopierer en ledetekst og eksempel-JSON; Fil → Åpne JSON laster filen den returnerer. PNG og SVG er veggbildet — hvis Detalj er på, sitter listen under. Fil → Eksporter PowerPoint-briefing og Fil → Eksporter sider er briefen og Word-figurene (se Fra dette bildet). Beslutningsporter listes som et kampanjebånd, ikke som en arbeidsstrøm. Avhengighetskoblinger er bøyde PowerPoint-koblinger limt til sidene av figurene. Etikettene er teksten på bildet. Sluttilstand per arbeidsstrøm er valgfritt (Av/På i inspektøren). Når de er på, kan hver arbeidsstrøm bære en sluttilstand til høyre på linjen. Kampanjens sluttilstandsnavn og vilkårene som må holde sitter på panelet. En annen figur under bildet kan liste beslutningsporter (kampanjenivå) og hver arbeidsstrøms milepæler og betingelser, med valgfrie beskrivelser. Av/På sitter under venstre del av bildet.",
+  helpFromTitle: "Fra dette bildet",
+  helpFromWall:
+    "Veggen er PNG, SVG, Presenter og det første PowerPoint-lyset: hele kampanjen, arbeidsstrømmer inn i sluttilstanden.",
+  helpFromWalk:
+    "En briefing går gjennom fasene. Eksporter PowerPoint-briefing legger inn ett 16:9-lys per fase etter oversikten (arbeidsstrømnavn, den fasen og sluttilstandspanelet). Eksporter sider (Word/A4) lager de samme figurene som en zip med PNG-er til Word — alltid på lys bunn, til papir.",
+  helpFromAnnex:
+    "Slå på Detalj for notatvedlegget: porter, milepæler og betingelser etter hver fase i PowerPoint, og tilsvarende sider i zip-filen. Lange notater fortsetter på ekstra lys i stedet for å krympes.",
   helpPersist:
     "Bildet blir i denne nettleseren når du går. Angre/Gjør om dekker denne fanen, også ved oppdatering. Fil → Gjenopprett forrige henter tilbake det Ny eller Åpne JSON erstattet.",
   notesBriefing: "OPSDesign-briefnotater — tegnes ikke på lysbildet.",
@@ -490,7 +509,8 @@ const nb: Copy = {
     "Slett disse notatene før du deler filen hvis de ikke skal ligge på dekket.",
   notesPurpose: "Formål",
   notesLoeEnds: "Sluttilstand per arbeidsstrøm",
-  notesDetailFollows: "Detalj følger på de neste 16:9-lysene.",
+  notesDetailFollows:
+    "Faselys følger denne oversikten. Hvis Detalj er på, sitter notater etter hver fase.",
   notesSubtitle: "Beslutningsporter, milepæler og betingelser",
   notesSubtitleCont: "Beslutningsporter, milepæler og betingelser (fortsettelse)",
   phaseN: (n) => `Fase ${n}`,

@@ -169,7 +169,7 @@ export function Toolbar({
               type="button"
               role="menuitem"
               onClick={() => {
-                void downloadPptx(design, diagram).catch((err) => {
+                void downloadPptx(design, diagram, svgRef.current).catch((err) => {
                   window.alert(
                     err instanceof Error
                       ? err.message

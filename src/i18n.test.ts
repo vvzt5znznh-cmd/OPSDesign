@@ -31,5 +31,8 @@ describe("language copy", () => {
     expect(copy("en").phaseN(3)).toBe("Phase 3");
     expect(copy("nb").phaseN(3)).toBe("Fase 3");
     expect(copy("nb").notesPage("Form")).toBe("Form — notater");
+    expect(copy("en").exportPptx).toMatch(/briefing/i);
+    expect(copy("en").helpFromTitle).toBe("From this picture");
+    expect(copy("nb").helpFromTitle).toBe("Fra dette bildet");
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
-import { connectionSites, glueConnectors, buildPptxArrayBuffer, PPTX_SLIDE, pptxFitScale, pptxFontPt, layoutDetailSlide, layoutDetailSlides } from "./pptx";
+import { connectionSites, glueConnectors, buildPptxArrayBuffer, briefingOutline, PPTX_SLIDE, pptxFitScale, pptxFontPt, layoutDetailSlide, layoutDetailSlides } from "./pptx";
 import { epicFuryTemplate, projectTemplate } from "./templates";
 import { DIAGRAM_PALETTES } from "./theme";
 import { layoutDiagram } from "./layout";
@@ -123,16 +123,33 @@ describe("PowerPoint 16:9 fit", () => {
 });
 
 describe("PowerPoint detail slide", () => {
-  it("is one 16:9 slide when the detail figure is off", async () => {
-    const buf = await buildPptxArrayBuffer(
-      projectTemplate(),
-      DIAGRAM_PALETTES.light,
-    );
+  it("is overview plus one slide per phase when the detail figure is off", async () => {
+    const design = projectTemplate();
+    const buf = await buildPptxArrayBuffer(design, DIAGRAM_PALETTES.light);
     const zip = await JSZip.loadAsync(buf);
     const slides = Object.keys(zip.files).filter((p) =>
       /^ppt\/slides\/slide\d+\.xml$/.test(p),
     );
-    expect(slides).toHaveLength(1);
+    expect(slides).toHaveLength(1 + design.phases.length);
+    expect(briefingOutline(design).map((s) => s.kind)).toEqual([
+      "overview",
+      ...design.phases.map(() => "phase"),
+    ]);
+  });
+
+  it("walks Epic Fury as overview, then each phase, then that phase's notes", () => {
+    const design = epicFuryTemplate();
+    const outline = briefingOutline(design);
+    expect(outline[0]).toEqual({ kind: "overview" });
+    expect(outline.filter((s) => s.kind === "phase")).toHaveLength(
+      design.phases.length,
+    );
+    expect(outline.filter((s) => s.kind === "notes").length).toBeGreaterThan(
+      design.phases.length,
+    );
+    const firstNotes = outline.findIndex((s) => s.kind === "notes");
+    expect(outline[firstNotes - 1]?.kind).toBe("phase");
+    expect(outline[firstNotes]?.phaseName).toBe(outline[firstNotes - 1]?.phaseName);
   });
 
   it("adds 16:9 detail slides when the detail figure is on", async () => {
@@ -142,13 +159,14 @@ describe("PowerPoint detail slide", () => {
     const slides = Object.keys(zip.files)
       .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
       .sort();
-    expect(slides.length).toBeGreaterThanOrEqual(2);
+    expect(slides.length).toBeGreaterThan(1 + design.phases.length);
     const detailXml = (
       await Promise.all(slides.slice(1).map((p) => zip.file(p)!.async("string")))
     ).join("\n");
     expect(detailXml).toContain("M1: Problem framed");
     expect(detailXml).toContain("Worth defining?");
     expect(detailXml).toContain("Service");
+    expect(detailXml).toContain("Discover");
     const picture = await zip.file(slides[0])!.async("string");
     expect(picture).toContain("LIVE AND USED");
     const pres = await zip.file("ppt/presentation.xml")!.async("string");

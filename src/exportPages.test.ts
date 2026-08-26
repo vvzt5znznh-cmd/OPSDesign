@@ -10,7 +10,7 @@ import {
 } from "./exportPages";
 import { layoutDiagram } from "./layout";
 import { epicFuryTemplate, projectTemplate } from "./templates";
-import { DIAGRAM_PALETTES } from "./theme";
+import { DIAGRAM_PALETTES, recolorDiagramMarkup } from "./theme";
 
 describe("phase page clips", () => {
   it("makes each Epic Fury phase page narrower than the full picture", () => {
@@ -75,6 +75,17 @@ describe("phase page clips", () => {
     expect(onList.some((p) => p.filename.includes("detail-discover"))).toBe(
       true,
     );
+  });
+
+  it("recolors a dark picture to the paper palette", () => {
+    const dark = DIAGRAM_PALETTES.dark;
+    const paper = DIAGRAM_PALETTES.light;
+    const marked = `<rect fill="${dark.bg}"/><text fill="${dark.title}">Hi</text>`;
+    const out = recolorDiagramMarkup(marked, dark, paper);
+    expect(out).toContain(paper.bg);
+    expect(out).toContain(paper.title);
+    expect(out).not.toContain(dark.bg);
+    expect(recolorDiagramMarkup(marked, paper, paper)).toBe(marked);
   });
 });
 

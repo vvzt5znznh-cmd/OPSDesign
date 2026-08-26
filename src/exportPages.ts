@@ -5,7 +5,7 @@ import { rasteriseSvg } from "./export";
 import { copy } from "./i18n";
 import { HEADING, LAYOUT, layoutDiagram, wrapToWidth, type DiagramLayout } from "./layout";
 import { slug, triggerDownload } from "./storage";
-import type { DiagramPalette } from "./theme";
+import { PAPER_PALETTE, recolorDiagramMarkup, type DiagramPalette } from "./theme";
 import type { OperationalDesign } from "./types";
 
 export const PHASE_BAND_LIFT = 42;
@@ -212,22 +212,30 @@ export function exportPageList(design: OperationalDesign): ExportPageSpec[] {
   return pages;
 }
 
-/** PNG zip: overview + one picture per phase, and detail pages when the figure is on. */
+/** PNG zip: overview + one picture per phase, and detail pages when the figure is on.
+ *  Always the light paper palette so Word/print is not a dark dashboard. */
 export async function downloadPages(
   picture: SVGSVGElement,
   design: OperationalDesign,
   palette: DiagramPalette,
   scale = 2,
 ): Promise<void> {
+  const paper = PAPER_PALETTE;
   const laid = layoutDiagram(design);
-  const inner = clonePictureInner(picture);
+  const inner = recolorDiagramMarkup(clonePictureInner(picture), palette, paper);
   const zip = new JSZip();
   const base = slug(design.title);
 
   const overview = pictureOnlyMarkup(picture);
   zip.file(
     `${base}-overview.png`,
-    await rasteriseSvg(overview.xml, overview.width, overview.height, palette.bg, scale),
+    await rasteriseSvg(
+      recolorDiagramMarkup(overview.xml, palette, paper),
+      overview.width,
+      overview.height,
+      paper.bg,
+      scale,
+    ),
   );
 
   for (const phase of design.phases) {
@@ -235,14 +243,14 @@ export async function downloadPages(
       laid,
       phase.id,
       inner,
-      palette,
+      paper,
       design.title,
       design.purpose,
     );
     if (!page) continue;
     zip.file(
       `${base}-${slug(phase.name)}.png`,
-      await rasteriseSvg(page.xml, page.width, page.height, palette.bg, scale),
+      await rasteriseSvg(page.xml, page.width, page.height, paper.bg, scale),
     );
     if (!design.showDetail) continue;
     const slice = designForDetailPhase(design, phase.id);
@@ -251,14 +259,14 @@ export async function downloadPages(
     const detail = composeDetailPageSvg(
       slice,
       phase.name,
-      palette,
+      paper,
       design.title,
       design.purpose,
       width,
     );
     zip.file(
       `${base}-detail-${slug(phase.name)}.png`,
-      await rasteriseSvg(detail.xml, width, detail.height, palette.bg, scale),
+      await rasteriseSvg(detail.xml, width, detail.height, paper.bg, scale),
     );
   }
 
