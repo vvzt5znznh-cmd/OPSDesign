@@ -396,20 +396,35 @@ export function loeRowHeight(design: OperationalDesign, loeId: string): number {
   return Math.max(LAYOUT.loeH, fromNodes, fromGutter, fromEnd);
 }
 
-export function layoutDiagram(design: OperationalDesign): DiagramLayout {
+export type LayoutOptions = {
+  /** Wall default is on. Phase view can hide the campaign panel. */
+  showCampaignEnd?: boolean;
+};
+
+export function layoutDiagram(
+  design: OperationalDesign,
+  options: LayoutOptions = {},
+): DiagramLayout {
   const L = LAYOUT;
   const H = HEADING;
   const phases = design.phases;
   const columns = nodeColumns(design);
+  const showCampaign = options.showCampaignEnd !== false;
 
   const phaseMeta = phases.map((phase) => phaseBand(design, phase.id, columns));
   const phasesWidth = phaseMeta.reduce((a, p) => a + p.width, 0);
   const showEnds = loeEndStatesShown(design);
   const endBand = showEnds
-    ? L.loeEndGap + L.loeEndW + L.loeEndToPanel
-    : L.addGap;
+    ? L.loeEndGap + L.loeEndW + (showCampaign ? L.loeEndToPanel : L.padX)
+    : showCampaign
+      ? L.addGap
+      : L.padX;
   const width =
-    L.padX * 2 + L.leftGutter + phasesWidth + endBand + L.outcomeW;
+    L.padX * 2 +
+    L.leftGutter +
+    phasesWidth +
+    endBand +
+    (showCampaign ? L.outcomeW : 0);
   const textWidth = Math.max(240, width - L.padX * 2);
   const titleLines = wrapToWidth(
     design.title || copy().untitled,
@@ -455,7 +470,7 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const plotX = L.padX + L.leftGutter;
   const loeEndX = plotX + phasesWidth + (showEnds ? L.loeEndGap : L.addGap);
   const outcomeX = showEnds
-    ? loeEndX + L.loeEndW + L.loeEndToPanel
+    ? loeEndX + L.loeEndW + (showCampaign ? L.loeEndToPanel : 0)
     : loeEndX;
   const loeTop = plotY + dpBarH;
   const T = END_STATE_TEXT;
@@ -483,7 +498,7 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   const lastY = loeYs[loeYs.length - 1] ?? firstY;
   const arrowPad = 28;
   const spanH = lastY - firstY + arrowPad * 2;
-  const panelH = Math.max(spanH, textH, 88);
+  const panelH = showCampaign ? Math.max(spanH, textH, 88) : 0;
   const panelX = outcomeX + T.inset;
   const mid = (firstY + lastY) / 2;
   const minY = loeTop - 12;
@@ -491,7 +506,14 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
   if (panelY < minY) panelY = minY;
   const panelBottom = panelY + panelH;
   const plotBottom = plotY + plotH;
-  const extraH = Math.max(0, panelBottom - (plotBottom - 8));
+  const extraH = showCampaign
+    ? Math.max(0, panelBottom - (plotBottom - 8))
+    : 0;
+  const lineEnd = showEnds
+    ? loeEndX
+    : showCampaign
+      ? panelX
+      : plotX + phasesWidth;
   const loes: LoeLayout[] = design.linesOfEffort.map((loe, i) => ({
     id: loe.id,
     name: loe.name,
@@ -503,7 +525,7 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     y: loeYs[i],
     height: loeHeights[i],
     x1: plotX - 8,
-    x2: showEnds ? loeEndX : panelX,
+    x2: lineEnd,
   }));
   const loeEndStates: LoeEndStateLayout[] = showEnds
     ? design.linesOfEffort.map((loe, i) => {
@@ -618,14 +640,14 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     endCol: {
       x: outcomeX,
       y: bandY,
-      width: L.outcomeW,
+      width: showCampaign ? L.outcomeW : 0,
       height: bandH,
     },
     endState: {
       x: panelX,
       y: panelY,
-      width: panelW,
-      height: panelH,
+      width: showCampaign ? panelW : 0,
+      height: showCampaign ? panelH : 0,
       name: design.endState.name,
       description: design.endState.description,
       color: endStateColor(design.endState),

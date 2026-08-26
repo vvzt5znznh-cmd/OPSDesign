@@ -63,6 +63,25 @@ export const DIAGRAM_PALETTES: Record<Theme, DiagramPalette> = {
   },
 };
 
+export const PAPER_PALETTE: DiagramPalette = DIAGRAM_PALETTES.light;
+
+export function recolorDiagramMarkup(
+  markup: string,
+  from: DiagramPalette,
+  to: DiagramPalette,
+): string {
+  if (from === to) return markup;
+  const pairs = (Object.keys(from) as Array<keyof DiagramPalette>)
+    .map((key) => [from[key], to[key]] as const)
+    .filter(([a, b]) => a !== b)
+    .sort((a, b) => b[0].length - a[0].length);
+  let out = markup;
+  for (const [a, b] of pairs) {
+    out = out.split(a).join(b);
+  }
+  return out;
+}
+
 export function loadTheme(): Theme {
   try {
     const stored = localStorage.getItem(THEME_KEY);

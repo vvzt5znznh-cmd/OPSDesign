@@ -4,6 +4,7 @@ import { Diagram } from "./Diagram";
 import { HelpModal } from "./Help";
 import { Inspector } from "./Inspector";
 import { LayoutPicker } from "./LayoutPicker";
+import { PhaseFigure, PhaseFigureToggle, usePhaseViewState } from "./PhaseFigure";
 import { useLang } from "./i18n";
 import { DesignProvider, useDesign } from "./state";
 import { saveDesign } from "./storage";
@@ -12,10 +13,12 @@ import type { OperationalDesign } from "./types";
 
 function Editor() {
   const svgRef = useRef<SVGSVGElement>(null);
+  const phaseSvgRef = useRef<SVGSVGElement>(null);
   const [help, setHelp] = useState(false);
   const { present, undo, redo, linkMode, setLinkMode, selection, design } =
     useDesign();
   const { t } = useLang();
+  const phaseView = usePhaseViewState(design.id, design.phases.length);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -53,6 +56,20 @@ function Editor() {
           <div className="canvas-scroll">
             <div className="figures">
               <Diagram svgRef={svgRef} />
+              <PhaseFigureToggle on={phaseView.on} onChange={phaseView.setOn} />
+              {phaseView.on && (
+                <PhaseFigure
+                  svgRef={phaseSvgRef}
+                  phaseIndex={phaseView.phaseIndex}
+                  onPhaseIndex={phaseView.setPhaseIndex}
+                  visibleLoeIds={phaseView.visibleLoeIds}
+                  onVisibleLoeIds={phaseView.setVisibleLoeIds}
+                  showLoeEnds={phaseView.showLoeEnds}
+                  onShowLoeEnds={phaseView.setShowLoeEnds}
+                  showCampaignEnd={phaseView.showCampaignEnd}
+                  onShowCampaignEnd={phaseView.setShowCampaignEnd}
+                />
+              )}
               <DetailFigureToggle />
               {design.showDetail && <DetailFigure />}
             </div>

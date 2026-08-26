@@ -1,26 +1,13 @@
 import JSZip from "jszip";
-import { designForDetailPhase } from "./design";
+import { designForDetailPhase, phaseViewDesign } from "./design";
 import { detailFigureSvgMarkup, xmlEscape } from "./detailSvg";
 import { rasteriseSvg } from "./export";
 import { copy } from "./i18n";
-import { HEADING, LAYOUT, layoutDiagram, wrapToWidth, type DiagramLayout } from "./layout";
+import { HEADING, LAYOUT, wrapToWidth } from "./layout";
+import { renderPhaseViewSvg, serializePictureSvg } from "./phaseViewRender";
 import { slug, triggerDownload } from "./storage";
-import type { DiagramPalette } from "./theme";
+import { PAPER_PALETTE, recolorDiagramMarkup, type DiagramPalette } from "./theme";
 import type { OperationalDesign } from "./types";
-
-export const PHASE_BAND_LIFT = 42;
-export const AFTER_GATE_OVERHANG = 28;
-
-export type ClipRect = { x: number; y: number; w: number; h: number };
-
-export type PhasePageClips = {
-  gutter: ClipRect;
-  phase: ClipRect;
-  end: ClipRect;
-  width: number;
-  height: number;
-  phaseName: string;
-};
 
 export type ExportPageKind = "overview" | "phase" | "detail";
 
@@ -30,34 +17,6 @@ export type ExportPageSpec = {
   phaseId?: string;
   phaseName?: string;
 };
-
-/** Three clips stitched into one phase page: gutter, this phase, end-state column. */
-export function phasePageClips(
-  laid: DiagramLayout,
-  phaseId: string,
-): PhasePageClips | null {
-  const phase = laid.phases.find((p) => p.id === phaseId);
-  if (!phase) return null;
-  const y = laid.plot.y - PHASE_BAND_LIFT;
-  const h = Math.max(1, laid.height - y);
-  const gutter: ClipRect = { x: 0, y, w: laid.plot.x, h };
-  const endX = laid.loeEndCol.width > 0 ? laid.loeEndCol.x : laid.endCol.x;
-  const seam = phase.x + phase.width;
-  const overhang = Math.max(
-    0,
-    Math.min(AFTER_GATE_OVERHANG, endX - seam),
-  );
-  const phaseClip: ClipRect = { x: phase.x, y, w: phase.width + overhang, h };
-  const end: ClipRect = { x: endX, y, w: Math.max(1, laid.width - endX), h };
-  return {
-    gutter,
-    phase: phaseClip,
-    end,
-    width: gutter.w + phaseClip.w + end.w,
-    height: h,
-    phaseName: phase.name,
-  };
-}
 
 export function pageHeading(
   title: string,
@@ -129,45 +88,6 @@ function headingMarkup(
   return parts.join("");
 }
 
-function nestedClip(clip: ClipRect, destX: number, destY: number, inner: string): string {
-  return (
-    `<svg x="${destX.toFixed(1)}" y="${destY.toFixed(1)}" width="${clip.w.toFixed(1)}" height="${clip.h.toFixed(1)}" viewBox="${clip.x.toFixed(1)} ${clip.y.toFixed(1)} ${clip.w.toFixed(1)} ${clip.h.toFixed(1)}" overflow="hidden">${inner}</svg>`
-  );
-}
-
-export function clonePictureInner(picture: SVGSVGElement): string {
-  const clone = picture.cloneNode(true) as SVGSVGElement;
-  clone.querySelectorAll("[data-ui='true']").forEach((el) => el.remove());
-  return Array.from(clone.childNodes)
-    .map((node) => new XMLSerializer().serializeToString(node))
-    .join("");
-}
-
-export function composePhasePageSvg(
-  laid: DiagramLayout,
-  phaseId: string,
-  pictureInner: string,
-  palette: DiagramPalette,
-  title: string,
-  purpose: string,
-): { xml: string; width: number; height: number } | null {
-  const clips = phasePageClips(laid, phaseId);
-  if (!clips) return null;
-  const heading = pageHeading(title, purpose, clips.phaseName, clips.width);
-  const width = clips.width;
-  const destY = heading.height;
-  const height = destY + clips.height;
-  const xml =
-    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
-    `<rect width="${width}" height="${height}" fill="${palette.bg}"/>` +
-    headingMarkup(heading, width, palette) +
-    nestedClip(clips.gutter, 0, destY, pictureInner) +
-    nestedClip(clips.phase, clips.gutter.w, destY, pictureInner) +
-    nestedClip(clips.end, clips.gutter.w + clips.phase.w, destY, pictureInner) +
-    `</svg>`;
-  return { xml, width, height };
-}
-
 export function composeDetailPageSvg(
   design: OperationalDesign,
   phaseName: string,
@@ -212,72 +132,55 @@ export function exportPageList(design: OperationalDesign): ExportPageSpec[] {
   return pages;
 }
 
-/** PNG zip: overview + one picture per phase, and detail pages when the figure is on. */
+/** PNG zip: wall overview + one re-laid phase picture, and notes when Detail is on. */
 export async function downloadPages(
   picture: SVGSVGElement,
   design: OperationalDesign,
   palette: DiagramPalette,
   scale = 2,
 ): Promise<void> {
-  const laid = layoutDiagram(design);
-  const inner = clonePictureInner(picture);
+  const paper = PAPER_PALETTE;
   const zip = new JSZip();
   const base = slug(design.title);
 
-  const overview = pictureOnlyMarkup(picture);
+  const overview = serializePictureSvg(picture);
   zip.file(
     `${base}-overview.png`,
-    await rasteriseSvg(overview.xml, overview.width, overview.height, palette.bg, scale),
+    await rasteriseSvg(
+      recolorDiagramMarkup(overview.xml, palette, paper),
+      overview.width,
+      overview.height,
+      paper.bg,
+      scale,
+    ),
   );
 
   for (const phase of design.phases) {
-    const page = composePhasePageSvg(
-      laid,
-      phase.id,
-      inner,
-      palette,
-      design.title,
-      design.purpose,
-    );
-    if (!page) continue;
+    const slice = phaseViewDesign(design, phase.id);
+    if (!slice) continue;
+    const page = renderPhaseViewSvg(slice, { showCampaignEnd: true }, paper);
     zip.file(
       `${base}-${slug(phase.name)}.png`,
-      await rasteriseSvg(page.xml, page.width, page.height, palette.bg, scale),
+      await rasteriseSvg(page.xml, page.width, page.height, paper.bg, scale),
     );
     if (!design.showDetail) continue;
-    const slice = designForDetailPhase(design, phase.id);
-    if (!slice) continue;
+    const notes = designForDetailPhase(design, phase.id);
+    if (!notes) continue;
     const width = Math.max(page.width, 900);
     const detail = composeDetailPageSvg(
-      slice,
+      notes,
       phase.name,
-      palette,
+      paper,
       design.title,
       design.purpose,
       width,
     );
     zip.file(
       `${base}-detail-${slug(phase.name)}.png`,
-      await rasteriseSvg(detail.xml, width, detail.height, palette.bg, scale),
+      await rasteriseSvg(detail.xml, width, detail.height, paper.bg, scale),
     );
   }
 
   const blob = await zip.generateAsync({ type: "blob" });
   triggerDownload(blob, `${base}-pages.zip`);
-}
-
-function pictureOnlyMarkup(
-  picture: SVGSVGElement,
-): { xml: string; width: number; height: number } {
-  const clone = picture.cloneNode(true) as SVGSVGElement;
-  clone.querySelectorAll("[data-ui='true']").forEach((el) => el.remove());
-  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-  const width = Number(clone.getAttribute("width")) || 1200;
-  const height = Number(clone.getAttribute("height")) || 700;
-  return {
-    xml: new XMLSerializer().serializeToString(clone),
-    width,
-    height,
-  };
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { wrapLabel, wrapNodeLabel, nodeLabelSize, NODE_LABEL } from "./wrap";
-import { wouldCreateCycle, nextOrder, hasDependency, detailFigureModel, streamPhaseGroups } from "./design";
+import { wouldCreateCycle, nextOrder, hasDependency, detailFigureModel, streamPhaseGroups, phaseViewDesign, defaultVisibleLoeIds } from "./design";
 import {
   LAYOUT,
   LOE_GUTTER,
@@ -15,6 +15,7 @@ import {
   wrapLoeName,
 } from "./layout";
 import { reduceDesign, selectionAfter } from "./reducer";
+import { epicFuryTemplate } from "./templates";
 import type { OperationalDesign } from "./types";
 
 function design(
@@ -729,5 +730,68 @@ describe("endStateTextBox", () => {
     expect(spoken).toContain("The coalition remains intact");
     expect(laid.endState.descriptionLines.length).toBeGreaterThan(14);
     expect(laid.endState.height).toBeGreaterThan(88);
+  });
+});
+
+describe("phase view design", () => {
+  it("keeps one phase, in-gates only, and intra-phase dependencies", () => {
+    const wall = epicFuryTemplate();
+    const shape = wall.phases.find((p) => p.name === "Shape")!;
+    const picture = phaseViewDesign(wall, shape.id)!;
+    expect(picture.phases).toHaveLength(1);
+    expect(picture.phases[0].name).toBe("Shape");
+    expect(picture.nodes.every((n) => n.phaseId === shape.id)).toBe(true);
+    expect(picture.decisionPoints.every((dp) => dp.placement === "in")).toBe(
+      true,
+    );
+    expect(
+      wall.decisionPoints.some(
+        (dp) => dp.afterPhaseId === shape.id && dp.placement === "after",
+      ),
+    ).toBe(true);
+    expect(picture.decisionPoints.some((dp) => dp.placement === "after")).toBe(
+      false,
+    );
+    const ids = new Set(picture.nodes.map((n) => n.id));
+    expect(
+      picture.dependencies.every((d) => ids.has(d.fromId) && ids.has(d.toId)),
+    ).toBe(true);
+    expect(picture.linesOfEffort.some((l) => l.name === "Regime pressure")).toBe(
+      false,
+    );
+    expect(
+      picture.linesOfEffort.some((l) => l.name === "Counter-capability"),
+    ).toBe(true);
+  });
+
+  it("does not change wall layout when the campaign panel option is omitted", () => {
+    const wall = epicFuryTemplate();
+    const a = layoutDiagram(wall);
+    const b = layoutDiagram(wall, {});
+    expect(a.width).toBe(b.width);
+    expect(a.endCol.width).toBe(b.endCol.width);
+    expect(a.endCol.width).toBeGreaterThan(100);
+  });
+
+  it("hides the campaign panel when asked", () => {
+    const wall = epicFuryTemplate();
+    const shape = wall.phases.find((p) => p.name === "Shape")!;
+    const picture = phaseViewDesign(wall, shape.id)!;
+    const withPanel = layoutDiagram(picture);
+    const without = layoutDiagram(picture, { showCampaignEnd: false });
+    expect(without.endCol.width).toBe(0);
+    expect(without.width).toBeLessThan(withPanel.width);
+  });
+
+  it("lets empty workstreams be turned back on", () => {
+    const wall = epicFuryTemplate();
+    const shape = wall.phases.find((p) => p.name === "Shape")!;
+    const defaults = defaultVisibleLoeIds(wall, shape.id);
+    expect(defaults.includes(wall.linesOfEffort.find((l) => l.name === "Regime pressure")!.id)).toBe(
+      false,
+    );
+    const all = wall.linesOfEffort.map((l) => l.id);
+    const on = phaseViewDesign(wall, shape.id, { visibleLoeIds: all })!;
+    expect(on.linesOfEffort.some((l) => l.name === "Regime pressure")).toBe(true);
   });
 });

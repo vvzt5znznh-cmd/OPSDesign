@@ -1,66 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { designForDetailPhase } from "./design";
+import { designForDetailPhase, phaseViewDesign } from "./design";
 import { detailFigureSvgMarkup } from "./detailSvg";
-import {
-  composeDetailPageSvg,
-  composePhasePageSvg,
-  exportPageList,
-  pageHeading,
-  phasePageClips,
-} from "./exportPages";
+import { composeDetailPageSvg, exportPageList, pageHeading } from "./exportPages";
 import { layoutDiagram } from "./layout";
 import { epicFuryTemplate, projectTemplate } from "./templates";
 import { DIAGRAM_PALETTES } from "./theme";
 
-describe("phase page clips", () => {
-  it("makes each Epic Fury phase page narrower than the full picture", () => {
+describe("phase view pages", () => {
+  it("lays each Epic Fury phase as its own picture, not a clip of the wall", () => {
     const design = epicFuryTemplate();
-    const laid = layoutDiagram(design);
+    const wall = layoutDiagram(design);
     expect(design.phases.length).toBeGreaterThan(1);
     for (const phase of design.phases) {
-      const clips = phasePageClips(laid, phase.id);
-      expect(clips).toBeTruthy();
-      expect(clips!.gutter.w).toBeGreaterThan(100);
-      expect(clips!.phase.w).toBeGreaterThan(100);
-      expect(clips!.end.w).toBeGreaterThan(100);
-      expect(clips!.gutter.w + clips!.phase.w + clips!.end.w).toBeCloseTo(
-        clips!.width,
-        5,
-      );
-      expect(clips!.width).toBeLessThan(laid.width - 80);
-      expect(clips!.phase.x).toBe(laid.phases.find((p) => p.id === phase.id)!.x);
-      expect(clips!.end.x).toBeGreaterThanOrEqual(
-        clips!.phase.x + clips!.phase.w - 0.01,
-      );
+      const picture = phaseViewDesign(design, phase.id)!;
+      const laid = layoutDiagram(picture);
+      expect(laid.phases).toHaveLength(1);
+      expect(laid.phases[0].name).toBe(phase.name);
+      expect(
+        picture.decisionPoints.every((dp) => dp.placement === "in"),
+      ).toBe(true);
+      expect(laid.width).toBeLessThan(wall.width);
     }
   });
 
-  it("wraps the slice heading without an ellipsis", () => {
+  it("wraps the notes heading without an ellipsis", () => {
     const design = epicFuryTemplate();
-    const laid = layoutDiagram(design);
-    const clips = phasePageClips(laid, design.phases[0].id)!;
     const heading = pageHeading(
       design.title,
       design.purpose,
       design.phases[0].name,
-      clips.width,
+      900,
     );
     expect(heading.titleLines.join("")).not.toContain("…");
     expect(heading.purposeLines.join("")).not.toContain("…");
     expect(heading.phaseLines.join(" ")).toBe("Shape");
-    const page = composePhasePageSvg(
-      laid,
-      design.phases[0].id,
-      `<rect width="1" height="1"/>`,
-      DIAGRAM_PALETTES.light,
-      design.title,
-      design.purpose,
-    );
-    expect(page).toBeTruthy();
-    expect(page!.xml).toContain("viewBox=");
-    expect(page!.xml).toContain("Shape");
-    expect(page!.xml).not.toContain("…");
-    expect(page!.width).toBe(clips.width);
   });
 
   it("lists overview and phase files, and detail files only when the figure is on", () => {

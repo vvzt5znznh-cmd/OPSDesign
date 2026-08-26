@@ -194,6 +194,64 @@ export function designForDetailPhase(
   return { ...design, nodes, decisionPoints, linesOfEffort };
 }
 
+export type PhaseViewOptions = {
+  /** Which workstreams to draw. Omit for the canonical export recipe. */
+  visibleLoeIds?: string[];
+  /** Override the wall's workstream end-state pills. */
+  showLoeEndStates?: boolean;
+};
+
+/** Workstreams that have a mark in this phase — default chips for the phase figure. */
+export function defaultVisibleLoeIds(
+  design: OperationalDesign,
+  phaseId: string,
+): string[] {
+  const withNodes = design.linesOfEffort
+    .filter((loe) => design.nodes.some((n) => n.phaseId === phaseId && n.loeId === loe.id))
+    .map((loe) => loe.id);
+  if (withNodes.length) return withNodes;
+  return design.linesOfEffort.map((loe) => loe.id);
+}
+
+/**
+ * Re-laid picture of one phase: full labels, no neighbour overflow,
+ * no seam / after gates. Session view — not written to JSON.
+ */
+export function phaseViewDesign(
+  design: OperationalDesign,
+  phaseId: string,
+  opts: PhaseViewOptions = {},
+): OperationalDesign | null {
+  const phase = design.phases.find((p) => p.id === phaseId);
+  if (!phase) return null;
+  const nodes = design.nodes.filter((n) => n.phaseId === phaseId);
+  const nodeIds = new Set(nodes.map((n) => n.id));
+  const decisionPoints = design.decisionPoints.filter(
+    (dp) => dp.afterPhaseId === phaseId && dp.placement === "in",
+  );
+  const dependencies = design.dependencies.filter(
+    (d) => nodeIds.has(d.fromId) && nodeIds.has(d.toId),
+  );
+  const visible = new Set(
+    opts.visibleLoeIds ?? defaultVisibleLoeIds(design, phaseId),
+  );
+  const linesOfEffort = design.linesOfEffort.filter((loe) => visible.has(loe.id));
+  const keptLoe = new Set(linesOfEffort.map((l) => l.id));
+  return {
+    ...design,
+    phases: [phase],
+    nodes: nodes.filter((n) => keptLoe.has(n.loeId)),
+    decisionPoints,
+    dependencies,
+    linesOfEffort: linesOfEffort.length ? linesOfEffort : design.linesOfEffort,
+    showLoeEndStates:
+      opts.showLoeEndStates !== undefined
+        ? opts.showLoeEndStates
+        : design.showLoeEndStates,
+    showDetail: false,
+  };
+}
+
 /** Keep workstream items in phase order for the list and exports. */
 export function streamPhaseGroups(
   nodes: DetailNodeRow[],

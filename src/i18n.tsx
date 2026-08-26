@@ -32,6 +32,10 @@ export type Copy = {
   project: string;
   detail: string;
   detailFigure: string;
+  phaseFigure: string;
+  campaignEndPanel: string;
+  prevPhase: string;
+  nextPhase: string;
   file: string;
   newFile: string;
   openJson: string;
@@ -180,6 +184,10 @@ const en: Copy = {
   project: "Project",
   detail: "Detail",
   detailFigure: "Detail figure",
+  phaseFigure: "Phase figure",
+  campaignEndPanel: "End-state panel",
+  prevPhase: "Previous phase",
+  nextPhase: "Next phase",
   file: "File",
   newFile: "New…",
   openJson: "Open JSON…",
@@ -351,6 +359,10 @@ const nb: Copy = {
   project: "Prosjekt",
   detail: "Detalj",
   detailFigure: "Detaljfigur",
+  phaseFigure: "Fasefigur",
+  campaignEndPanel: "Sluttilstandspanel",
+  prevPhase: "Forrige fase",
+  nextPhase: "Neste fase",
   file: "Fil",
   newFile: "Ny…",
   openJson: "Åpne JSON…",

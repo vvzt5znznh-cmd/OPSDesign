@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -8,13 +9,14 @@ import {
 } from "react";
 import { uid } from "./id";
 import { useLang } from "./i18n";
-import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, endStateTextBox, END_STATE_TEXT, HEADING, LAYOUT, LOE_END, LOE_GUTTER, type DiagramLayout } from "./layout";
+import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, endStateTextBox, END_STATE_TEXT, HEADING, LAYOUT, LOE_END, LOE_GUTTER, type DiagramLayout, type LayoutOptions } from "./layout";
 import { useDesign } from "./state";
 import { useTheme, type DiagramPalette } from "./theme";
 import {
   CONDITION_FILL,
   MILESTONE_FILL,
   type NodeKind,
+  type OperationalDesign,
   type Selection,
 } from "./types";
 import { wrapLabel, nodeLabelSize } from "./wrap";
@@ -70,8 +72,16 @@ function diagramCss(p: DiagramPalette): string {
 
 export function Diagram({
   svgRef,
+  picture,
+  readOnly = false,
+  layoutOptions,
+  palette: paletteOverride,
 }: {
   svgRef: RefObject<SVGSVGElement | null>;
+  picture?: OperationalDesign;
+  readOnly?: boolean;
+  layoutOptions?: LayoutOptions;
+  palette?: DiagramPalette;
 }) {
   const {
     design,
@@ -84,9 +94,16 @@ export function Diagram({
     setLinkFrom,
     present,
   } = useDesign();
-  const { diagram: palette } = useTheme();
+  const { diagram: themePalette } = useTheme();
+  const palette = paletteOverride ?? themePalette;
   const { t } = useLang();
-  const laidOut = useMemo(() => layoutDiagram(design), [design]);
+  const source = picture ?? design;
+  const chrome = !readOnly && !present;
+  const markerId = `m${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const laidOut = useMemo(
+    () => layoutDiagram(source, layoutOptions),
+    [source, layoutOptions],
+  );
   const endText = useMemo(
     () => endStateTextBox(laidOut.endState),
     [laidOut.endState],
@@ -130,6 +147,7 @@ export function Diagram({
   const [renameId, setRenameId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (readOnly) return;
     function onKey(e: KeyboardEvent) {
       const t = e.target as HTMLElement | null;
       if (
@@ -172,7 +190,7 @@ export function Diagram({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selection, dispatch, setSelection, linkMode, setLinkMode, renameId, addMenu]);
+  }, [selection, dispatch, setSelection, linkMode, setLinkMode, renameId, addMenu, readOnly]);
 
   useEffect(() => {
     if (!addMenu) return;
@@ -207,10 +225,11 @@ export function Diagram({
   ) {
     e.stopPropagation();
     skipDeselect.current = true;
+    setSelection({ type: "node", id });
+    if (readOnly) return;
     if (linkMode) {
       if (!linkFrom) {
         setLinkFrom(id);
-        setSelection({ type: "node", id });
         return;
       }
       if (linkFrom !== id) {
@@ -221,15 +240,12 @@ export function Diagram({
           toId: id,
         });
         setLinkFrom(id);
-        setSelection({ type: "node", id });
       }
       return;
     }
     const pointer = svgRef.current
       ? svgPoint(svgRef.current, e.clientX, e.clientY)
       : { x, y };
-    setSelection({ type: "node", id });
-    skipDeselect.current = true;
     setDrag({
       id,
       x,
@@ -241,7 +257,7 @@ export function Diagram({
   }
 
   function onPointerMove(e: PointerEvent<SVGSVGElement>) {
-    if (!svgRef.current) return;
+    if (readOnly || !svgRef.current) return;
     const p = svgPoint(svgRef.current, e.clientX, e.clientY);
     const gate = dpDragRef.current;
     if (gate) {
@@ -363,13 +379,13 @@ export function Diagram({
   return (
     <svg
       ref={svgRef}
-      id="conops-svg"
+      id={readOnly ? "phase-view-svg" : "conops-svg"}
       width={laidOut.width}
       height={laidOut.height}
       viewBox={`0 0 ${laidOut.width} ${laidOut.height}`}
       role="img"
-      aria-label={`${design.title} operational design`}
-      className={linkMode ? "diagram-svg link-mode" : "diagram-svg"}
+      aria-label={`${source.title} operational design`}
+      className={linkMode && !readOnly ? "diagram-svg link-mode" : "diagram-svg"}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
@@ -389,10 +405,10 @@ export function Diagram({
     >
       <defs>
         <style>{diagramCss(palette)}</style>
-        {design.linesOfEffort.map((loe) => (
+        {source.linesOfEffort.map((loe) => (
           <marker
             key={loe.id}
-            id={`arrow-${loe.id}`}
+            id={`${markerId}-arrow-${loe.id}`}
             markerWidth="14"
             markerHeight="10"
             refX="12"
@@ -404,7 +420,7 @@ export function Diagram({
           </marker>
         ))}
         <marker
-          id="dep-arrow"
+          id={`${markerId}-dep-arrow`}
           markerWidth="8"
           markerHeight="8"
           refX="7"
@@ -414,7 +430,7 @@ export function Diagram({
         >
           <path d="M0,0 L8,4 L0,8 Z" fill={palette.dep} />
         </marker>
-        <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+        <filter id={`${markerId}-soft`} x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="1" stdDeviation="1.2" floodOpacity="0.18" />
         </filter>
       </defs>
@@ -488,6 +504,7 @@ export function Diagram({
         </g>
       ))}
 
+      {laidOut.endCol.width > 1 && (
       <g
         className="end-col"
         onClick={(e) => {
@@ -511,6 +528,7 @@ export function Diagram({
           {t.endStateHeader}
         </text>
       </g>
+      )}
 
       <g
         className="gate-rail"
@@ -523,7 +541,7 @@ export function Diagram({
           height={laidOut.dpBar.height}
           fill={palette.dpBar}
           onPointerMove={(e) => {
-            if (present || linkMode || dpDrag || !svgRef.current) return;
+            if (!chrome || linkMode || dpDrag || !svgRef.current) return;
             const p = svgPoint(svgRef.current, e.clientX, e.clientY);
             const snap = snapGateAtX(laidOut.phases, p.x);
             if (!snap) {
@@ -537,7 +555,7 @@ export function Diagram({
             e.stopPropagation();
           }}
         />
-        {!present && !linkMode && !dpDrag?.active && hoverGate && (
+        {chrome && !linkMode && !dpDrag?.active && hoverGate && (
           <CellPlus
             x={hoverGate.x}
             y={laidOut.dpBar.y + laidOut.dpBar.height / 2}
@@ -578,7 +596,7 @@ export function Diagram({
             stroke={loe.color}
             strokeWidth={12}
             strokeLinecap="round"
-            markerEnd={`url(#arrow-${loe.id})`}
+            markerEnd={`url(#${markerId}-arrow-${loe.id})`}
           />
           {loe.nameLines.map((line, i) => (
             <text
@@ -693,7 +711,7 @@ export function Diagram({
           <path
             d={dep.d}
             className="dep-line"
-            markerEnd="url(#dep-arrow)"
+            markerEnd={`url(#${markerId}-dep-arrow)`}
             stroke={
               isSelected(selection, "dependency", dep.id) ? "#c4a35a" : "#7a8494"
             }
@@ -731,7 +749,7 @@ export function Diagram({
             onClick={(e) => {
               e.stopPropagation();
               if (
-                !present &&
+                chrome &&
                 !linkMode &&
                 !cellOccupied(loe.id, phase.id)
               ) {
@@ -747,7 +765,7 @@ export function Diagram({
         )),
       )}
 
-      {!present &&
+      {chrome &&
         laidOut.phases.flatMap((phase) =>
           laidOut.loes.map((loe) => {
             const adding =
@@ -788,8 +806,10 @@ export function Diagram({
               isSelected(selection, "node", n.id) || linkFrom === n.id
             }
             linking={linkFrom === n.id}
+            filterId={`${markerId}-soft`}
             onPointerDown={(e) => onNodePointerDown(e, n.id, n.x, n.y)}
             onDoubleClick={() => {
+              if (readOnly) return;
               setDrag(null);
               setRenameId(n.id);
             }}
@@ -805,6 +825,7 @@ export function Diagram({
           kind={draggingNode.kind}
           selected
           dragging
+          filterId={`${markerId}-soft`}
           onPointerDown={() => undefined}
         />
       )}
@@ -852,7 +873,7 @@ export function Diagram({
           onPointerDown={(e) => {
             e.stopPropagation();
             skipDeselect.current = true;
-            if (linkMode || present) {
+            if (!chrome || linkMode) {
               setSelection({ type: "dp", id: dp.id });
               return;
             }
@@ -881,7 +902,7 @@ export function Diagram({
             fill="#2E7D32"
             stroke={isSelected(selection, "dp", dp.id) ? "#c4a35a" : "#1b5e20"}
             strokeWidth={isSelected(selection, "dp", dp.id) ? 2.5 : 1}
-            filter="url(#soft)"
+            filter={`url(#${markerId}-soft)`}
           />
           {wrapLabel(dp.label, 16, 4).map((line, i) => (
             <text
@@ -911,7 +932,7 @@ export function Diagram({
                 fill="#2E7D32"
                 stroke="#c4a35a"
                 strokeWidth="2.5"
-                filter="url(#soft)"
+                filter={`url(#${markerId}-soft)`}
               />
               {wrapLabel(label, 16, 4).map((line, i) => (
                 <text
@@ -927,6 +948,7 @@ export function Diagram({
           );
         })()}
 
+      {laidOut.endState.width > 1 && (
       <g
         className="end-state"
         onClick={(e) => {
@@ -983,8 +1005,9 @@ export function Diagram({
           </text>
         ))}
       </g>
+      )}
 
-      {!present && (
+      {chrome && (
         <>
           {laidOut.phases.length > 0 && (
             <PlusMark
@@ -1021,7 +1044,7 @@ export function Diagram({
 
       <Legend x={36} y={laidOut.height - 36} />
 
-      {addMenu && !drag?.active && !dpDrag?.active && !linkMode && !present && (
+      {chrome && addMenu && !drag?.active && !dpDrag?.active && !linkMode && (
         <>
           <rect
             className="add-menu-dismiss"
@@ -1178,6 +1201,7 @@ function NodeMark({
   selected,
   dragging,
   linking,
+  filterId,
   onPointerDown,
   onDoubleClick,
 }: {
@@ -1188,6 +1212,7 @@ function NodeMark({
   selected: boolean;
   dragging?: boolean;
   linking?: boolean;
+  filterId: string;
   onPointerDown: (e: PointerEvent<SVGGElement>) => void;
   onDoubleClick?: () => void;
 }) {
@@ -1213,7 +1238,7 @@ function NodeMark({
           fill={fill}
           stroke={stroke}
           strokeWidth={selected ? 2.4 : 1.1}
-          filter="url(#soft)"
+          filter={`url(#${filterId})`}
         />
       ) : (
         <path
@@ -1221,7 +1246,7 @@ function NodeMark({
           fill={fill}
           stroke={stroke}
           strokeWidth={selected ? 2.4 : 1.1}
-          filter="url(#soft)"
+          filter={`url(#${filterId})`}
         />
       )}
       <rect
