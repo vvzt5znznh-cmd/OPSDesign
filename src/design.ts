@@ -168,6 +168,19 @@ export function detailFigureModel(design: OperationalDesign): {
   return { gates, streams };
 }
 
+/** Nodes and gates that belong to one phase, for a Word/A4 detail page. */
+export function designForDetailPhase(
+  design: OperationalDesign,
+  phaseId: string,
+): OperationalDesign | null {
+  const nodes = design.nodes.filter((n) => n.phaseId === phaseId);
+  const decisionPoints = design.decisionPoints.filter(
+    (dp) => dp.afterPhaseId === phaseId,
+  );
+  if (nodes.length === 0 && decisionPoints.length === 0) return null;
+  return { ...design, nodes, decisionPoints };
+}
+
 /** Keep workstream items in phase order for the list and exports. */
 export function streamPhaseGroups(
   nodes: DetailNodeRow[],

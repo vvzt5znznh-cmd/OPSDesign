@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { downloadPng, downloadSvg } from "./export";
+import { downloadPages } from "./exportPages";
 import { LayoutPicker } from "./LayoutPicker";
 import { downloadPptx } from "./pptx";
 import { Menu } from "./Menu";
@@ -145,6 +146,22 @@ export function Toolbar({
             </button>
             <button type="button" role="menuitem" onClick={exportSvg}>
               Export SVG
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                if (!svgRef.current) return;
+                void downloadPages(svgRef.current, design, diagram).catch((err) => {
+                  window.alert(
+                    err instanceof Error
+                      ? err.message
+                      : "Page export failed.",
+                  );
+                });
+              }}
+            >
+              Export pages…
             </button>
             <button
               type="button"

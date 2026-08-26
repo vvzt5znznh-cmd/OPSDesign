@@ -400,25 +400,6 @@ textarea:focus-visible {
   padding: 18px 24px 24px;
 }
 
-.detail-figure-head {
-  margin-bottom: 16px;
-}
-
-.detail-figure-head h2 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.detail-figure-head p {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--muted);
-}
-
 .detail-empty {
   margin: 0;
   font-size: 13px;
