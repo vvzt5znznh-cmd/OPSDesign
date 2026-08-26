@@ -2,6 +2,7 @@ import JSZip from "jszip";
 import { designForDetailPhase } from "./design";
 import { detailFigureSvgMarkup, xmlEscape } from "./detailSvg";
 import { rasteriseSvg } from "./export";
+import { copy } from "./i18n";
 import { HEADING, LAYOUT, layoutDiagram, wrapToWidth, type DiagramLayout } from "./layout";
 import { slug, triggerDownload } from "./storage";
 import type { DiagramPalette } from "./theme";
@@ -71,7 +72,7 @@ export function pageHeading(
 } {
   const textW = Math.max(240, width - LAYOUT.padX * 2);
   const titleLines = wrapToWidth(
-    title.trim() || "Untitled",
+    title.trim() || copy().untitled,
     textW,
     HEADING.titlePx,
     10_000,
@@ -175,7 +176,7 @@ export function composeDetailPageSvg(
   purpose: string,
   width: number,
 ): { xml: string; width: number; height: number } {
-  const heading = pageHeading(title, purpose, `${phaseName} — notes`, width);
+  const heading = pageHeading(title, purpose, copy().notesPage(phaseName), width);
   const detail = detailFigureSvgMarkup(design, width, palette);
   const height = heading.height + detail.height;
   const xml =

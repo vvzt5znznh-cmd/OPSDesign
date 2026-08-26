@@ -4,6 +4,7 @@ import { Diagram } from "./Diagram";
 import { HelpModal } from "./Help";
 import { Inspector } from "./Inspector";
 import { LayoutPicker } from "./LayoutPicker";
+import { useLang } from "./i18n";
 import { DesignProvider, useDesign } from "./state";
 import { saveDesign } from "./storage";
 import { Toolbar } from "./Toolbar";
@@ -14,6 +15,7 @@ function Editor() {
   const [help, setHelp] = useState(false);
   const { present, undo, redo, linkMode, setLinkMode, selection, design } =
     useDesign();
+  const { t } = useLang();
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -42,9 +44,9 @@ function Editor() {
         <main className={selection && !present ? "canvas with-panel" : "canvas"}>
           {linkMode && (
             <div className="link-banner">
-              Click what must happen first, then what depends on it.
+              {t.linkBanner}
               <button type="button" onClick={() => setLinkMode(false)}>
-                Done
+                {t.done}
               </button>
             </div>
           )}

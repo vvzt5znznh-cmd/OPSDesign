@@ -11,6 +11,7 @@ import {
   stashPrevious,
 } from "./storage";
 import { LlmModal } from "./LlmModal";
+import { useLang } from "./i18n";
 import { useTheme } from "./theme";
 import { useDesign } from "./state";
 import type { OperationalDesign } from "./types";
@@ -35,6 +36,7 @@ export function Toolbar({
     setLinkMode,
   } = useDesign();
   const { theme, toggleTheme, diagram } = useTheme();
+  const { lang, setLang, t } = useLang();
   const fileRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(design.title);
   const [llmOpen, setLlmOpen] = useState(false);
@@ -68,7 +70,7 @@ export function Toolbar({
       try {
         replaceDesign(parseImportedDesign(String(reader.result)));
       } catch (err) {
-        window.alert(err instanceof Error ? err.message : "Import failed.");
+        window.alert(err instanceof Error ? err.message : t.importFailed);
       }
     };
     reader.readAsText(file);
@@ -91,7 +93,7 @@ export function Toolbar({
         <input
           className="title-input"
           value={title}
-          aria-label="Project title"
+          aria-label={t.projectTitle}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={() => {
             if (title.trim() && title !== design.title) {
@@ -113,39 +115,39 @@ export function Toolbar({
             className={linkMode ? "tool primary on" : "tool primary"}
             onClick={() => setLinkMode(!linkMode)}
           >
-            {linkMode ? "Linking…" : "Link"}
+            {linkMode ? t.linking : t.link}
           </button>
           <button type="button" className="tool" onClick={undo} disabled={!canUndo}>
-            Undo
+            {t.undo}
           </button>
           <button type="button" className="tool" onClick={redo} disabled={!canRedo}>
-            Redo
+            {t.redo}
           </button>
         </div>
         <div className="tool-group hide-present">
-          <Menu label="File">
+          <Menu label={t.file}>
             <button type="button" role="menuitem" onClick={() => setLayoutOpen(true)}>
-              New…
+              {t.newFile}
             </button>
             {hasPrevious && (
               <button type="button" role="menuitem" onClick={restorePrevious}>
-                Restore previous
+                {t.restorePrevious}
               </button>
             )}
             <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>
-              Open JSON…
+              {t.openJson}
             </button>
             <button type="button" role="menuitem" onClick={() => setLlmOpen(true)}>
-              Ask an LLM…
+              {t.askLlm}
             </button>
             <button type="button" role="menuitem" onClick={() => downloadJson(design)}>
-              Save JSON
+              {t.saveJson}
             </button>
             <button type="button" role="menuitem" onClick={() => void exportPng()}>
-              Export PNG
+              {t.exportPng}
             </button>
             <button type="button" role="menuitem" onClick={exportSvg}>
-              Export SVG
+              {t.exportSvg}
             </button>
             <button
               type="button"
@@ -156,12 +158,12 @@ export function Toolbar({
                   window.alert(
                     err instanceof Error
                       ? err.message
-                      : "Page export failed.",
+                      : t.pagesFailed,
                   );
                 });
               }}
             >
-              Export pages…
+              {t.exportPages}
             </button>
             <button
               type="button"
@@ -171,12 +173,12 @@ export function Toolbar({
                   window.alert(
                     err instanceof Error
                       ? err.message
-                      : "PowerPoint export failed.",
+                      : t.pptxFailed,
                   );
                 });
               }}
             >
-              Export PowerPoint…
+              {t.exportPptx}
             </button>
           </Menu>
           <input
@@ -189,11 +191,27 @@ export function Toolbar({
               e.target.value = "";
             }}
           />
-          <button type="button" className="tool" onClick={onHelp} title="Help">
+          <button type="button" className="tool" onClick={onHelp} title={t.help}>
             ?
           </button>
         </div>
         <div className="tool-group">
+          <div className="kind-toggle lang-toggle keep-present" role="group" aria-label={t.langTitle}>
+            <button
+              type="button"
+              className={lang === "en" ? "on" : ""}
+              onClick={() => setLang("en")}
+            >
+              {t.langEn}
+            </button>
+            <button
+              type="button"
+              className={lang === "nb" ? "on" : ""}
+              onClick={() => setLang("nb")}
+            >
+              {t.langNb}
+            </button>
+          </div>
           <button
             type="button"
             className={theme === "dark" ? "tool keep-present on" : "tool keep-present"}
@@ -201,14 +219,14 @@ export function Toolbar({
             title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             aria-pressed={theme === "dark"}
           >
-            Dark
+            {t.dark}
           </button>
           <button
             type="button"
             className="tool keep-present"
             onClick={() => setPresent(!present)}
           >
-            {present ? "Edit" : "Present"}
+            {present ? t.edit : t.present}
           </button>
         </div>
       </div>

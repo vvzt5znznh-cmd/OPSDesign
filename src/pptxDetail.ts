@@ -1,4 +1,5 @@
 import { detailFigureModel, detailGateColumns, streamPhaseGroups } from "./design";
+import { copy } from "./i18n";
 import { wrapLabel } from "./wrap";
 import type { DiagramPalette } from "./theme";
 import {
@@ -516,7 +517,10 @@ export function layoutDetailSlides(
   const gateTextW = gateColW - 0.12 * 2 - 0.22;
 
   const gateDrafts: GateDraft[] = model.gates.map((g) => {
-    const meta = `${g.placement === "in" ? "In" : "After"} ${g.phaseName}`.trim();
+    const meta =
+      g.placement === "in"
+        ? copy().inPhaseMeta(g.phaseName)
+        : copy().afterPhaseMeta(g.phaseName);
     const desc = g.description.trim();
     const labelLines = wrapInches(g.label, gateTextW, CHAR.label);
     const metaLines = wrapInches(meta, gateTextW, CHAR.desc);
@@ -669,22 +673,20 @@ function paintDetailPage(
     });
   }
 
-  label(design.title.trim() || "Detail", laid.title, {
+  label(design.title.trim() || copy().detail, laid.title, {
     size: 18,
     color: hex(palette.title),
     bold: true,
     valign: "middle",
   });
   label(
-    laid.continued
-      ? "Decision gates, milestones, and conditions (continued)"
-      : "Decision gates, milestones, and conditions",
+    laid.continued ? copy().notesSubtitleCont : copy().notesSubtitle,
     laid.subtitle,
     { size: 11, color: muted, valign: "middle" },
   );
 
   if (laid.gatesHeading) {
-    label("Decision gates", laid.gatesHeading, {
+    label(copy().decisionGates, laid.gatesHeading, {
       size: 11,
       color: hex(palette.phase),
       bold: true,
@@ -749,7 +751,7 @@ function paintDetailPage(
       });
     }
     if (stream.empty) {
-      label("No milestones or conditions.", stream.empty, {
+      label(copy().noNodes, stream.empty, {
         size: 10,
         color: muted,
       });

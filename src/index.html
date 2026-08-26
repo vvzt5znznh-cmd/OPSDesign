@@ -10,8 +10,11 @@
         var t = localStorage.getItem("opsdesign:theme");
         document.documentElement.dataset.theme =
           t === "light" || t === "dark" ? t : "dark";
+        var lang = localStorage.getItem("opsdesign:lang");
+        document.documentElement.lang = lang === "nb" ? "nb" : "en";
       } catch (e) {
         document.documentElement.dataset.theme = "dark";
+        document.documentElement.lang = "en";
       }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

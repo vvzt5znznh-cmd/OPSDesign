@@ -41,9 +41,12 @@ export function nextOrder(
   return Math.max(...inCell.map((n) => n.order)) + 1;
 }
 
+import { copy } from "./i18n";
+
 export function nodeKindLabel(kind: NodeKind, plural = false): string {
-  if (kind === "milestone") return plural ? "Milestones" : "Milestone";
-  return plural ? "Conditions" : "Condition";
+  const t = copy();
+  if (kind === "milestone") return plural ? t.milestones : t.milestone;
+  return plural ? t.conditions : t.condition;
 }
 
 export function nodeKindShort(kind: NodeKind): string {

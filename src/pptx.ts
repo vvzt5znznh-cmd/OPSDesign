@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import { copy } from "./i18n";
 import { layoutDiagram, LAYOUT, END_STATE_TEXT, HEADING, LOE_GUTTER, endStateTextBox, loeGutterTextWidth } from "./layout";
 import { slug } from "./storage";
 import type { DiagramPalette } from "./theme";
@@ -178,15 +179,16 @@ function downloadBlob(blob: Blob, fileName: string): void {
 }
 
 function speakerNotes(design: OperationalDesign): string {
+  const t = copy();
   const lines: string[] = [
-    "OPSDesign briefing notes — not drawn on the slide.",
-    "Delete these notes before you share the file if they should stay off the deck.",
+    t.notesBriefing,
+    t.notesDelete,
     "",
   ];
   if (design.purpose.trim()) {
-    lines.push(`Purpose: ${design.purpose.trim()}`, "");
+    lines.push(`${t.notesPurpose}: ${design.purpose.trim()}`, "");
   }
-  lines.push(`End state: ${design.endState.name}`);
+  lines.push(`${t.endState}: ${design.endState.name}`);
   if (design.endState.description.trim()) {
     lines.push(design.endState.description.trim());
   }
@@ -194,25 +196,25 @@ function speakerNotes(design: OperationalDesign): string {
     ? design.linesOfEffort.filter((loe) => loe.endState.trim())
     : [];
   if (streamEnds.length) {
-    lines.push("", "Workstream end states");
+    lines.push("", t.notesLoeEnds);
     for (const loe of streamEnds) {
       lines.push(`- ${loe.name}: ${loe.endState.trim()}`);
     }
   }
   lines.push("");
   if (design.decisionPoints.length) {
-    lines.push("Decision gates");
+    lines.push(t.decisionGates);
     for (const dp of design.decisionPoints) {
       const phase =
         design.phases.find((p) => p.id === dp.afterPhaseId)?.name ?? "";
-      const where = dp.placement === "in" ? "in" : "after";
+      const where = dp.placement === "in" ? t.inWord.toLowerCase() : t.afterWord.toLowerCase();
       lines.push(
         `- ${dp.label}${phase ? ` (${where} ${phase})` : ""}`,
       );
     }
   }
   if (design.showDetail) {
-    lines.push("", "Detail follows on the next 16:9 slides.");
+    lines.push("", t.notesDetailFollows);
   }
   return lines.join("\n");
 }
@@ -314,7 +316,7 @@ export async function buildPptxArrayBuffer(
     line: noLine,
   });
   text(
-    "END STATE",
+    copy().endStateHeader,
     X(laid.endCol.x),
     Y(laid.plot.y - 42),
     S(laid.endCol.width),
@@ -615,7 +617,7 @@ export async function buildPptxArrayBuffer(
     fill: { color: hex(MILESTONE_FILL) },
     line: noLine,
   });
-  text("Milestone", legendX + S(18), legendY - S(2), S(70), S(16), {
+  text(copy().milestone, legendX + S(18), legendY - S(2), S(70), S(16), {
         size: fs(10),
     color: palette.label,
     bold: true,
@@ -628,7 +630,7 @@ export async function buildPptxArrayBuffer(
     fill: { color: hex(CONDITION_FILL) },
     line: noLine,
   });
-  text("Condition", legendX + S(110), legendY - S(2), S(70), S(16), {
+  text(copy().condition, legendX + S(110), legendY - S(2), S(80), S(16), {
         size: fs(10),
     color: palette.label,
     bold: true,
@@ -641,7 +643,7 @@ export async function buildPptxArrayBuffer(
     fill: { color: hex(GATE) },
     line: { color: hex(GATE_LINE), width: 0.6 },
   });
-  text("Gate", legendX + S(206), legendY - S(2), S(40), S(16), {
+  text(copy().gate, legendX + S(206), legendY - S(2), S(50), S(16), {
         size: fs(10),
     color: palette.label,
     bold: true,
@@ -657,7 +659,7 @@ export async function buildPptxArrayBuffer(
       dashType: "dash",
     },
   });
-  text("Dependency", legendX + S(288), legendY - S(2), S(80), S(16), {
+  text(copy().dependency, legendX + S(288), legendY - S(2), S(90), S(16), {
         size: fs(10),
     color: palette.label,
     bold: true,

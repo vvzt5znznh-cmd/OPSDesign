@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { nodeKindLabel } from "./design";
 import { uid } from "./id";
+import { useLang } from "./i18n";
 import { useDesign } from "./state";
 import { LOE_COLORS, END_STATE_COLORS } from "./types";
 
@@ -18,7 +19,7 @@ function Head({ children }: { children: ReactNode }) {
         type="button"
         className="inspector-close"
         onClick={() => setSelection(null)}
-        aria-label="Close"
+        aria-label={useLang().t.close}
       >
         ×
       </button>
@@ -43,35 +44,32 @@ function Field({
 
 function LoeEndStatesToggle() {
   const { design, dispatch } = useDesign();
+  const { t } = useLang();
   const on = design.showLoeEndStates;
   return (
     <>
-      <p className="field-label">Workstream end states</p>
+      <p className="field-label">{t.workstreamEndStates}</p>
       <div
         className="kind-toggle inspector-toggle"
         role="group"
-        aria-label="Workstream end states"
+        aria-label={t.workstreamEndStates}
       >
         <button
           type="button"
           className={!on ? "on" : ""}
           onClick={() => dispatch({ type: "setShowLoeEndStates", value: false })}
         >
-          Off
+          {t.off}
         </button>
         <button
           type="button"
           className={on ? "on" : ""}
           onClick={() => dispatch({ type: "setShowLoeEndStates", value: true })}
         >
-          On
+          {t.on}
         </button>
       </div>
-      <p className="muted">
-        {on
-          ? "A pill at the right of every workstream. Turn off to run the lines into the campaign panel."
-          : "Hidden on every workstream. Typed text is kept. Turn on to show a pill on each line."}
-      </p>
+      <p className="muted">{on ? t.loeEndsOn : t.loeEndsOff}</p>
     </>
   );
 }
@@ -79,14 +77,15 @@ function LoeEndStatesToggle() {
 export function Inspector() {
   const { design, selection, dispatch, setSelection, setLinkMode, setLinkFrom } =
     useDesign();
+  const { t } = useLang();
 
   if (!selection) return null;
 
   if (selection.type === "title") {
     return (
       <aside className="inspector">
-        <Head>Project</Head>
-        <Field label="Title">
+        <Head>{t.project}</Head>
+        <Field label={t.title}>
           <input
             key={design.id}
             defaultValue={design.title}
@@ -100,12 +99,12 @@ export function Inspector() {
             }}
           />
         </Field>
-        <Field label="Purpose">
+        <Field label={t.purpose}>
           <textarea
             key={`${design.id}-purpose`}
             rows={3}
             defaultValue={design.purpose}
-            placeholder="What this work is for, in one sentence."
+            placeholder={t.purposePlaceholder}
             onBlur={(e) =>
               commit(design.purpose, e.target.value, () =>
                 dispatch({ type: "setPurpose", purpose: e.target.value }),
@@ -120,13 +119,9 @@ export function Inspector() {
   if (selection.type === "endState") {
     return (
       <aside className="inspector">
-        <Head>End state</Head>
-        <p className="muted">
-          The panel on the right. Every workstream reads into it. Name is the
-          heading; what will be true sits under it. Colour is a light wash —
-          keep it part of the picture, not a billboard.
-        </p>
-        <Field label="Name">
+        <Head>{t.endState}</Head>
+        <p className="muted">{t.endStateIntro}</p>
+        <Field label={t.name}>
           <input
             key="es-name"
             defaultValue={design.endState.name}
@@ -137,7 +132,7 @@ export function Inspector() {
             }
           />
         </Field>
-        <Field label="What will be true">
+        <Field label={t.whatWillBeTrue}>
           <textarea
             key="es-desc"
             rows={5}
@@ -150,11 +145,11 @@ export function Inspector() {
                 }),
               )
             }
-            placeholder="Shown under the name on the panel."
+            placeholder={t.whatWillBeTrueHint}
           />
         </Field>
         <LoeEndStatesToggle />
-        <Field label="Colour">
+        <Field label={t.colour}>
           <div className="palette">
             {END_STATE_COLORS.map((color) => (
               <button
@@ -180,8 +175,8 @@ export function Inspector() {
     const idx = design.phases.findIndex((p) => p.id === phase.id);
     return (
       <aside className="inspector">
-        <Head>Phase</Head>
-        <Field label="Name">
+        <Head>{t.phase}</Head>
+        <Field label={t.name}>
           <input
             key={phase.id}
             defaultValue={phase.name}
@@ -202,14 +197,14 @@ export function Inspector() {
             disabled={idx === 0}
             onClick={() => dispatch({ type: "movePhase", id: phase.id, direction: -1 })}
           >
-            ← Earlier
+            {t.earlier}
           </button>
           <button
             type="button"
             disabled={idx === design.phases.length - 1}
             onClick={() => dispatch({ type: "movePhase", id: phase.id, direction: 1 })}
           >
-            Later →
+            {t.later}
           </button>
         </div>
         <button
@@ -220,7 +215,7 @@ export function Inspector() {
             setSelection({ type: "phase", id });
           }}
         >
-          Add phase after
+          {t.addPhaseAfter}
         </button>
         <button
           type="button"
@@ -228,7 +223,7 @@ export function Inspector() {
           disabled={design.phases.length <= 1}
           onClick={() => dispatch({ type: "removePhase", id: phase.id })}
         >
-          Remove phase
+          {t.removePhase}
         </button>
       </aside>
     );
@@ -240,9 +235,9 @@ export function Inspector() {
     const idx = design.linesOfEffort.findIndex((l) => l.id === loe.id);
     return (
       <aside className="inspector">
-        <Head>Workstream</Head>
-        <p className="muted">Concurrent work organised by purpose.</p>
-        <Field label="Name">
+        <Head>{t.workstream}</Head>
+        <p className="muted">{t.workstreamIntro}</p>
+        <Field label={t.name}>
           <input
             key={loe.id}
             defaultValue={loe.name}
@@ -257,11 +252,11 @@ export function Inspector() {
             }
           />
         </Field>
-        <Field label="Purpose">
+        <Field label={t.purpose}>
           <input
             key={`${loe.id}-purpose`}
             defaultValue={loe.purpose}
-            placeholder="What this stream is for"
+            placeholder={t.streamPurposePlaceholder}
             onBlur={(e) =>
               commit(loe.purpose, e.target.value, () =>
                 dispatch({
@@ -276,7 +271,7 @@ export function Inspector() {
         <LoeEndStatesToggle />
         {design.showLoeEndStates && (
           <>
-            <Field label="End state">
+            <Field label={t.endState}>
               <textarea
                 key={`${loe.id}-end-state`}
                 rows={3}
@@ -290,16 +285,13 @@ export function Inspector() {
                     }),
                   )
                 }
-                placeholder="What will be true for this stream"
+                placeholder={t.streamEndPlaceholder}
               />
             </Field>
-            <p className="muted">
-              This stream's outcome. It feeds the campaign end state on the
-              right.
-            </p>
+            <p className="muted">{t.streamFeedsCampaign}</p>
           </>
         )}
-        <Field label="Colour">
+        <Field label={t.colour}>
           <div className="palette">
             {LOE_COLORS.map((color) => (
               <button
@@ -319,14 +311,14 @@ export function Inspector() {
             disabled={idx === 0}
             onClick={() => dispatch({ type: "moveLoe", id: loe.id, direction: -1 })}
           >
-            ↑ Up
+            {t.up}
           </button>
           <button
             type="button"
             disabled={idx === design.linesOfEffort.length - 1}
             onClick={() => dispatch({ type: "moveLoe", id: loe.id, direction: 1 })}
           >
-            ↓ Down
+            {t.down}
           </button>
         </div>
         <button
@@ -335,7 +327,7 @@ export function Inspector() {
           disabled={design.linesOfEffort.length <= 1}
           onClick={() => dispatch({ type: "removeLoe", id: loe.id })}
         >
-          Remove workstream
+          {t.removeWorkstream}
         </button>
       </aside>
     );
@@ -358,7 +350,7 @@ export function Inspector() {
               dispatch({ type: "updateNode", id: n.id, kind: "milestone" })
             }
           >
-            Milestone
+            {t.milestone}
           </button>
           <button
             type="button"
@@ -367,15 +359,13 @@ export function Inspector() {
               dispatch({ type: "updateNode", id: n.id, kind: "condition" })
             }
           >
-            Condition
+            {t.condition}
           </button>
         </div>
         <p className="muted">
-          {n.kind === "milestone"
-            ? "An event or deliverable. The label is the text on the picture."
-            : "A state that must hold. The label is the text on the picture."}
+          {n.kind === "milestone" ? t.milestoneIntro : t.conditionIntro}
         </p>
-        <Field label="Label">
+        <Field label={t.label}>
           <input
             key={n.id}
             defaultValue={n.label}
@@ -387,12 +377,12 @@ export function Inspector() {
           />
         </Field>
         {design.showDetail && (
-          <Field label="Description">
+          <Field label={t.description}>
             <textarea
               key={`${n.id}-desc`}
               rows={3}
               defaultValue={n.description}
-              placeholder="What this means — shown in the list under the picture."
+              placeholder={t.nodeDescPlaceholder}
               onBlur={(e) =>
                 commit(n.description, e.target.value, () =>
                   dispatch({
@@ -405,7 +395,7 @@ export function Inspector() {
             />
           </Field>
         )}
-        <Field label="Line of effort">
+        <Field label={t.workstream}>
           <select
             value={n.loeId}
             onChange={(e) =>
@@ -419,7 +409,7 @@ export function Inspector() {
             ))}
           </select>
         </Field>
-        <Field label="Phase">
+        <Field label={t.phase}>
           <select
             value={n.phaseId}
             onChange={(e) =>
@@ -433,7 +423,7 @@ export function Inspector() {
             ))}
           </select>
         </Field>
-        <Field label="Depends on">
+        <Field label={t.dependsOn}>
           <select
             value=""
             onChange={(e) => {
@@ -446,7 +436,7 @@ export function Inspector() {
               });
             }}
           >
-            <option value="">Add a predecessor…</option>
+            <option value="">{t.addPredecessor}</option>
             {others.map((o) => (
               <option key={o.id} value={o.id}>
                 {o.label}
@@ -460,13 +450,13 @@ export function Inspector() {
               const from = design.nodes.find((x) => x.id === d.fromId);
               return (
                 <li key={d.id}>
-                  <span>{from?.label ?? "Unknown"}</span>
+                  <span>{from?.label ?? t.unknown}</span>
                   <button
                     type="button"
                     className="tiny"
                     onClick={() => dispatch({ type: "removeDependency", id: d.id })}
                   >
-                    Remove
+                    {t.remove}
                   </button>
                 </li>
               );
@@ -475,13 +465,13 @@ export function Inspector() {
         )}
         {outgoing.length > 0 && (
           <>
-            <p className="field-label">This enables</p>
+            <p className="field-label">{t.thisEnables}</p>
             <ul className="dep-list">
               {outgoing.map((d) => {
                 const to = design.nodes.find((x) => x.id === d.toId);
                 return (
                   <li key={d.id}>
-                    <span>{to?.label ?? "Unknown"}</span>
+                    <span>{to?.label ?? t.unknown}</span>
                     <button
                       type="button"
                       className="tiny"
@@ -489,7 +479,7 @@ export function Inspector() {
                         dispatch({ type: "removeDependency", id: d.id })
                       }
                     >
-                      Remove
+                      {t.remove}
                     </button>
                   </li>
                 );
@@ -504,14 +494,14 @@ export function Inspector() {
             setLinkFrom(n.id);
           }}
         >
-          Draw link from here
+          {t.drawLink}
         </button>
         <button
           type="button"
           className="danger"
           onClick={() => dispatch({ type: "removeNode", id: n.id })}
         >
-          Remove
+          {t.remove}
         </button>
       </aside>
     );
@@ -524,16 +514,16 @@ export function Inspector() {
     const to = design.nodes.find((n) => n.id === dep.toId);
     return (
       <aside className="inspector">
-        <Head>Dependency</Head>
+        <Head>{t.dependency}</Head>
         <p className="muted">
-          {from?.label ?? "From"} must be true or complete before {to?.label ?? "to"}.
+          {t.dependencyIntro(from?.label ?? t.unknown, to?.label ?? t.unknown)}
         </p>
         <button
           type="button"
           className="danger"
           onClick={() => dispatch({ type: "removeDependency", id: dep.id })}
         >
-          Remove link
+          {t.removeLink}
         </button>
       </aside>
     );
@@ -544,17 +534,13 @@ export function Inspector() {
     if (!dp) return null;
     return (
       <aside className="inspector">
-        <Head>Gate</Head>
-        <p className="muted">
-          Go, recycle, or stop. Name it as the decision — that label sits under
-          the star. Drag along the bar to sit inside a phase, or on the seam
-          after it. Hover the bar and click + to add another.
-        </p>
-        <Field label="Label">
+        <Head>{t.gate}</Head>
+        <p className="muted">{t.gateIntro}</p>
+        <Field label={t.label}>
           <input
             key={dp.id}
             defaultValue={dp.label}
-            placeholder="Proceed? Recycle? Stop?"
+            placeholder={t.gateLabelPlaceholder}
             onBlur={(e) =>
               commit(dp.label, e.target.value, () =>
                 dispatch({ type: "updateDp", id: dp.id, label: e.target.value }),
@@ -563,12 +549,12 @@ export function Inspector() {
           />
         </Field>
         {design.showDetail && (
-          <Field label="Description">
+          <Field label={t.description}>
             <textarea
               key={`${dp.id}-desc`}
               rows={3}
               defaultValue={dp.description}
-              placeholder="What this decision is about — shown in the list under the picture."
+              placeholder={t.gateDescPlaceholder}
               onBlur={(e) =>
                 commit(dp.description, e.target.value, () =>
                   dispatch({
@@ -581,7 +567,7 @@ export function Inspector() {
             />
           </Field>
         )}
-        <Field label="Phase">
+        <Field label={t.phase}>
           <select
             value={dp.afterPhaseId}
             onChange={(e) =>
@@ -607,7 +593,7 @@ export function Inspector() {
               dispatch({ type: "updateDp", id: dp.id, placement: "in" })
             }
           >
-            In phase
+            {t.inPhase}
           </button>
           <button
             type="button"
@@ -616,7 +602,7 @@ export function Inspector() {
               dispatch({ type: "updateDp", id: dp.id, placement: "after" })
             }
           >
-            After phase
+            {t.afterPhase}
           </button>
         </div>
         <button
@@ -624,7 +610,7 @@ export function Inspector() {
           className="danger"
           onClick={() => dispatch({ type: "removeDp", id: dp.id })}
         >
-          Remove
+          {t.remove}
         </button>
       </aside>
     );
