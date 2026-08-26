@@ -47,9 +47,10 @@ export function renderPhaseViewSvg(
       root.render(
         <ThemeProvider>
           <LanguageProvider>
-            <DesignProvider initial={picture}>
+            <DesignProvider initial={picture} persist={false}>
               <Diagram
                 svgRef={svgRef}
+                picture={picture}
                 readOnly
                 layoutOptions={layoutOptions}
                 palette={palette}

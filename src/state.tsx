@@ -33,32 +33,41 @@ const DesignContext = createContext<DesignContextValue | null>(null);
 export function DesignProvider({
   initial,
   children,
+  persist = true,
 }: {
   initial: OperationalDesign;
   children: ReactNode;
+  /** Off-screen export mounts must not write the wall JSON or undo stacks. */
+  persist?: boolean;
 }) {
   const [design, setDesign] = useState(initial);
   const [selection, setSelection] = useState<Selection>(null);
   const [present, setPresent] = useState(false);
-  const [canUndo, setCanUndo] = useState(() => loadSession().undo.length > 0);
-  const [canRedo, setCanRedo] = useState(() => loadSession().redo.length > 0);
+  const [canUndo, setCanUndo] = useState(
+    () => persist && loadSession().undo.length > 0,
+  );
+  const [canRedo, setCanRedo] = useState(
+    () => persist && loadSession().redo.length > 0,
+  );
   const [linkMode, setLinkModeState] = useState(false);
   const [linkFrom, setLinkFrom] = useState<string | null>(null);
   const undoStack = useRef<OperationalDesign[]>([]);
   const redoStack = useRef<OperationalDesign[]>([]);
   const hydrated = useRef(false);
   if (!hydrated.current) {
-    const session = loadSession();
-    undoStack.current = session.undo;
-    redoStack.current = session.redo;
+    if (persist) {
+      const session = loadSession();
+      undoStack.current = session.undo;
+      redoStack.current = session.redo;
+    }
     hydrated.current = true;
   }
 
   const persistStacks = useCallback(() => {
-    saveSession(undoStack.current, redoStack.current);
+    if (persist) saveSession(undoStack.current, redoStack.current);
     setCanUndo(undoStack.current.length > 0);
     setCanRedo(redoStack.current.length > 0);
-  }, []);
+  }, [persist]);
 
   const setLinkMode = useCallback((v: boolean) => {
     setLinkModeState(v);
@@ -73,11 +82,11 @@ export function DesignProvider({
       if (undoStack.current.length > 80) undoStack.current.shift();
       redoStack.current = [];
       persistStacks();
-      saveDesign(next);
+      if (persist) saveDesign(next);
       setSelection((sel) => selectionAfter(next, sel));
       return next;
     });
-  }, [persistStacks]);
+  }, [persist, persistStacks]);
 
   const undo = useCallback(() => {
     const prev = undoStack.current.pop();
@@ -85,11 +94,11 @@ export function DesignProvider({
     setDesign((current) => {
       redoStack.current.push(current);
       persistStacks();
-      saveDesign(prev);
+      if (persist) saveDesign(prev);
       setSelection((sel) => selectionAfter(prev, sel));
       return prev;
     });
-  }, [persistStacks]);
+  }, [persist, persistStacks]);
 
   const redo = useCallback(() => {
     const next = redoStack.current.pop();
@@ -97,11 +106,11 @@ export function DesignProvider({
     setDesign((current) => {
       undoStack.current.push(current);
       persistStacks();
-      saveDesign(next);
+      if (persist) saveDesign(next);
       setSelection((sel) => selectionAfter(next, sel));
       return next;
     });
-  }, [persistStacks]);
+  }, [persist, persistStacks]);
 
   const value = useMemo(
     () => ({
