@@ -10,8 +10,11 @@
         var t = localStorage.getItem("opsdesign:theme");
         document.documentElement.dataset.theme =
           t === "light" || t === "dark" ? t : "dark";
+        var lang = localStorage.getItem("opsdesign:lang");
+        document.documentElement.lang = lang === "nb" ? "nb" : "en";
       } catch (e) {
         document.documentElement.dataset.theme = "dark";
+        document.documentElement.lang = "en";
       }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,8 +23,8 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="./assets/index-DU4AyM_A.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-gqMPIkiY.css">
+    <script type="module" crossorigin src="./assets/index-DJOmo6cY.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BiMwhbEN.css">
   </head>
   <body>
     <div id="root"></div>
