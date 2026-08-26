@@ -115,19 +115,8 @@ export function detailFigureSvgMarkup(
     model.gates.length === 0 && model.streams.every((s) => s.nodes.length === 0);
   const parts: string[] = [
     `<rect width="${w}" height="__DETAIL_H__" rx="10" fill="${palette.bg}"/>`,
-    t(PAD, PAD + 14, "DETAIL", {
-      size: 11,
-      fill: palette.purpose,
-      weight: 700,
-    }),
-    t(
-      PAD,
-      PAD + 32,
-      "Labels match the picture. Description is optional — it sits here, not on the figures.",
-      { size: 12, fill: palette.purpose },
-    ),
   ];
-  let y = PAD + 48;
+  let y = PAD;
 
   if (empty) {
     parts.push(

@@ -80,7 +80,10 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           fit; type scales with it. If the detail figure is on, further 16:9
           slides list gates and each workstream. Long descriptions continue on
           extra slides rather than shrinking. PNG and SVG follow the same
-          toggle: the list sits under the picture. Dependency links are curved PowerPoint
+          toggle: the list sits under the picture. File → Export pages… makes a
+          zip of PNGs for Word/A4 — the full picture, then one image per phase
+          (workstream names, that phase, and the end-state panel). If the detail
+          figure is on, matching notes pages go in the same zip. Dependency links are curved PowerPoint
           connectors glued to the sides of the figures. Labels are the text on
           the picture. Workstream end states are optional (Off/On in the
           inspector). When on, each workstream can carry an end state at the

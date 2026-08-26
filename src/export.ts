@@ -21,13 +21,13 @@ export function downloadSvg(
   triggerDownload(blob, slug(design.title) + ".svg");
 }
 
-export async function downloadPng(
-  svg: SVGSVGElement,
-  design: OperationalDesign,
-  palette: DiagramPalette,
+export async function rasteriseSvg(
+  xml: string,
+  width: number,
+  height: number,
+  bg: string,
   scale = 2,
-): Promise<void> {
-  const { xml, width, height } = exportMarkup(svg, design, palette);
+): Promise<Blob> {
   const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   try {
@@ -37,14 +37,24 @@ export async function downloadPng(
     canvas.height = Math.round(height * scale);
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Could not create canvas.");
-    ctx.fillStyle = palette.bg;
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const png = await canvasToBlob(canvas);
-    triggerDownload(png, slug(design.title) + ".png");
+    return canvasToBlob(canvas);
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+export async function downloadPng(
+  svg: SVGSVGElement,
+  design: OperationalDesign,
+  palette: DiagramPalette,
+  scale = 2,
+): Promise<void> {
+  const { xml, width, height } = exportMarkup(svg, design, palette);
+  const png = await rasteriseSvg(xml, width, height, palette.bg, scale);
+  triggerDownload(png, slug(design.title) + ".png");
 }
 
 function loadImage(url: string): Promise<HTMLImageElement> {

@@ -68,13 +68,6 @@ export function DetailFigure() {
 
   return (
     <section className="detail-figure" aria-label="Detail">
-      <header className="detail-figure-head">
-        <h2>Detail</h2>
-        <p>
-          Labels match the picture. Description is optional — it sits here, not
-          on the figures.
-        </p>
-      </header>
       {empty ? (
         <p className="detail-empty">
           Add milestones, conditions, or gates on the picture. They will list
