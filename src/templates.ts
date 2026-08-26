@@ -1,4 +1,5 @@
 import { uid } from "./id";
+import { copy } from "./i18n";
 import { parseImportedDesign } from "./storage";
 import { END_STATE_DEFAULT_COLOR, type DesignNode, type NodeKind, type OperationalDesign } from "./types";
 import epicFuryJson from "./samples/epic-fury.json";
@@ -12,24 +13,25 @@ function blank(
   const l1 = uid("loe");
   const l2 = uid("loe");
 
+  const t = copy();
   return {
     id: uid("op"),
     purpose: "",
-    endState: { name: "END STATE", description: "", color: END_STATE_DEFAULT_COLOR },
+    endState: { name: t.endStateHeader, description: "", color: END_STATE_DEFAULT_COLOR },
     phases: [
-      { id: p1, name: "Phase 1" },
-      { id: p2, name: "Phase 2" },
-      { id: p3, name: "Phase 3" },
+      { id: p1, name: t.phaseN(1) },
+      { id: p2, name: t.phaseN(2) },
+      { id: p3, name: t.phaseN(3) },
     ],
     linesOfEffort: [
-      { id: l1, name: "Workstream 1", color: "#E87722", purpose: "", endState: "" },
-      { id: l2, name: "Workstream 2", color: "#5B8C2A", purpose: "", endState: "" },
+      { id: l1, name: t.workstreamN(1), color: "#E87722", purpose: "", endState: "" },
+      { id: l2, name: t.workstreamN(2), color: "#5B8C2A", purpose: "", endState: "" },
     ],
     nodes: [],
     dependencies: [],
     decisionPoints: [
-      { id: uid("dp"), label: "Decision 1", afterPhaseId: p1, placement: "after", order: 0, description: "" },
-      { id: uid("dp"), label: "Decision 2", afterPhaseId: p2, placement: "after", order: 0, description: "" },
+      { id: uid("dp"), label: t.decisionN(1), afterPhaseId: p1, placement: "after", order: 0, description: "" },
+      { id: uid("dp"), label: t.decisionN(2), afterPhaseId: p2, placement: "after", order: 0, description: "" },
     ],
     showLoeEndStates: false,
     showDetail: false,
@@ -38,9 +40,10 @@ function blank(
 }
 
 export function blankDesign(): OperationalDesign {
+  const t = copy();
   return blank({
-    title: "Untitled project",
-    purpose: "What this work is for, in one sentence.",
+    title: t.untitledProject,
+    purpose: t.purposePlaceholder,
   });
 }
 

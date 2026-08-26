@@ -1,5 +1,6 @@
 import { hasDependency, nextLabel, nextOrder, wouldCreateCycle } from "./design";
 import { uid } from "./id";
+import { copy } from "./i18n";
 import { nodeColumns } from "./layout";
 import {
   LOE_COLORS,
@@ -110,7 +111,7 @@ export function reduceDesign(
     case "addPhase": {
       const phase = {
         id: action.id ?? uid("ph"),
-        name: `Phase ${design.phases.length + 1}`,
+        name: copy().phaseN(design.phases.length + 1),
       };
       const phases = [...design.phases];
       const idx = action.afterId
@@ -162,7 +163,7 @@ export function reduceDesign(
           ...design.linesOfEffort,
           {
             id: action.id ?? uid("loe"),
-            name: `Workstream ${design.linesOfEffort.length + 1}`,
+            name: copy().workstreamN(design.linesOfEffort.length + 1),
             color,
             purpose: "",
             endState: "",
@@ -360,7 +361,7 @@ export function reduceDesign(
           ...design.decisionPoints,
           {
             id: action.id ?? uid("dp"),
-            label: `Decision ${design.decisionPoints.length + 1}`,
+            label: copy().decisionN(design.decisionPoints.length + 1),
             afterPhaseId: action.afterPhaseId,
             placement: action.placement ?? "after",
             order: action.order ?? 0,

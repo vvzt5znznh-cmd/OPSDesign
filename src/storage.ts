@@ -1,3 +1,4 @@
+import { copy } from "./i18n";
 import { LOE_COLORS, endStateColor, loeEndStatesShown, detailShown, type DecisionPoint, type DesignNode, type Dependency, type LineOfEffort, type OperationalDesign } from "./types";
 
 const KEY = "opsdesign:current";
@@ -36,7 +37,7 @@ function migrateLoe(raw: Record<string, unknown>, index: number): LineOfEffort |
   if (typeof raw.id !== "string") return null;
   return {
     id: raw.id,
-    name: asString(raw.name, `Workstream ${index + 1}`),
+    name: asString(raw.name, copy().workstreamN(index + 1)),
     color: asString(raw.color, LOE_COLORS[index % LOE_COLORS.length]),
     purpose: asString(raw.purpose),
     endState: asString(raw.endState),
@@ -118,7 +119,7 @@ export function normalizeDesign(value: unknown): OperationalDesign | null {
     title: value.title,
     purpose: asString(value.purpose),
     endState: {
-      name: asString(value.endState.name, "END STATE"),
+      name: asString(value.endState.name, copy().endStateHeader),
       description: asString(value.endState.description),
       color: endStateColor({ color: asString(value.endState.color) }),
     },

@@ -1,4 +1,5 @@
 import { detailFigureModel, detailGateColumns, streamPhaseGroups } from "./design";
+import { useLang } from "./i18n";
 import { useDesign } from "./state";
 import { CONDITION_FILL, MILESTONE_FILL } from "./types";
 
@@ -31,24 +32,25 @@ function GateMark() {
 
 export function DetailFigureToggle() {
   const { design, dispatch } = useDesign();
+  const { t } = useLang();
   const on = design.showDetail;
   return (
     <div className="detail-toggle hide-present">
-      <span className="detail-toggle-label">Detail figure</span>
-      <div className="kind-toggle" role="group" aria-label="Detail figure">
+      <span className="detail-toggle-label">{t.detailFigure}</span>
+      <div className="kind-toggle" role="group" aria-label={t.detailFigure}>
         <button
           type="button"
           className={!on ? "on" : ""}
           onClick={() => dispatch({ type: "setShowDetail", value: false })}
         >
-          Off
+          {t.off}
         </button>
         <button
           type="button"
           className={on ? "on" : ""}
           onClick={() => dispatch({ type: "setShowDetail", value: true })}
         >
-          On
+          {t.on}
         </button>
       </div>
     </div>
@@ -57,6 +59,7 @@ export function DetailFigureToggle() {
 
 export function DetailFigure() {
   const { design, selection, setSelection } = useDesign();
+  const { t } = useLang();
   const model = detailFigureModel(design);
   const empty =
     model.gates.length === 0 && model.streams.every((s) => s.nodes.length === 0);
@@ -67,17 +70,14 @@ export function DetailFigure() {
   const phaseNames = design.phases.map((p) => p.name);
 
   return (
-    <section className="detail-figure" aria-label="Detail">
+    <section className="detail-figure" aria-label={t.detail}>
       {empty ? (
-        <p className="detail-empty">
-          Add milestones, conditions, or gates on the picture. They will list
-          here by workstream.
-        </p>
+        <p className="detail-empty">{t.emptyDetail}</p>
       ) : (
         <>
           {model.gates.length > 0 && (
             <div className="detail-gates">
-              <h3 className="detail-section-label">Decision gates</h3>
+              <h3 className="detail-section-label">{t.decisionGates}</h3>
               <ul
                 className="detail-gates-list"
                 style={{
@@ -99,7 +99,9 @@ export function DetailFigure() {
                       <span className="detail-item-body">
                         <span className="detail-item-label">{g.label}</span>
                         <span className="detail-item-meta">
-                          {g.placement === "in" ? "In" : "After"} {g.phaseName}
+                          {g.placement === "in"
+                            ? t.inPhaseMeta(g.phaseName)
+                            : t.afterPhaseMeta(g.phaseName)}
                         </span>
                         {g.description.trim() ? (
                           <span className="detail-item-desc">
@@ -125,7 +127,7 @@ export function DetailFigure() {
                   <p className="detail-stream-purpose">{stream.purpose}</p>
                 ) : null}
                 {stream.nodes.length === 0 ? (
-                  <p className="detail-empty quiet">No milestones or conditions.</p>
+                  <p className="detail-empty quiet">{t.noNodes}</p>
                 ) : (
                   streamPhaseGroups(stream.nodes, phaseNames).map((group) => (
                     <div key={group.name || stream.id} className="detail-phase-group">

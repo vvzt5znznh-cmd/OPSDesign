@@ -1,4 +1,5 @@
 import { detailFigureModel, detailGateColumns, streamPhaseGroups } from "./design";
+import { copy } from "./i18n";
 import { wrapToWidth } from "./layout";
 import type { DiagramPalette } from "./theme";
 import {
@@ -123,7 +124,7 @@ export function detailFigureSvgMarkup(
       t(
         PAD,
         y + 16,
-        "Add milestones, conditions, or gates on the picture. They will list here by workstream.",
+        copy().emptyDetail,
         { size: 13, fill: palette.purpose },
       ),
     );
@@ -143,7 +144,7 @@ export function detailFigureSvgMarkup(
 
   if (model.gates.length) {
     parts.push(
-      t(PAD, y + 12, "DECISION GATES", {
+      t(PAD, y + 12, copy().decisionGates.toUpperCase(), {
         size: 10,
         fill: palette.purpose,
         weight: 700,
@@ -170,7 +171,10 @@ export function detailFigureSvgMarkup(
         rowH = 0;
       }
       const x = gateX(i);
-      const meta = `${g.placement === "in" ? "In" : "After"} ${g.phaseName}`.trim();
+      const meta =
+        g.placement === "in"
+          ? copy().inPhaseMeta(g.phaseName)
+          : copy().afterPhaseMeta(g.phaseName);
       const block = itemBlock(
         x + CARD_PAD,
         rowY + CARD_PAD,
@@ -239,7 +243,7 @@ export function detailFigureSvgMarkup(
     if (stream.nodes.length === 0) {
       cy += 16;
       body.push(
-        t(x + textInset, cy, "No milestones or conditions.", {
+        t(x + textInset, cy, copy().noNodes, {
           size: 12,
           fill: palette.purpose,
         }),

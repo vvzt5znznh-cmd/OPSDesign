@@ -1,3 +1,4 @@
+import { copy } from "./i18n";
 import { endStateColor, loeEndStatesShown, type GatePlacement, type NodeKind, type OperationalDesign } from "./types";
 import { NODE_LABEL, nodeLabelSize, wrapLabel } from "./wrap";
 
@@ -64,7 +65,7 @@ export function loeGutterTextWidth(): number {
 }
 
 export function wrapLoeName(name: string): string[] {
-  const text = name.trim() || "Workstream";
+  const text = name.trim() || copy().workstream;
   return wrapToWidth(text, loeGutterTextWidth(), LOE_GUTTER.namePx, LOE_GUTTER.nameMax);
 }
 
@@ -411,7 +412,7 @@ export function layoutDiagram(design: OperationalDesign): DiagramLayout {
     L.padX * 2 + L.leftGutter + phasesWidth + endBand + L.outcomeW;
   const textWidth = Math.max(240, width - L.padX * 2);
   const titleLines = wrapToWidth(
-    design.title || "Untitled",
+    design.title || copy().untitled,
     textWidth,
     H.titlePx,
     H.titleMax,

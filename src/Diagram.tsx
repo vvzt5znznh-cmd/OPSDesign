@@ -7,6 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { uid } from "./id";
+import { useLang } from "./i18n";
 import { columnAtX, hitPhaseAtX, layoutDiagram, minColumnInPhase, snapGateAtX, endStateTextBox, END_STATE_TEXT, HEADING, LAYOUT, LOE_END, LOE_GUTTER, type DiagramLayout } from "./layout";
 import { useDesign } from "./state";
 import { useTheme, type DiagramPalette } from "./theme";
@@ -84,6 +85,7 @@ export function Diagram({
     present,
   } = useDesign();
   const { diagram: palette } = useTheme();
+  const { t } = useLang();
   const laidOut = useMemo(() => layoutDiagram(design), [design]);
   const endText = useMemo(
     () => endStateTextBox(laidOut.endState),
@@ -506,7 +508,7 @@ export function Diagram({
           textAnchor="middle"
           className="svg-end-col"
         >
-          END STATE
+          {t.endStateHeader}
         </text>
       </g>
 
@@ -539,7 +541,7 @@ export function Diagram({
           <CellPlus
             x={hoverGate.x}
             y={laidOut.dpBar.y + laidOut.dpBar.height / 2}
-            title="Add gate"
+            title={t.addGate}
             onClick={() => {
               const id = uid("dp");
               dispatch({
@@ -993,7 +995,7 @@ export function Diagram({
                 2
               }
               y={laidOut.plot.y - 22}
-              label="Add phase"
+              label={t.addPhase}
               onClick={() => {
                 const afterId = laidOut.phases[laidOut.phases.length - 1].id;
                 const id = uid("ph");
@@ -1006,7 +1008,7 @@ export function Diagram({
             <PlusMark
               x={40}
               y={laidOut.loes[laidOut.loes.length - 1].y + 36}
-              label="Add workstream"
+              label={t.addWorkstream}
               onClick={() => {
                 const id = uid("loe");
                 dispatch({ type: "addLoe", id });
@@ -1055,7 +1057,7 @@ function CellPlus({
   x,
   y,
   onClick,
-  title = "Add milestone or condition",
+  title,
 }: {
   x: number;
   y: number;
@@ -1063,6 +1065,7 @@ function CellPlus({
   title?: string;
 }) {
   const { diagram: palette } = useTheme();
+  const { t } = useLang();
   return (
     <g
       data-ui="true"
@@ -1073,7 +1076,7 @@ function CellPlus({
         onClick();
       }}
     >
-      <title>{title}</title>
+      <title>{title ?? t.addNode}</title>
       <circle r="9" fill={palette.plus} fillOpacity="0.18" />
       <path
         d="M-4.5,0 H4.5 M0,-4.5 V4.5"
@@ -1126,12 +1129,13 @@ function AddPills({
   onCondition: () => void;
 }) {
   const { diagram: palette } = useTheme();
+  const { t } = useLang();
   return (
     <g data-ui="true" className="add-on-canvas" transform={`translate(${x}, ${y})`}>
       <rect
         x={0}
         y={0}
-        width={92}
+        width={108}
         height={48}
         fill="transparent"
         onPointerDown={(e) => e.stopPropagation()}
@@ -1143,10 +1147,10 @@ function AddPills({
           onMilestone();
         }}
       >
-        <rect width="92" height="22" rx="11" fill={palette.pill} />
+        <rect width="108" height="22" rx="11" fill={palette.pill} />
         <path d="M12,6 L17,17 L7,17 Z" fill={MILESTONE_FILL} />
         <text x="24" y="15" className="add-pill-text">
-          Milestone
+          {t.milestone}
         </text>
       </g>
       <g
@@ -1156,10 +1160,10 @@ function AddPills({
           onCondition();
         }}
       >
-        <rect width="92" height="22" rx="11" fill={palette.pill} />
+        <rect width="108" height="22" rx="11" fill={palette.pill} />
         <path d="M12,5 L19,11 L12,17 L5,11 Z" fill={CONDITION_FILL} />
         <text x="26" y="15" className="add-pill-text">
-          Condition
+          {t.condition}
         </text>
       </g>
     </g>
@@ -1238,15 +1242,16 @@ function NodeMark({
 }
 
 function Legend({ x, y }: { x: number; y: number }) {
+  const { t } = useLang();
   return (
     <g transform={`translate(${x}, ${y})`} className="legend">
       <path d="M0,-8 L7,6 L-7,6 Z" fill={MILESTONE_FILL} />
       <text x="12" y="4" className="svg-legend">
-        Milestone
+        {t.milestone}
       </text>
       <path transform="translate(92,0)" d="M0,-8 L8,0 L0,8 L-8,0 Z" fill={CONDITION_FILL} />
       <text x="106" y="4" className="svg-legend">
-        Condition
+        {t.condition}
       </text>
       <path
         transform="translate(188, 0)"
@@ -1256,7 +1261,7 @@ function Legend({ x, y }: { x: number; y: number }) {
         strokeWidth="0.8"
       />
       <text x="202" y="4" className="svg-legend">
-        Gate
+        {t.gate}
       </text>
       <line
         x1="278"
@@ -1268,7 +1273,7 @@ function Legend({ x, y }: { x: number; y: number }) {
         strokeDasharray="5 4"
       />
       <text x="324" y="4" className="svg-legend">
-        Dependency
+        {t.dependency}
       </text>
     </g>
   );

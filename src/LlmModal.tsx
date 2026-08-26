@@ -1,17 +1,19 @@
 import { useState } from "react";
+import { useLang } from "./i18n";
 import { llmPromptWithSample, sampleDesignJson } from "./llm";
 import { triggerDownload } from "./storage";
 
 export function LlmModal({ onClose }: { onClose: () => void }) {
   const [copied, setCopied] = useState(false);
+  const { t } = useLang();
 
-  async function copy() {
+  async function copyPrompt() {
     const text = llmPromptWithSample();
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
     } catch {
-      window.prompt("Copy this prompt:", text);
+      window.prompt(t.copyPrompt, text);
     }
   }
 
@@ -30,34 +32,29 @@ export function LlmModal({ onClose }: { onClose: () => void }) {
         aria-labelledby="llm-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="llm-title">Ask an LLM for a picture</h2>
-        <p>
-          Give a language model the prompt and the sample file, then describe
-          your project in plain language. Save the JSON it returns and open it
-          here with File → Open JSON.
-        </p>
+        <h2 id="llm-title">{t.llmTitle}</h2>
+        <p>{t.llmIntro}</p>
         <ol className="llm-steps">
-          <li>Copy the prompt (it includes the sample).</li>
+          <li>{t.llmStep1}</li>
+          <li>{t.llmStep2}</li>
+          <li>{t.llmStep3}</li>
           <li>
-            Paste it into ChatGPT, Claude, or similar. Attach the sample file
-            if the model takes files.
+            {t.llmStep4}
           </li>
-          <li>Describe the work: outcome, stages, concurrent streams, decisions.</li>
-          <li>Save the reply as a <code>.json</code> file. File → Open JSON.</li>
         </ol>
         <div className="llm-actions">
-          <button type="button" onClick={() => void copy()}>
-            {copied ? "Copied" : "Copy prompt"}
+          <button type="button" onClick={() => void copyPrompt()}>
+            {copied ? t.copied : t.copyPrompt}
           </button>
           <button type="button" onClick={downloadSample}>
-            Download sample JSON
+            {t.downloadSample}
           </button>
         </div>
         <pre className="llm-preview" tabIndex={0}>
           {llmPromptWithSample()}
         </pre>
         <button type="button" className="modal-close" onClick={onClose}>
-          Close
+          {t.close}
         </button>
       </div>
     </div>
